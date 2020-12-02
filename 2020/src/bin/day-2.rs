@@ -39,6 +39,7 @@ impl FromStr for Password {
 
 fn main() -> Result<(), &'static str> {
     part_1()?;
+    part_2()?;
     Ok(())
 }
 
@@ -54,6 +55,27 @@ fn part_1() -> Result<(), &'static str> {
             }
         }
         if pw.range.contains(&ch_count) {
+            valid += 1;
+        }
+    }
+    println!("valid passwords: {}", valid);
+    Ok(())
+}
+
+fn part_2() -> Result<(), &'static str> {
+    println!("\n=[ part 2 ]=");
+    let mut valid = 0;
+    for line in INPUT.lines() {
+        let pw = line.parse::<Password>()?;
+        let chars: Vec<char> = pw.text.chars().collect();
+        let mut count = 0;
+        if chars.len() >= *pw.range.start() && chars[*pw.range.start() - 1] == pw.ch {
+            count += 1;
+        }
+        if chars.len() >= *pw.range.end() && chars[*pw.range.end() - 1] == pw.ch {
+            count += 1;
+        }
+        if count == 1 {
             valid += 1;
         }
     }
