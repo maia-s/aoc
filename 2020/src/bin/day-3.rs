@@ -4,8 +4,7 @@ const WIDTH: usize = 31;
 fn main() {
     let map: Vec<u8> = INPUT
         .iter()
-        .copied()
-        .filter_map(|b| match b {
+        .filter_map(|&b| match b {
             b'.' => Some(0),
             b'#' => Some(1),
             _ => None,
