@@ -11,7 +11,9 @@ fn main() {
             _ => None,
         })
         .collect();
+
     part_1(&map);
+    part_2(&map);
 }
 
 fn slide(map: &[u8], right: usize, down: usize) -> usize {
@@ -29,4 +31,14 @@ fn slide(map: &[u8], right: usize, down: usize) -> usize {
 fn part_1(map: &[u8]) {
     println!("=[ part 1 ]=");
     println!("{} trees", slide(map, 3, 1));
+}
+
+fn part_2(map: &[u8]) {
+    println!("\n=[ part 2 ]=");
+    let r1d1 = slide(map, 1, 1);
+    let r3d1 = slide(map, 3, 1);
+    let r5d1 = slide(map, 5, 1);
+    let r7d1 = slide(map, 7, 1);
+    let r1d2 = slide(map, 1, 2);
+    println!("{}", r1d1 * r3d1 * r5d1 * r7d1 * r1d2);
 }
