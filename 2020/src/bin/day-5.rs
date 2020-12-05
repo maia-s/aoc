@@ -15,6 +15,7 @@ fn id(line: &str) -> usize {
 
 fn main() {
     println!("part 1: {}", part_1());
+    println!("part 2: {}", part_2());
 }
 
 fn part_1() -> usize {
@@ -26,4 +27,23 @@ fn part_1() -> usize {
         }
     }
     max
+}
+
+fn part_2() -> usize {
+    let mut seats = vec![];
+    for line in INPUT.lines() {
+        let id = id(line);
+        if id >= seats.len() {
+            seats.resize(id + 1, false);
+        }
+        seats[id] = true;
+    }
+    let mut it = seats.iter().enumerate();
+    while !*it.next().unwrap().1 {}
+    loop {
+        let (i, taken) = it.next().unwrap();
+        if !taken {
+            break i;
+        }
+    }
 }
