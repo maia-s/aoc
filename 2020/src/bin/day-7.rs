@@ -16,7 +16,7 @@ fn main() {
                 .split(", ")
                 .map(|bag| {
                     let mut it = bag.splitn(2, ' ');
-                    let n = it.next().unwrap().parse::<i32>().unwrap();
+                    let n = it.next().unwrap().parse().unwrap();
                     let bag = it.next().unwrap().split(" bag").next().unwrap();
                     contained_by.entry(bag).or_insert(vec![]).push(key);
                     (n, bag)
@@ -27,6 +27,7 @@ fn main() {
     }
 
     println!("part 1: {}", part_1(&contained_by));
+    println!("part 2: {}", part_2(&contains));
 }
 
 fn containers<'a>(
@@ -46,4 +47,16 @@ fn part_1(map: &HashMap<&str, Vec<&str>>) -> usize {
     let mut outer = HashSet::new();
     containers(&mut outer, map, "shiny gold");
     outer.len() - 1
+}
+
+fn contained(map: &HashMap<&str, Vec<(usize, &str)>>, bag: &str) -> usize {
+    let mut total = 0;
+    for &(n, sub) in map[bag].iter() {
+        total += n * (1 + contained(map, sub));
+    }
+    total
+}
+
+fn part_2(map: &HashMap<&str, Vec<(usize, &str)>>) -> usize {
+    contained(map, "shiny gold")
 }
