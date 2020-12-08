@@ -5,7 +5,7 @@ const INPUT: &str = include_str!("day-8.input");
 enum Op {
     Acc(isize),
     Jmp(isize),
-    Nop,
+    Nop(isize),
 }
 
 impl FromStr for Op {
@@ -18,7 +18,7 @@ impl FromStr for Op {
         match instr {
             "acc" => Ok(Op::Acc(arg)),
             "jmp" => Ok(Op::Jmp(arg)),
-            "nop" => Ok(Op::Nop),
+            "nop" => Ok(Op::Nop(arg)),
             _ => panic!("illegal instruction: {}", instr),
         }
     }
@@ -47,34 +47,58 @@ impl FromStr for VM {
 }
 
 impl VM {
-    fn step(&mut self) -> bool {
+    fn step(&mut self) -> Option<bool> {
         let ip = self.ip as usize;
         match self.ops[ip] {
-            (false, Op::Acc(x)) => {
-                self.ops[ip].0 = true;
-                self.acc += x;
-                self.ip += 1
-            }
-            (false, Op::Jmp(x)) => {
-                self.ops[ip].0 = true;
-                self.ip += x
-            }
-            (false, Op::Nop) => {
-                self.ops[ip].0 = true;
-                self.ip += 1
-            }
-            (true, _) => return false,
+            (false, Op::Acc(x)) => self.acc += x,
+            (false, Op::Jmp(x)) => self.ip += x - 1,
+            (false, Op::Nop(_)) => {}
+            (true, _) => return Some(false),
         }
-        return true;
+        self.ops[ip].0 = true;
+        self.ip += 1;
+        if self.ip as usize >= self.ops.len() {
+            Some(true)
+        } else {
+            None
+        }
+    }
+
+    fn run(&mut self) -> bool {
+        loop {
+            match self.step() {
+                Some(x) => return x,
+                None => (),
+            }
+        }
     }
 }
 
 fn main() {
     println!("part 1: {}", part_1());
+    println!("part 2: {}", part_2());
 }
 
 fn part_1() -> isize {
     let mut vm: VM = INPUT.parse().unwrap();
-    while vm.step() {}
+    vm.run();
     vm.acc
+}
+
+fn part_2() -> isize {
+    let mut i = 0;
+    loop {
+        let mut vm: VM = INPUT.parse().unwrap();
+        loop {
+            match vm.ops[i].1 {
+                Op::Acc(_) => i += 1,
+                Op::Jmp(x) => { vm.ops[i].1 = Op::Nop(x); break; }
+                Op::Nop(x) => { vm.ops[i].1 = Op::Jmp(x); break; }
+            }
+        }
+        if vm.run() {
+            return vm.acc;
+        }
+        i += 1;
+    }
 }
