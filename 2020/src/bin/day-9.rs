@@ -2,6 +2,7 @@ const INPUT: &str = include_str!("day-9.input");
 
 fn main() {
     println!("part 1: {}", part_1());
+    println!("part 2: {}", part_2());
 }
 
 #[derive(Default)]
@@ -47,4 +48,26 @@ fn part_1() -> u64 {
             return x;
         }
     }
+}
+
+fn part_2() -> u64 {
+    let target = part_1();
+    let numbers: Vec<u64> = INPUT.lines().map(|s| s.parse().unwrap()).collect();
+    let mut it = numbers.iter().copied();
+    while let Some(x) = it.next() {
+        let mut it2 = it.clone();
+        let mut sum = x;
+        let mut min = x;
+        let mut max = x;
+        while sum < target {
+            let x = it2.next().unwrap();
+            sum += x;
+            min = min.min(x);
+            max = max.max(x);
+        }
+        if sum == target {
+            return min + max;
+        }
+    }
+    panic!("not found");
 }
