@@ -4,11 +4,18 @@ const INPUT: &str = include_str!("day-11.input");
 
 fn main() {
     println!("part 1: {}", part_1());
+    println!("part 2: {}", part_2());
 }
 
 fn part_1() -> usize {
     let mut seats = Seats::new(INPUT);
-    while seats.step() {}
+    while seats.step(Neighbors::Immediate, 4) {}
+    seats.count(Seat::Occupied)
+}
+
+fn part_2() -> usize {
+    let mut seats = Seats::new(INPUT);
+    while seats.step(Neighbors::Seen, 5) {}
     seats.count(Seat::Occupied)
 }
 
@@ -31,6 +38,11 @@ impl Display for Seat {
             }
         )
     }
+}
+
+enum Neighbors {
+    Immediate,
+    Seen,
 }
 
 struct Seats(Vec<Vec<Seat>>);
@@ -72,7 +84,25 @@ impl Seats {
             .sum()
     }
 
-    fn occupied_neighbors(&self, x: usize, y: usize) -> usize {
+    fn seat(&self, x: usize, y: usize) -> Option<Seat> {
+        self.0.get(y).and_then(|row| row.get(x).copied())
+    }
+
+    fn seen(&self, x: usize, y: usize, dx: isize, dy: isize) -> usize {
+        let mut x = x as isize;
+        let mut y = y as isize;
+        loop {
+            x += dx;
+            y += dy;
+            match self.seat(x as usize, y as usize) {
+                Some(Seat::Empty) | None => return 0,
+                Some(Seat::Occupied) => return 1,
+                _ => (),
+            }
+        }
+    }
+
+    fn occupied_immediate(&self, x: usize, y: usize) -> usize {
         let mut n = 0;
         for j in y.saturating_sub(1)..=(y + 1) {
             if let Some(row) = self.0.get(j) {
@@ -89,19 +119,34 @@ impl Seats {
         n
     }
 
-    fn step(&mut self) -> bool {
+    fn occupied_seen(&self, x: usize, y: usize) -> usize {
+        self.seen(x, y, 0, -1)
+            + self.seen(x, y, 1, -1)
+            + self.seen(x, y, 1, 0)
+            + self.seen(x, y, 1, 1)
+            + self.seen(x, y, 0, 1)
+            + self.seen(x, y, -1, 1)
+            + self.seen(x, y, -1, 0)
+            + self.seen(x, y, -1, -1)
+    }
+
+    fn step(&mut self, neighbors: Neighbors, threshold: usize) -> bool {
+        let neighbors = |x, y| match neighbors {
+            Neighbors::Immediate => self.occupied_immediate(x, y),
+            Neighbors::Seen => self.occupied_seen(x, y),
+        };
         let mut changes = vec![];
         for (y, row) in self.0.iter().enumerate() {
             for (x, &seat) in row.iter().enumerate() {
                 match seat {
                     Seat::Floor => (),
                     Seat::Empty => {
-                        if self.occupied_neighbors(x, y) == 0 {
+                        if neighbors(x, y) == 0 {
                             changes.push((x, y, Seat::Occupied));
                         }
                     }
                     Seat::Occupied => {
-                        if self.occupied_neighbors(x, y) >= 4 {
+                        if neighbors(x, y) >= threshold {
                             changes.push((x, y, Seat::Empty));
                         }
                     }
