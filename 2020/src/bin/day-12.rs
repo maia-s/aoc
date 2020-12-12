@@ -5,6 +5,7 @@ const INPUT: &str = include_str!("day-12.input");
 fn main() {
     let instructions: Vec<_> = INPUT.lines().map(|s| s.parse().unwrap()).collect();
     println!("part 1: {}", part_1(&instructions));
+    println!("part 2: {}", part_2(&instructions));
 }
 
 #[derive(Copy, Clone)]
@@ -36,6 +37,8 @@ struct Ship {
     x: isize,
     y: isize,
     degrees: isize,
+    wx: isize,
+    wy: isize,
 }
 
 impl Ship {
@@ -44,6 +47,8 @@ impl Ship {
             x: 0,
             y: 0,
             degrees: 90,
+            wx: 10,
+            wy: -1,
         }
     }
 
@@ -61,12 +66,43 @@ impl Ship {
             },
         }
     }
+
+    fn wstep(&mut self, i: Instruction) {
+        match i {
+            Instruction::NorthSouth(n) => self.wy += n,
+            Instruction::WestEast(n) => self.wx += n,
+            Instruction::LeftRight(n) => {
+                let (wx, wy) = match n.rem_euclid(360) {
+                    0 => (self.wx, self.wy),
+                    90 => (-self.wy, self.wx),
+                    180 => (-self.wx, -self.wy),
+                    270 => (self.wy, -self.wx),
+                    n => panic!("rotate {}", n),
+                };
+                self.wx = wx;
+                self.wy = wy;
+            }
+
+            Instruction::Forward(n) => {
+                self.x += n * self.wx;
+                self.y += n * self.wy;
+            }
+        }
+    }
 }
 
 fn part_1(instructions: &[Instruction]) -> isize {
     let mut ship = Ship::new();
     for &i in instructions.iter() {
         ship.step(i);
+    }
+    ship.x.abs() + ship.y.abs()
+}
+
+fn part_2(instructions: &[Instruction]) -> isize {
+    let mut ship = Ship::new();
+    for &i in instructions.iter() {
+        ship.wstep(i);
     }
     ship.x.abs() + ship.y.abs()
 }
