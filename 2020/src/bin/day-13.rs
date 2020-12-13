@@ -28,27 +28,19 @@ fn part_1(earliest: usize, buses: &[Option<usize>]) -> usize {
 
 // chinese remainder theorem: https://www.youtube.com/watch?v=zIFehsBHB8o
 fn part_2(buses: &[Option<usize>]) -> usize {
-    let mut prod = 1;
-    let buses: Vec<_> = buses
+    let prod = buses.iter().fold(1, |acc, bus| acc * bus.unwrap_or(1));
+    buses
         .iter()
         .enumerate()
         .filter_map(|(i, bus)| {
             bus.map(|bus| {
-                prod *= bus;
-                (i, bus)
+                let n = prod / bus;
+                let mut x = 1;
+                while (x * n) % bus != 1 {
+                    x += 1;
+                }
+                (bus - i % bus) * n * x
             })
-        })
-        .collect();
-
-    buses
-        .iter()
-        .map(|&(i, bus)| {
-            let n = prod / bus;
-            let mut x = 1;
-            while (x * n) % bus != 1 {
-                x += 1;
-            }
-            (bus - i % bus) * n * x
         })
         .sum::<usize>()
         % prod
