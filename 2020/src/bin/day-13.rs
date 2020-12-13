@@ -26,19 +26,30 @@ fn part_1(earliest: usize, buses: &[Option<usize>]) -> usize {
     min.0 * min.1
 }
 
+// chinese remainder theorem: https://www.youtube.com/watch?v=zIFehsBHB8o
 fn part_2(buses: &[Option<usize>]) -> usize {
-    let mut buses: Vec<_> = buses
+    let mut prod = 1;
+    let buses: Vec<_> = buses
         .iter()
         .enumerate()
-        .filter_map(|(i, bus)| bus.map(|bus| (i, bus)))
+        .filter_map(|(i, bus)| {
+            bus.map(|bus| {
+                prod *= bus;
+                (i, bus)
+            })
+        })
         .collect();
-    buses.sort_unstable_by(|a, b| a.1.cmp(&b.1).reverse());
 
-    for i in ((buses[0].1 - buses[0].0)..).step_by(buses[0].1) {
-        if buses.iter().all(|(j, bus)| (i + j) % bus == 0) {
-            return i;
-        }
-    }
-
-    unreachable!();
+    buses
+        .iter()
+        .map(|&(i, bus)| {
+            let n = prod / bus;
+            let mut x = 1;
+            while (x * n) % bus != 1 {
+                x += 1;
+            }
+            (bus - i % bus) * n * x
+        })
+        .sum::<usize>()
+        % prod
 }
