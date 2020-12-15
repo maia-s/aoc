@@ -3,31 +3,46 @@ use std::collections::HashMap;
 const INPUT: &str = "10,16,6,0,1,17";
 
 fn main() {
-    println!("part 1: {}", part_1());
+    let mut mem = Memory::new();
+    println!("part 1: {}", mem.step_until(2020));
+    println!("part 2: {}", mem.step_until(30000000));
 }
 
-fn part_1() -> usize {
-    let mut spoken = HashMap::new();
-    let mut turn = 1;
-    let mut next = 0;
+struct Memory {
+    spoken: HashMap<usize, usize>,
+    turn: usize,
+    next: usize,
+}
 
-    for n in INPUT.split(",").map(|s| s.parse().unwrap()) {
-        if let Some(x) = spoken.insert(n, turn) {
-            next = turn - x;
-        } else {
-            next = 0;
+impl Memory {
+    fn new() -> Self {
+        let mut mem = Self {
+            spoken: HashMap::new(),
+            turn: 1,
+            next: 0,
+        };
+
+        for n in INPUT.split(",").map(|s| s.parse().unwrap()) {
+            mem.next = n;
+            mem.step();
         }
-        turn += 1;
+
+        mem
     }
 
-    while turn < 2020 {
-        if let Some(x) = spoken.insert(next, turn) {
-            next = turn - x;
+    fn step(&mut self) {
+        self.next = if let Some(prev) = self.spoken.insert(self.next, self.turn) {
+            self.turn - prev
         } else {
-            next = 0;
-        }
-        turn += 1;
+            0
+        };
+        self.turn += 1;
     }
 
-    next
+    fn step_until(&mut self, until: usize) -> usize {
+        while self.turn < until {
+            self.step();
+        }
+        self.next
+    }
 }
