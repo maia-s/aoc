@@ -7,13 +7,20 @@ const INPUT: &str = include_str!("day-19.input");
 
 fn main() {
     let mut inputs = INPUT.splitn(2, "\n\n");
-    let rules = inputs.next().unwrap().parse().unwrap();
+    let mut rules = inputs.next().unwrap().parse().unwrap();
     let messages = inputs.next().unwrap();
 
-    println!("part 1: {}", part_1(&rules, messages));
+    println!("part 1: {}", matches(&rules, messages));
+
+    rules.0.insert(8, Rule::OptSeq(vec![vec![42], vec![42, 8]]));
+    rules
+        .0
+        .insert(11, Rule::OptSeq(vec![vec![42, 31], vec![42, 11, 31]]));
+
+    println!("part 2: {}", matches(&rules, messages));
 }
 
-fn part_1(rules: &Rules, messages: &str) -> usize {
+fn matches(rules: &Rules, messages: &str) -> usize {
     messages
         .lines()
         .filter(|message| rules.matches(message))
@@ -67,48 +74,41 @@ impl FromStr for Rules {
 
 impl Rules {
     fn matches<'s>(&self, s: &'s str) -> bool {
-        if let Some(rests) = self._matches(0, s) {
-            rests.len() == 1 && rests.iter().next().unwrap() == &""
-        } else {
-            false
-        }
+        self.rests(0, s).contains("")
     }
 
-    fn _matches<'s>(&self, index: usize, s: &'s str) -> Option<HashSet<&'s str>> {
+    fn rests<'s>(&self, index: usize, s: &'s str) -> HashSet<&'s str> {
+        if s.is_empty() {
+            return HashSet::new();
+        }
         match self.0.get(&index).unwrap() {
             &Rule::Char(ch) => {
-                if s.len() >= 1 && s.chars().next().unwrap() == ch {
+                if s.chars().next().unwrap() == ch {
                     let mut rest = HashSet::new();
                     rest.insert(&s[1..]);
-                    Some(rest)
+                    rest
                 } else {
-                    None
+                    HashSet::new()
                 }
             }
             Rule::OptSeq(opt) => {
-                fn match_seq<'s>(rules: &Rules, seq: &[usize], s: &'s str) -> HashSet<&'s str> {
+                fn rests_seq<'s>(rules: &Rules, seq: &[usize], s: &'s str) -> HashSet<&'s str> {
                     if seq.is_empty() {
                         let mut rest = HashSet::new();
                         rest.insert(s);
                         rest
+                    } else if s.is_empty() {
+                        HashSet::new()
                     } else {
-                        match rules._matches(seq[0], s) {
-                            Some(v) => v
-                                .into_iter()
-                                .flat_map(|rest| match_seq(rules, &seq[1..], rest))
-                                .collect(),
-                            None => HashSet::new(),
-                        }
+                        rules
+                            .rests(seq[0], s)
+                            .into_iter()
+                            .flat_map(|rest| rests_seq(rules, &seq[1..], rest))
+                            .collect()
                     }
                 }
 
-                let rests: HashSet<_> =
-                    opt.iter().flat_map(|seq| match_seq(self, seq, s)).collect();
-                if rests.is_empty() {
-                    None
-                } else {
-                    Some(rests)
-                }
+                opt.iter().flat_map(|seq| rests_seq(self, seq, s)).collect()
             }
         }
     }
