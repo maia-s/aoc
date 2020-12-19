@@ -10,7 +10,9 @@ fn main() {
             lexer.peekable()
         })
         .collect();
+
     println!("part 1: {}", part_1(input.clone()));
+    println!("part 2: {}", part_2(input));
 }
 
 fn part_1(input: Vec<Peekable<Lexer>>) -> usize {
@@ -43,7 +45,47 @@ fn part_1(input: Vec<Peekable<Lexer>>) -> usize {
     input.into_iter().map(|mut expr| parse(&mut expr)).sum()
 }
 
-#[derive(Copy, Clone, Debug)]
+fn part_2(input: Vec<Peekable<Lexer>>) -> usize {
+    fn parse_term(lexer: &mut Peekable<Lexer>) -> usize {
+        match lexer.next() {
+            Some(Token::Lit(n)) => n,
+            Some(Token::ParenL) => {
+                let value = parse(lexer);
+                assert_eq!(lexer.next(), Some(Token::ParenR));
+                value
+            }
+            x => panic!("unexpected {:?}", x),
+        }
+    }
+    fn parse_add(lexer: &mut Peekable<Lexer>) -> usize {
+        let mut value = parse_term(lexer);
+        loop {
+            match lexer.peek() {
+                Some(Token::Add) => {
+                    lexer.next();
+                    value += parse_term(lexer);
+                }
+                _ => break value,
+            }
+        }
+    }
+    fn parse(lexer: &mut Peekable<Lexer>) -> usize {
+        let mut value = parse_add(lexer);
+        loop {
+            match lexer.peek() {
+                Some(Token::Mul) => {
+                    lexer.next();
+                    value *= parse_add(lexer);
+                }
+                Some(Token::ParenR) | None => break value,
+                x => panic!("unexpected {:?}", x),
+            }
+        }
+    }
+    input.into_iter().map(|mut expr| parse(&mut expr)).sum()
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 enum Token {
     Lit(usize),
     Add,
