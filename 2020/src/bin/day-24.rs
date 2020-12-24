@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::{collections::HashSet, mem::swap};
 
 const INPUT: &str = include_str!("day-24.input");
 
@@ -29,18 +29,65 @@ fn main() {
         })
         .collect();
 
-    let mut map = HashSet::new();
+    let mut set = HashSet::new();
     for line in input.iter() {
         let pos = line.iter().fold((0, 0), |pos, &dir| {
             let delta = dir.delta();
             (pos.0 + delta.0, pos.1 + delta.1)
         });
-        if !map.insert(pos) {
-            map.remove(&pos);
+        if !set.insert(pos) {
+            set.remove(&pos);
         }
     }
 
-    println!("part 1: {}", map.len());
+    println!("part 1: {}", set.len());
+
+    for _ in 0..100 {
+        step(&mut set);
+    }
+
+    println!("part 2: {}", set.len());
+}
+
+fn step(set: &mut HashSet<(isize, isize)>) {
+    let mut next = HashSet::new();
+    for &(x, y) in set.iter() {
+        match neighbor_coords(x, y)
+            .map(|(x, y)| {
+                if neighbor_coords(x, y)
+                    .map(|c| set.get(&c).is_some() as usize)
+                    .sum::<usize>()
+                    == 2
+                {
+                    next.insert((x, y));
+                }
+                set.get(&(x, y)).is_some() as usize
+            })
+            .sum()
+        {
+            1 | 2 => {
+                next.insert((x, y));
+            }
+            _ => (),
+        }
+    }
+    swap(set, &mut next);
+}
+
+fn neighbor_coords(x: isize, y: isize) -> impl Iterator<Item = (isize, isize)> {
+    [
+        Direction::East,
+        Direction::SouthEast,
+        Direction::SouthWest,
+        Direction::West,
+        Direction::NorthWest,
+        Direction::NorthEast,
+    ]
+    .iter()
+    .map(move |dir| {
+        let delta = dir.delta();
+        (x + delta.0, y + delta.1)
+    })
 }
 
 #[derive(Clone, Copy)]
