@@ -10,4 +10,12 @@ fn main() {
             .windows(2)
             .fold(0, |n, i| if i[1] > i[0] { n + 1 } else { n })
     );
+
+    // part 2
+    println!(
+        "part 2: {}",
+        input
+            .windows(4)
+            .fold(0, |n, i| if i[3] > i[0] { n + 1 } else { n })
+    );
 }
