@@ -5,7 +5,7 @@ These are my solutions for Advent of Code :)
 
 [1]: 2021/src/bin/day-1.rs
 [2]: 2021/src/bin/day-2.rs
-[2]: 2021/src/bin/day-3.rs
+[3]: 2021/src/bin/day-3.rs
 
 |          |          |          |          |          |          |          |
 | -------: | -------: | -------: | -------: | -------: | -------: | -------: |
