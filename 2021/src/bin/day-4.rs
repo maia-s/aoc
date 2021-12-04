@@ -6,6 +6,7 @@ struct Board {
     cells: HashMap<usize, Square>,
     row_marks: [usize; 5],
     col_marks: [usize; 5],
+    won: bool,
 }
 
 impl FromStr for Board {
@@ -21,7 +22,6 @@ impl FromStr for Board {
                     Square {
                         x,
                         y,
-                        value,
                         marked: false,
                     },
                 );
@@ -31,17 +31,23 @@ impl FromStr for Board {
             cells,
             row_marks: [0; 5],
             col_marks: [0; 5],
+            won: false,
         })
     }
 }
 
 impl Board {
     fn mark(&mut self, value: usize) -> bool {
-        if let Some(cell) = self.cells.get_mut(&value) {
-            cell.marked = true;
-            self.row_marks[cell.y] += 1;
-            self.col_marks[cell.x] += 1;
-            self.row_marks[cell.y] == 5 || self.col_marks[cell.x] == 5
+        if !self.won {
+            if let Some(cell) = self.cells.get_mut(&value) {
+                cell.marked = true;
+                self.row_marks[cell.y] += 1;
+                self.col_marks[cell.x] += 1;
+                self.won = self.row_marks[cell.y] == 5 || self.col_marks[cell.x] == 5;
+                self.won
+            } else {
+                false
+            }
         } else {
             false
         }
@@ -58,7 +64,6 @@ impl Board {
 struct Square {
     x: usize,
     y: usize,
-    value: usize,
     marked: bool,
 }
 
@@ -72,16 +77,22 @@ fn main() {
         .collect();
     let mut boards: Vec<Board> = input.map(|s| s.parse().unwrap()).collect();
 
-    println!("part 1: {}", part_1(&numbers, &mut boards));
-}
+    let mut part_1 = true;
+    let mut last_score = 0;
 
-fn part_1(numbers: &[usize], boards: &mut [Board]) -> usize {
     for &i in numbers.iter() {
         for board in boards.iter_mut() {
             if board.mark(i) {
-                return board.unmarked_sum() * i;
+                let score = board.unmarked_sum() * i;
+                last_score = score;
+
+                if part_1 {
+                    part_1 = false;
+                    println!("part 1: {}", score);
+                }
             }
         }
     }
-    panic!("no winners");
+
+    println!("part 2: {}", last_score);
 }
