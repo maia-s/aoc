@@ -51,6 +51,21 @@ impl Grid {
         }
     }
 
+    fn diag_line(&mut self, from: &Point, to: &Point) {
+        if from.x != to.x && from.y != to.y {
+            let dx = if from.x < to.x { 1 } else { -1 };
+            let dy = if from.y < to.y { 1 } else { -1 };
+            let mut x = from.x;
+            let mut y = from.y;
+            self.set(x, y);
+            while x != to.x && y != to.y {
+                x = (x as isize + dx) as usize;
+                y = (y as isize + dy) as usize;
+                self.set(x, y);
+            }
+        }
+    }
+
     fn set(&mut self, x: usize, y: usize) {
         assert!(x < self.width);
         self.cells[y * self.width + x] += 1;
@@ -83,4 +98,10 @@ fn main() {
     }
 
     println!("part 1: {}", grid.count(2));
+
+    for (from, to) in input.iter() {
+        grid.diag_line(from, to);
+    }
+
+    println!("part 2: {}", grid.count(2));
 }
