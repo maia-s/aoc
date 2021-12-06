@@ -12,6 +12,11 @@ fn main() {
         step(&mut fish);
     }
     println!("part 1: {}", fish.iter().sum::<usize>());
+
+    for _ in 80..256 {
+        step(&mut fish);
+    }
+    println!("part 2: {}", fish.iter().sum::<usize>());
 }
 
 fn step(fish: &mut [usize; 9]) {
