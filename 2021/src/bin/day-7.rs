@@ -7,35 +7,26 @@ fn main() {
         .map(|s| s.parse::<usize>().unwrap())
         .collect();
 
+    println!("part 1: {}", solve(&input, cost));
+    println!("part 2: {}", solve(&input, cost_2));
+}
+
+fn solve(input: &[usize], costfn: impl Fn(&[usize], usize) -> usize) -> usize {
     let mut i = input.iter().sum::<usize>() / input.len();
-    let mut min_cost = cost(&input, i);
+    let mut min_cost = costfn(&input, i);
     let d = if i > 0 { -1 } else { 1 };
 
     while (0..input.len()).contains(&((i as isize + d) as usize)) {
         i = (i as isize + d) as usize;
-        let cost = cost(&input, i);
+        let cost = costfn(&input, i);
         if min_cost > cost {
             min_cost = cost;
         } else {
             break;
         }
     }
-    println!("part 1: {}", min_cost);
 
-    let mut i = input.iter().sum::<usize>() / input.len();
-    let mut min_cost = cost_2(&input, i);
-    let d = if i > 0 { -1 } else { 1 };
-
-    while (0..input.len()).contains(&((i as isize + d) as usize)) {
-        i = (i as isize + d) as usize;
-        let cost = cost_2(&input, i);
-        if min_cost > cost {
-            min_cost = cost;
-        } else {
-            break;
-        }
-    }
-    println!("part 2: {}", min_cost);
+    min_cost
 }
 
 fn cost(crabs: &[usize], pos: usize) -> usize {
