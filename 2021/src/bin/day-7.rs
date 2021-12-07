@@ -14,7 +14,11 @@ fn main() {
 fn solve(input: &[usize], costfn: impl Fn(&[usize], usize) -> usize) -> usize {
     let mut i = input.iter().sum::<usize>() / input.len();
     let mut min_cost = costfn(&input, i);
-    let d = if i > 0 { -1 } else { 1 };
+    let d = if i > 0 && costfn(&input, i - 1) < min_cost {
+        -1
+    } else {
+        1
+    };
 
     while (0..input.len()).contains(&((i as isize + d) as usize)) {
         i = (i as isize + d) as usize;
