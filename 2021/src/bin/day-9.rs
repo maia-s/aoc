@@ -2,6 +2,7 @@ use std::str::FromStr;
 
 const INPUT: &str = include_str!("day-9.input");
 
+#[derive(Clone)]
 struct Map {
     grid: Vec<u8>,
     width: usize,
@@ -17,12 +18,14 @@ impl Map {
         }
     }
 
-    fn for_each(&self, mut f: impl FnMut(u8, u8, u8, u8, u8)) {
+    fn for_each(&self, mut f: impl FnMut(isize, isize, u8, u8, u8, u8, u8)) {
         for y in 0..self.height {
             let y = y as isize;
             for x in 0..self.width {
                 let x = x as isize;
                 f(
+                    x,
+                    y,
                     self.get(x, y),
                     self.get(x, y - 1),
                     self.get(x + 1, y),
@@ -30,6 +33,22 @@ impl Map {
                     self.get(x - 1, y),
                 );
             }
+        }
+    }
+
+    fn basin_size(&self, x: isize, y: isize) -> usize {
+        self.clone().basin_size_r(x, y)
+    }
+
+    fn basin_size_r(&mut self, x: isize, y: isize) -> usize {
+        if self.get(x, y) >= 9 {
+            0
+        } else {
+            self.grid[y as usize * self.width + x as usize] = 9;
+            1 + self.basin_size_r(x, y - 1)
+                + self.basin_size_r(x + 1, y)
+                + self.basin_size_r(x, y + 1)
+                + self.basin_size_r(x - 1, y)
         }
     }
 }
@@ -65,10 +84,19 @@ fn main() {
     let map: Map = INPUT.parse().unwrap();
 
     let mut risk = 0;
-    map.for_each(|c, n, e, s, w| {
+    let mut basin_size = Vec::new();
+    map.for_each(|x, y, c, n, e, s, w| {
         if c < n && c < e && c < s && c < w {
             risk += c as usize + 1;
+            basin_size.push(map.basin_size(x, y));
         }
     });
+
     println!("part 1: {}", risk);
+
+    basin_size.sort_unstable();
+    println!(
+        "part 2: {}",
+        basin_size.pop().unwrap() * basin_size.pop().unwrap() * basin_size.pop().unwrap()
+    );
 }
