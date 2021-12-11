@@ -10,7 +10,7 @@ struct Octopuses {
 }
 
 impl Octopuses {
-    fn step(&mut self) {
+    fn step(&mut self) -> bool {
         fn step(map: &mut [u8], w: usize, x: usize, y: usize) -> usize {
             let mut flash = 0;
             if map[y * w + x] != 0xff {
@@ -49,15 +49,21 @@ impl Octopuses {
 
         self.next.copy_from_slice(&self.map);
 
+        let mut new_flashes = 0;
+
         for y in 0..self.map.len() / self.width {
             for x in 0..self.width {
-                self.flashes += step(&mut self.next, self.width, x, y);
+                new_flashes += step(&mut self.next, self.width, x, y);
             }
         }
+        
+        self.flashes += new_flashes;
 
         for (&i, n) in self.next.iter().zip(self.map.iter_mut()) {
             *n = if i == 0xff { 0 } else { i };
         }
+
+        new_flashes == self.map.len()
     }
 }
 
@@ -110,4 +116,11 @@ fn main() {
     }
 
     println!("part 1: {}", octopuses.flashes);
+
+    let mut i = 101;
+    while !octopuses.step() {
+        i += 1;
+    }
+
+    println!("part 2: {}", i);
 }
