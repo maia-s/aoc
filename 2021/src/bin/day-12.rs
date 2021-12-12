@@ -28,21 +28,30 @@ impl System {
         }
     }
 
-    fn walks(&self) -> usize {
-        fn walks(map: &HashMap<String, Cave>, name: &str, mut seen: HashSet<String>) -> usize {
+    fn walks(&self, allow_twice: bool) -> usize {
+        fn walks(
+            map: &HashMap<String, Cave>,
+            name: &str,
+            mut seen: HashSet<String>,
+            mut allow_twice: bool,
+        ) -> usize {
             if name == "end" {
                 return 1;
             }
             let cave = map.get(name).unwrap();
             if !cave.is_big && !seen.insert(cave.name.clone()) {
-                return 0;
+                if !allow_twice || name == "start" {
+                    return 0;
+                } else {
+                    allow_twice = false;
+                }
             }
             cave.paths
                 .iter()
-                .map(|path| walks(map, path, seen.clone()))
+                .map(|path| walks(map, path, seen.clone(), allow_twice))
                 .sum()
         }
-        walks(&self.0, "start", HashSet::new())
+        walks(&self.0, "start", HashSet::new(), allow_twice)
     }
 }
 
@@ -59,5 +68,6 @@ fn main() {
         system.add_path(from.trim(), to.trim());
     }
 
-    println!("part 1: {}", system.walks());
+    println!("part 1: {}", system.walks(false));
+    println!("part 2: {}", system.walks(true));
 }
