@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{fmt::Display, str::FromStr};
 
 const INPUT: &str = include_str!("day-13.input");
 
@@ -85,6 +85,26 @@ impl FromStr for Dots {
     }
 }
 
+impl Display for Dots {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for y in 0..self.height {
+            for x in 0..self.width {
+                write!(
+                    f,
+                    "{}",
+                    if self.map[y * self.pitch + x] {
+                        '#'
+                    } else {
+                        ' '
+                    }
+                )?;
+            }
+            writeln!(f)?;
+        }
+        Ok(())
+    }
+}
+
 #[derive(Clone, Copy)]
 enum Fold {
     AlongX(usize),
@@ -113,4 +133,11 @@ fn main() {
     dots.fold(folds[0]);
 
     println!("part 1: {}", dots.count_dots());
+
+    for &fold in folds.iter().skip(1) {
+        dots.fold(fold);
+    }
+
+    println!("part 2:");
+    println!("{}", dots);
 }
