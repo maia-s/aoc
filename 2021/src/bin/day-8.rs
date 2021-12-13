@@ -61,4 +61,92 @@ fn main() {
                 .count())
             .sum::<usize>()
     );
+
+    // part 2
+    let mut sum = 0;
+    for (signals, digits) in input {
+        let mut on = [0_u8; 10];
+        let mut m5 = 0x7f;
+        let mut m6 = 0x7f;
+
+        for &signal in signals.iter() {
+            match signal.number_of_segments() {
+                2 => {
+                    // 1
+                    on[1] = signal.0;
+                }
+                3 => {
+                    // 7
+                    on[7] = signal.0;
+                }
+                4 => {
+                    // 4
+                    on[4] = signal.0;
+                }
+                5 => {
+                    // 2, 3 or 5
+                    m5 &= signal.0;
+                }
+                6 => {
+                    // 0, 6 or 9
+                    m6 &= signal.0;
+                }
+                7 => {
+                    // 8
+                    on[8] = 0x7f;
+                }
+                _ => unreachable!(),
+            }
+        }
+
+        on[3] = m5;
+        on[0] = m6;
+        //let a = on[1] ^ on[7];
+        let d = on[3] & on[4];
+        on[0] = on[8] ^ d;
+        on[3] |= on[1];
+        // 0 1 3 4 7 8
+    
+        for &signal in signals.iter() {
+            match signal.number_of_segments() {
+                2 | 3 | 4 | 7 => (),
+                5 => {
+                    // 2, 3 or 5
+                    if signal.0 != on[3] {
+                        // 2 or 5
+                        if (signal.0 & on[4]).count_ones() == 3 {
+                            on[5] = signal.0;
+                        } else {
+                            on[2] = signal.0;
+                        }
+                    }
+                }
+                6 => {
+                    // 0, 6 or 9
+                    if signal.0 != on[0] {
+                        // 6 or 9
+                        if (signal.0 & on[1]).count_ones() == 2 {
+                            on[9] = signal.0;
+                        } else {
+                            on[6] = signal.0;
+                        }
+                    }
+                }
+                _ => unreachable!(),
+            }
+        }
+
+        let mut val = 0;
+        for &digit in digits.iter() {
+            for (i, &o) in on.iter().enumerate() {
+                if o == digit.0 {
+                    val = val * 10 + i;
+                    break;
+                }
+            }
+        }
+        sum += val;
+    }
+
+    println!("part 2: {}", sum);
 }
