@@ -1,33 +1,40 @@
-use std::{fmt::Display, num::NonZeroU8, str::FromStr};
+use std::{num::NonZeroU8, str::FromStr};
 
 const INPUT: &str = include_str!("day-14.input");
 
 struct Polymer(Vec<u8>);
 
 impl Polymer {
-    fn step(&mut self, rules: &Rules) {
-        for i in (1..self.0.len()).rev() {
-            if let Some(insert) = rules.lookup(self.0[i - 1], self.0[i]) {
-                self.0.insert(i, insert.get());
+    fn run(&mut self, rules: &Rules, n: usize) -> usize {
+        let mut freq = [(0_usize, 0_u8); 256];
+
+        for i in 0..=255 {
+            freq[i as usize].1 = i;
+        }
+
+        fn step(freq: &mut [(usize, u8)], rules: &Rules, b0: u8, b1: u8, depth: usize) {
+            if depth != 0 {
+                if let Some(insert) = rules.lookup(b0, b1) {
+                    let insert = insert.get();
+                    freq[insert as usize].0 += 1;
+                    step(freq, rules, b0, insert, depth - 1);
+                    step(freq, rules, insert, b1, depth - 1);
+                }
             }
         }
-    }
 
-    fn frequencies(&self) -> usize {
-        let mut freq = [(0_usize, 0_u8); 256];
-        for &b in self.0.iter() {
-            freq[b as usize].0 += 1;
-            freq[b as usize].1 = b;
+        freq[self.0[0] as usize].0 += 1;
+
+        for b in self.0.windows(2) {
+            eprint!(".");
+            freq[b[1] as usize].0 += 1;
+            step(&mut freq, rules, b[0], b[1], n);
         }
+        eprintln!();
+
         let mut freq = freq.into_iter().filter(|n| n.0 != 0).collect::<Vec<_>>();
         freq.sort_unstable();
         freq[freq.len() - 1].0 - freq[0].0
-    }
-}
-
-impl Display for Polymer {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        String::from_utf8_lossy(&self.0).fmt(f)
     }
 }
 
@@ -70,9 +77,6 @@ fn main() {
     let mut polymer = polymer.parse::<Polymer>().unwrap();
     let rules = rules.parse::<Rules>().unwrap();
 
-    for _ in 0..10 {
-        polymer.step(&rules);
-    }
-
-    println!("part 1: {}", polymer.frequencies());
+    println!("part 1: {}", polymer.run(&rules, 10));
+    println!("part 2: {}", polymer.run(&rules, 40));
 }
