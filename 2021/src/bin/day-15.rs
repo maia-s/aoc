@@ -10,6 +10,13 @@ struct Map {
 }
 
 impl Map {
+    fn new(width: usize, height: usize) -> Self {
+        Self {
+            map: vec![0; width * height],
+            width,
+        }
+    }
+
     fn width(&self) -> usize {
         self.width
     }
@@ -57,6 +64,15 @@ impl Map {
         }
 
         panic!("no path");
+    }
+
+    fn blit(&mut self, (dx, dy): (usize, usize), src: &Map, add: u8) {
+        for y in 0..src.height() {
+            for x in 0..src.width() {
+                self.map[(dy + y) * self.width + (dx + x)] =
+                    (src.map[y * src.width() + x] - 1 + add) % 9 + 1;
+            }
+        }
     }
 }
 
@@ -116,5 +132,17 @@ fn main() {
     println!(
         "part 1: {}",
         map.path((0, 0), (map.width() - 1, map.height() - 1))
+    );
+
+    let mut map2 = Map::new(map.width() * 5, map.height() * 5);
+    for j in 0..5 {
+        for i in 0..5 {
+            map2.blit((i * map.width(), j * map.height()), &map, i as u8 + j as u8);
+        }
+    }
+
+    println!(
+        "part 2: {}",
+        map2.path((0, 0), (map2.width() - 1, map2.height() - 1))
     );
 }
