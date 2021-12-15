@@ -1,5 +1,3 @@
-#![feature(map_first_last)]
-
 use std::{cmp::Reverse, collections::BinaryHeap, str::FromStr};
 
 const INPUT: &str = include_str!("day-15.input");
