@@ -9,19 +9,17 @@ struct Transmission {
 }
 
 impl Transmission {
-    fn read_n(&mut self, mut n: usize) -> usize {
+    fn read_n(&mut self, n: usize) -> usize {
         let mut value = 0;
         self.pos += n;
-        while n > 0 {
-            n -= 1;
+        for _ in 0..n {
             value = (value << 1) + self.bits.next().unwrap() as usize;
         }
         value
     }
 
     fn packet(&mut self) -> usize {
-        let version = self.read_n(3);
-        self.version_sum += version;
+        self.version_sum += self.read_n(3);
         match self.read_n(3) {
             4 => self.literal(),
             x => self.operator(x),
@@ -72,7 +70,7 @@ impl Transmission {
                 let b = it.next().unwrap();
                 (a == b) as usize
             }
-            x => panic!("operator packet type {}", x),
+            _ => unreachable!(),
         }
     }
 }
