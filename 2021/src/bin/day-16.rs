@@ -2,17 +2,6 @@ use std::{str::FromStr, vec};
 
 const INPUT: &str = include_str!("day-16.input");
 
-struct Packet {
-    version: usize,
-    data: PkData,
-}
-
-#[derive(Clone, Copy)]
-enum PkData {
-    Literal(usize),
-    Unknown(usize),
-}
-
 struct Transmission {
     bits: vec::IntoIter<bool>,
     pos: usize,
@@ -30,29 +19,24 @@ impl Transmission {
         value
     }
 
-    fn packet(&mut self) -> Packet {
+    fn packet(&mut self) -> usize {
         let version = self.read_n(3);
-        let packet = match self.read_n(3) {
-            4 => self.literal(version),
-            x => self.operator(version, x),
-        };
-        self.version_sum += packet.version;
-        packet
+        self.version_sum += version;
+        match self.read_n(3) {
+            4 => self.literal(),
+            x => self.operator(x),
+        }
     }
 
-    fn literal(&mut self, version: usize) -> Packet {
+    fn literal(&mut self) -> usize {
         let mut value = 0;
         while self.read_n(1) == 1 {
             value = (value << 4) + self.read_n(4);
         }
-        value = (value << 4) + self.read_n(4);
-        Packet {
-            version,
-            data: PkData::Literal(value),
-        }
+        (value << 4) + self.read_n(4)
     }
 
-    fn operator(&mut self, version: usize, typeid: usize) -> Packet {
+    fn operator(&mut self, typeid: usize) -> usize {
         let mut subpackets = Vec::new();
         if self.read_n(1) == 0 {
             let length = self.read_n(15);
@@ -67,9 +51,28 @@ impl Transmission {
                 subpackets.push(self.packet());
             }
         }
-        Packet {
-            version,
-            data: PkData::Unknown(typeid),
+        let mut it = subpackets.into_iter();
+        match typeid {
+            0 => it.sum(),
+            1 => it.product(),
+            2 => it.min().unwrap(),
+            3 => it.max().unwrap(),
+            5 => {
+                let a = it.next().unwrap();
+                let b = it.next().unwrap();
+                (a > b) as usize
+            }
+            6 => {
+                let a = it.next().unwrap();
+                let b = it.next().unwrap();
+                (a < b) as usize
+            }
+            7 => {
+                let a = it.next().unwrap();
+                let b = it.next().unwrap();
+                (a == b) as usize
+            }
+            x => panic!("operator packet type {}", x),
         }
     }
 }
@@ -112,6 +115,7 @@ impl FromStr for Transmission {
 
 fn main() {
     let mut transmission = INPUT.parse::<Transmission>().unwrap();
-    transmission.packet();
+    let part_2 = transmission.packet();
     println!("part 1: {}", transmission.version_sum);
+    println!("part 2: {}", part_2);
 }
