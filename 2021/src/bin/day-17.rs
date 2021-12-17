@@ -7,15 +7,20 @@ fn main() {
     let xr = parse_range(xr);
     let yr = parse_range(yr);
 
-    let dx = ((0.25 + 2.0 * *xr.start() as f64).sqrt() - 0.5).ceil() as isize;
+    let dxs = ((0.25 + 2.0 * *xr.start() as f64).sqrt() - 0.5).floor() as isize;
     let mut max_y = 0;
-    for dy in 0..-*yr.start() {
-        if let Some(my) = throw((dx, dy), (xr.clone(), yr.clone())) {
-            max_y = max_y.max(my);
+    let mut hits: usize = 0;
+    for dx in dxs..*xr.end() + 1 {
+        for dy in *yr.start()..-*yr.start() {
+            if let Some(my) = throw((dx, dy), (xr.clone(), yr.clone())) {
+                max_y = max_y.max(my);
+                hits += 1;
+            }
         }
     }
 
     println!("part 1: {}", max_y);
+    println!("part 2: {}", hits);
 }
 
 fn parse_range(r: &str) -> RangeInclusive<isize> {
