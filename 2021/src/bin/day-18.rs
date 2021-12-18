@@ -1,7 +1,12 @@
-use std::{fmt::Display, ops::AddAssign, str::FromStr};
+use std::{
+    fmt::Display,
+    ops::{Add, AddAssign},
+    str::FromStr,
+};
 
 const INPUT: &str = "[[[[1,2],[3,4]],[[5,6],[7,8]]],9]";
 
+#[derive(Clone)]
 struct Number(Vec<Half>);
 
 impl Number {
@@ -24,6 +29,7 @@ impl Number {
                         }
                     }
                     Half::Right(r, n) => {
+                        assert!(depth >= r);
                         depth -= r;
                         if n > split_treshold {
                             self.split(i);
@@ -32,7 +38,7 @@ impl Number {
                     }
                 }
             }
-            break;
+            return;
         }
     }
 
@@ -117,6 +123,20 @@ impl Display for Number {
     }
 }
 
+impl Add for Number {
+    type Output = Self;
+
+    #[allow(clippy::suspicious_arithmetic_impl)]
+    fn add(mut self, rhs: Self) -> Self::Output {
+        self.0.extend(rhs.0);
+        let len = self.0.len();
+        self.0[0].nest();
+        self.0[len - 1].nest();
+        self.reduce();
+        self
+    }
+}
+
 #[derive(Clone, Copy)]
 enum Half {
     Left(u32, u32),
@@ -124,6 +144,15 @@ enum Half {
 }
 
 impl Half {
+    fn nest(&mut self) -> u32 {
+        match self {
+            Half::Left(n, _) | Half::Right(n, _) => {
+                *n += 1;
+                *n
+            }
+        }
+    }
+
     fn denest(&mut self) -> u32 {
         match self {
             Half::Left(n, _) | Half::Right(n, _) => {
@@ -195,5 +224,15 @@ mod tests {
         assert_eq!(n.to_string(), "[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]");
         n.reduce();
         assert_eq!(n.to_string(), "[[3,[2,[8,0]]],[9,[5,[7,0]]]]");
+    }
+
+    #[test]
+    fn add() {
+        let a = "[[[[4,3],4],4],[7,[[8,4],9]]]".parse::<Number>().unwrap();
+        assert_eq!(a.to_string(), "[[[[4,3],4],4],[7,[[8,4],9]]]");
+        let b = "[1,1]".parse::<Number>().unwrap();
+        assert_eq!(b.to_string(), "[1,1]");
+        let sum = a + b;
+        assert_eq!(sum.to_string(), "[[[[0,7],4],[[7,8],[6,0]]],[8,1]]");
     }
 }
