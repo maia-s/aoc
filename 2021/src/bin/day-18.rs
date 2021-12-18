@@ -24,6 +24,21 @@ impl Number {
                             self.explode(i);
                             continue 'reduce;
                         }
+                    }
+                    Half::Right(r, n) => {
+                        assert!(depth >= r);
+                        depth -= r;
+                    }
+                }
+            }
+            for (i, &h) in self.0.iter().enumerate() {
+                match h {
+                    Half::Left(l, n) => {
+                        depth += l;
+                        if depth > explode_depth {
+                            self.explode(i);
+                            continue 'reduce;
+                        }
                         if n > split_treshold {
                             self.split(i);
                             continue 'reduce;
