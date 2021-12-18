@@ -266,6 +266,7 @@ fn main() {
         .map(|line| line.parse::<Number>().unwrap())
         .collect();
     let sum = input.iter().cloned().sum::<Number>();
+    println!("part 1: {}", sum.magnitude());
 }
 
 #[cfg(test)]
