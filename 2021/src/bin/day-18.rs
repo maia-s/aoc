@@ -98,6 +98,10 @@ impl Number {
             }
         }
     }
+
+    fn magnitude(&self) -> u32 {
+        todo!()
+    }
 }
 
 impl FromStr for Number {
@@ -356,5 +360,71 @@ mod tests {
             n.into_iter().sum::<Number>().to_string(),
             "[[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]"
         );
+    }
+
+    #[test]
+    fn magnitude() {
+        let n = "[9,1]".parse::<Number>().unwrap();
+        assert_eq!(n.magnitude(), 29);
+
+        let n = "[1,9]".parse::<Number>().unwrap();
+        assert_eq!(n.magnitude(), 21);
+
+        let n = "[[9,1],[1,9]]".parse::<Number>().unwrap();
+        assert_eq!(n.magnitude(), 129);
+
+        let n = "[[1,2],[[3,4],5]]".parse::<Number>().unwrap();
+        assert_eq!(n.magnitude(), 143);
+
+        let n = "[[[[0,7],4],[[7,8],[6,0]]],[8,1]]"
+            .parse::<Number>()
+            .unwrap();
+        assert_eq!(n.magnitude(), 1384);
+
+        let n = "[[[[1,1],[2,2]],[3,3]],[4,4]]".parse::<Number>().unwrap();
+        assert_eq!(n.magnitude(), 445);
+
+        let n = "[[[[3,0],[5,3]],[4,4]],[5,5]]".parse::<Number>().unwrap();
+        assert_eq!(n.magnitude(), 791);
+
+        let n = "[[[[5,0],[7,4]],[5,5]],[6,6]]".parse::<Number>().unwrap();
+        assert_eq!(n.magnitude(), 1137);
+
+        let n = "[[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]"
+            .parse::<Number>()
+            .unwrap();
+        assert_eq!(n.magnitude(), 3488);
+    }
+
+    #[test]
+    fn example() {
+        let n: Vec<Number> = vec![
+            "[[[0,[5,8]],[[1,7],[9,6]]],[[4,[1,2]],[[1,4],2]]]"
+                .parse::<Number>()
+                .unwrap(),
+            "[[[5,[2,8]],4],[5,[[9,9],0]]]".parse::<Number>().unwrap(),
+            "[6,[[[6,2],[5,6]],[[7,6],[4,7]]]]"
+                .parse::<Number>()
+                .unwrap(),
+            "[[[6,[0,7]],[0,9]],[4,[9,[9,0]]]]"
+                .parse::<Number>()
+                .unwrap(),
+            "[[[7,[6,4]],[3,[1,3]]],[[[5,5],1],9]]"
+                .parse::<Number>()
+                .unwrap(),
+            "[[6,[[7,3],[3,2]]],[[[3,8],[5,7]],4]]"
+                .parse::<Number>()
+                .unwrap(),
+            "[[[[5,4],[7,7]],8],[[8,3],8]]".parse::<Number>().unwrap(),
+            "[[9,3],[[9,9],[6,[4,9]]]]".parse::<Number>().unwrap(),
+            "[[2,[[7,7],7]],[[5,8],[[9,3],[0,2]]]]"
+                .parse::<Number>()
+                .unwrap(),
+            "[[[[5,2],5],[8,[3,7]]],[[5,[7,5]],[4,4]]]"
+                .parse::<Number>()
+                .unwrap(),
+        ];
+        let sum = n.into_iter().sum::<Number>();
+        assert_eq!(sum.magnitude(), 4140);
     }
 }
