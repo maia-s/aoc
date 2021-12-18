@@ -100,7 +100,23 @@ impl Number {
     }
 
     fn magnitude(&self) -> u32 {
-        todo!()
+        let mut result = vec![];
+        for &h in self.0.iter() {
+            match h {
+                Half::Left(_, n) => result.push(n),
+                Half::Right(r, n) => {
+                    let ln = result.pop().unwrap();
+                    result.push(3 * ln + 2 * n);
+
+                    for _ in 1..r {
+                        let rn = result.pop().unwrap();
+                        let ln = result.pop().unwrap();
+                        result.push(3 * ln + 2 * rn);
+                    }
+                }
+            }
+        }
+        result.pop().unwrap()
     }
 }
 
