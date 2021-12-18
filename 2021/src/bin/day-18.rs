@@ -18,14 +18,14 @@ impl Number {
             let mut depth = 0;
             for (i, &h) in self.0.iter().enumerate() {
                 match h {
-                    Half::Left(l, n) => {
+                    Half::Left(l, _) => {
                         depth += l;
                         if depth > explode_depth {
                             self.explode(i);
                             continue 'reduce;
                         }
                     }
-                    Half::Right(r, n) => {
+                    Half::Right(r, _) => {
                         assert!(depth >= r);
                         depth -= r;
                     }
@@ -177,7 +177,6 @@ impl Display for Number {
 impl Add for Number {
     type Output = Self;
 
-    #[allow(clippy::suspicious_arithmetic_impl)]
     fn add(mut self, rhs: Self) -> Self::Output {
         self += rhs;
         self
@@ -267,6 +266,17 @@ fn main() {
         .collect();
     let sum = input.iter().cloned().sum::<Number>();
     println!("part 1: {}", sum.magnitude());
+
+    let mut max = 0;
+    for (i, a) in input.iter().enumerate() {
+        for (j, b) in input.iter().enumerate() {
+            if i == j {
+                continue;
+            }
+            max = max.max((a.clone() + b.clone()).magnitude());
+        }
+    }
+    println!("part 2: {}", max);
 }
 
 #[cfg(test)]
