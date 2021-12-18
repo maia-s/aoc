@@ -1,10 +1,11 @@
 use std::{
     fmt::Display,
+    iter::Sum,
     ops::{Add, AddAssign},
     str::FromStr,
 };
 
-const INPUT: &str = "[[[[1,2],[3,4]],[[5,6],[7,8]]],9]";
+const INPUT: &str = include_str!("day-18.input");
 
 #[derive(Clone)]
 struct Number(Vec<Half>);
@@ -44,7 +45,7 @@ impl Number {
 
     fn explode(&mut self, i: usize) {
         match self.0[i] {
-            Half::Left(l, n) => {
+            Half::Left(_, n) => {
                 assert!(i < self.0.len() - 1);
                 assert!(matches!(self.0[i + 1], Half::Right(_, _)));
                 if i > 0 {
@@ -143,12 +144,35 @@ impl Add for Number {
 
     #[allow(clippy::suspicious_arithmetic_impl)]
     fn add(mut self, rhs: Self) -> Self::Output {
-        self.0.extend(rhs.0);
+        self += rhs;
+        self
+    }
+}
+
+impl AddAssign for Number {
+    fn add_assign(&mut self, rhs: Self) {
+        *self += &rhs;
+    }
+}
+
+impl AddAssign<&Self> for Number {
+    #[allow(clippy::suspicious_op_assign_impl)]
+    fn add_assign(&mut self, rhs: &Self) {
+        self.0.extend(rhs.0.iter());
         let len = self.0.len();
         self.0[0].nest();
         self.0[len - 1].nest();
         self.reduce();
-        self
+    }
+}
+
+impl Sum for Number {
+    fn sum<I: Iterator<Item = Self>>(mut iter: I) -> Self {
+        let mut sum = iter.next().unwrap();
+        for next in iter {
+            sum += next;
+        }
+        sum
     }
 }
 
@@ -202,7 +226,11 @@ impl AddAssign<u32> for Half {
 }
 
 fn main() {
-    let a = INPUT.parse::<Number>().unwrap();
+    let input: Vec<_> = INPUT
+        .lines()
+        .map(|line| line.parse::<Number>().unwrap())
+        .collect();
+    let sum = input.iter().cloned().sum::<Number>();
 }
 
 #[cfg(test)]
@@ -249,5 +277,69 @@ mod tests {
         assert_eq!(b.to_string(), "[1,1]");
         let sum = a + b;
         assert_eq!(sum.to_string(), "[[[[0,7],4],[[7,8],[6,0]]],[8,1]]");
+    }
+
+    #[test]
+    fn sum() {
+        let n: Vec<Number> = vec![
+            "[1,1]".parse().unwrap(),
+            "[2,2]".parse().unwrap(),
+            "[3,3]".parse().unwrap(),
+            "[4,4]".parse().unwrap(),
+        ];
+        assert_eq!(
+            n.into_iter().sum::<Number>().to_string(),
+            "[[[[1,1],[2,2]],[3,3]],[4,4]]"
+        );
+
+        let n: Vec<Number> = vec![
+            "[1,1]".parse().unwrap(),
+            "[2,2]".parse().unwrap(),
+            "[3,3]".parse().unwrap(),
+            "[4,4]".parse().unwrap(),
+            "[5,5]".parse().unwrap(),
+        ];
+        assert_eq!(
+            n.into_iter().sum::<Number>().to_string(),
+            "[[[[3,0],[5,3]],[4,4]],[5,5]]"
+        );
+
+        let n: Vec<Number> = vec![
+            "[1,1]".parse().unwrap(),
+            "[2,2]".parse().unwrap(),
+            "[3,3]".parse().unwrap(),
+            "[4,4]".parse().unwrap(),
+            "[5,5]".parse().unwrap(),
+            "[6,6]".parse().unwrap(),
+        ];
+        assert_eq!(
+            n.into_iter().sum::<Number>().to_string(),
+            "[[[[5,0],[7,4]],[5,5]],[6,6]]"
+        );
+
+        let n: Vec<Number> = vec![
+            "[[[0,[4,5]],[0,0]],[[[4,5],[2,6]],[9,5]]]".parse().unwrap(),
+            "[7,[[[3,7],[4,3]],[[6,3],[8,8]]]]".parse().unwrap(),
+            "[[2,[[0,8],[3,4]]],[[[6,7],1],[7,[1,6]]]]".parse().unwrap(),
+            "[[[[2,4],7],[6,[0,5]]],[[[6,8],[2,8]],[[2,1],[4,5]]]]"
+                .parse()
+                .unwrap(),
+            "[7,[5,[[3,8],[1,4]]]]".parse().unwrap(),
+            "[[2,[2,2]],[8,[8,1]]]".parse().unwrap(),
+            "[2,9]".parse().unwrap(),
+            "[1,[[[9,3],9],[[9,0],[0,7]]]]".parse().unwrap(),
+            "[[[5,[7,4]],7],1]".parse().unwrap(),
+            "[[[[4,2],2],6],[8,7]]".parse().unwrap(),
+        ];
+
+        assert_eq!(
+            n[..2].iter().cloned().sum::<Number>().to_string(),
+            "[[[[4,0],[5,4]],[[7,7],[6,0]]],[[8,[7,7]],[[7,9],[5,0]]]]"
+        );
+
+        assert_eq!(
+            n.into_iter().sum::<Number>().to_string(),
+            "[[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]"
+        );
     }
 }
