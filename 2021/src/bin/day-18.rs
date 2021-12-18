@@ -66,7 +66,22 @@ impl Number {
         }
     }
 
-    fn split(&mut self, i: usize) {}
+    fn split(&mut self, i: usize) {
+        match self.0[i] {
+            Half::Left(l, n) => {
+                let nl = n / 2;
+                let nr = (n + 1) / 2;
+                self.0[i] = Half::Left(l + 1, nl);
+                self.0.insert(i + 1, Half::Right(1, nr));
+            }
+            Half::Right(r, n) => {
+                let nl = n / 2;
+                let nr = (n + 1) / 2;
+                self.0[i] = Half::Right(r + 1, nr);
+                self.0.insert(i, Half::Left(1, nl));
+            }
+        }
+    }
 }
 
 impl FromStr for Number {
