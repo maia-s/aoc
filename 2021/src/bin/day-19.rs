@@ -1,34 +1,88 @@
-use std::{collections::HashSet, str::FromStr};
+use std::{
+    collections::{HashSet, VecDeque},
+    ops::{Add, Sub},
+    str::FromStr,
+};
 
-const INPUT: &str = "";
+const INPUT: &str = include_str!("day-19.input");
 
 struct Scanner {
-    id: u32,
-    configuration: Option<Configuration>,
     beacons: HashSet<Point>,
 }
 
-impl Scanner {}
+impl Scanner {
+    fn len(&self) -> usize {
+        self.beacons.len()
+    }
+
+    fn combine(&mut self, other: &Self) -> bool {
+        const OVERLAP: usize = 12;
+        let slen = self.len();
+        let olen = other.len();
+        for &scb in self.beacons.iter() {
+            for &ocb in other.beacons.iter() {
+                let translate = ocb - scb;
+                for o in ALL_ORIENTATIONS {
+                    let mut merged = self.beacons.clone();
+                    for &ob in other.beacons.iter() {
+                        merged.insert((ob - translate).rotate_with_origin(scb, o));
+                    }
+                    let mlen = merged.len();
+                    if mlen + OVERLAP <= slen + olen {
+                        self.beacons = merged;
+                        return true;
+                    }
+                }
+            }
+        }
+        false
+    }
+}
 
 impl FromStr for Scanner {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut it = s.lines();
-        let title = it.next().unwrap();
+        let _title = it.next().unwrap();
+        /*
         let id = title
             .trim_start_matches("--- scanner ")
             .trim_end_matches(" ---")
             .parse()
             .unwrap();
+        */
         let beacons = it.map(|s| s.parse().unwrap()).collect();
-        Ok(Self {
-            id,
-            configuration: None,
-            beacons,
-        })
+        Ok(Self { beacons })
     }
 }
+
+const ALL_ORIENTATIONS: [Orientation; 24] = [
+    Orientation::X0Y0Z0,
+    Orientation::X0Y0Z1,
+    Orientation::X0Y0Z2,
+    Orientation::X0Y0Z3,
+    Orientation::X0Y1Z0,
+    Orientation::X0Y1Z1,
+    Orientation::X0Y1Z2,
+    Orientation::X0Y1Z3,
+    Orientation::X0Y2Z0,
+    Orientation::X0Y2Z1,
+    Orientation::X0Y2Z2,
+    Orientation::X0Y2Z3,
+    Orientation::X0Y3Z0,
+    Orientation::X0Y3Z1,
+    Orientation::X0Y3Z2,
+    Orientation::X0Y3Z3,
+    Orientation::X1Y0Z0,
+    Orientation::X1Y0Z1,
+    Orientation::X1Y0Z2,
+    Orientation::X1Y0Z3,
+    Orientation::X3Y0Z0,
+    Orientation::X3Y0Z1,
+    Orientation::X3Y0Z2,
+    Orientation::X3Y0Z3,
+];
 
 #[derive(Clone, Copy)]
 enum Orientation {
@@ -71,6 +125,11 @@ struct Point {
 }
 
 impl Point {
+    #[must_use]
+    fn rotate_with_origin(self, origin: Point, o: Orientation) -> Point {
+        (self - origin).rotate(o) + origin
+    }
+
     #[must_use]
     fn rotate(&self, o: Orientation) -> Point {
         match o {
@@ -211,13 +270,39 @@ impl FromStr for Point {
     }
 }
 
-struct Configuration {
-    origin: Point,
-    orientation: Orientation,
+impl Add for Point {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Self {
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
+            z: self.z + rhs.z,
+        }
+    }
 }
 
-impl Configuration {}
+impl Sub for Point {
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        Self {
+            x: self.x - rhs.x,
+            y: self.y - rhs.y,
+            z: self.z - rhs.z,
+        }
+    }
+}
 
 fn main() {
-    let mut scanners: Vec<Scanner> = INPUT.split("\n\n").map(|s| s.parse().unwrap()).collect();
+    let mut scanners: VecDeque<Scanner> = INPUT.split("\n\n").map(|s| s.parse().unwrap()).collect();
+
+    let mut combined = scanners.pop_front().unwrap();
+    while let Some(next) = scanners.pop_front() {
+        eprint!(" {}  \r", scanners.len());
+        if !combined.combine(&next) {
+            scanners.push_back(next);
+        }
+    }
+    println!("part 1: {}", combined.len());
 }
