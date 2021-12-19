@@ -15,7 +15,7 @@ impl Scanner {
         self.beacons.len()
     }
 
-    fn combine(&mut self, other: &Self) -> bool {
+    fn combine(&mut self, other: &Self) -> Option<Point> {
         const OVERLAP: usize = 12;
         let slen = self.len();
         let olen = other.len();
@@ -30,12 +30,12 @@ impl Scanner {
                     let mlen = merged.len();
                     if mlen + OVERLAP <= slen + olen {
                         self.beacons = merged;
-                        return true;
+                        return Some((scb - ocb).rotate_with_origin(scb, o));
                     }
                 }
             }
         }
-        false
+        None
     }
 }
 
@@ -256,6 +256,10 @@ impl Point {
             },
         }
     }
+
+    fn manhattan(&self) -> i32 {
+        self.x.abs() + self.y.abs() + self.z.abs()
+    }
 }
 
 impl FromStr for Point {
@@ -296,13 +300,23 @@ impl Sub for Point {
 
 fn main() {
     let mut scanners: VecDeque<Scanner> = INPUT.split("\n\n").map(|s| s.parse().unwrap()).collect();
-
+    let mut positions = vec![Point { x: 0, y: 0, z: 0 }];
     let mut combined = scanners.pop_front().unwrap();
     while let Some(next) = scanners.pop_front() {
         eprint!(" {}  \r", scanners.len());
-        if !combined.combine(&next) {
+        if let Some(pos) = combined.combine(&next) {
+            positions.push(pos);
+        } else {
             scanners.push_back(next);
         }
     }
     println!("part 1: {}", combined.len());
+
+    let mut distance = 0;
+    for &i in positions.iter() {
+        for &j in positions.iter() {
+            distance = distance.max((i - j).manhattan());
+        }
+    }
+    println!("part 2: {}", distance);
 }
