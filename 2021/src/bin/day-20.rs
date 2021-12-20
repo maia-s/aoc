@@ -19,14 +19,14 @@ impl Image {
 
     fn set(&mut self, x: isize, y: isize, value: bool) {
         self.pixels.insert((x, y), value);
-        self.pixels.entry((x - 1, y - 1)).or_insert(false);
-        self.pixels.entry((x, y - 1)).or_insert(false);
-        self.pixels.entry((x + 1, y - 1)).or_insert(false);
-        self.pixels.entry((x - 1, y)).or_insert(false);
-        self.pixels.entry((x + 1, y)).or_insert(false);
-        self.pixels.entry((x - 1, y + 1)).or_insert(false);
-        self.pixels.entry((x, y + 1)).or_insert(false);
-        self.pixels.entry((x + 1, y + 1)).or_insert(false);
+        self.pixels.entry((x - 1, y - 1)).or_insert(self.unset);
+        self.pixels.entry((x, y - 1)).or_insert(self.unset);
+        self.pixels.entry((x + 1, y - 1)).or_insert(self.unset);
+        self.pixels.entry((x - 1, y)).or_insert(self.unset);
+        self.pixels.entry((x + 1, y)).or_insert(self.unset);
+        self.pixels.entry((x - 1, y + 1)).or_insert(self.unset);
+        self.pixels.entry((x, y + 1)).or_insert(self.unset);
+        self.pixels.entry((x + 1, y + 1)).or_insert(self.unset);
     }
 
     fn chunk(&self, x: isize, y: isize) -> usize {
@@ -43,11 +43,13 @@ impl Image {
     }
 
     fn enhance(&mut self, lut: &[bool]) {
-        let mut new = Self::default();
+        let mut new = Self {
+            unset: lut[self.unset as usize * 0x1ff],
+            ..Default::default()
+        };
         for (&(x, y), _) in self.pixels.iter() {
             new.set(x, y, lut[self.chunk(x, y)]);
         }
-        new.unset = lut[self.unset as usize * 0x1ff];
         *self = new;
     }
 }
