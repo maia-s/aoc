@@ -94,6 +94,11 @@ fn main() {
     image.enhance(&lut);
     image.enhance(&lut);
     println!("part 1: {}", image.lit());
+
+    for _ in 2..50 {
+        image.enhance(&lut);
+    }
+    println!("part 2: {}", image.lit());
 }
 
 fn parse(input: &str) -> (Vec<bool>, Image) {
