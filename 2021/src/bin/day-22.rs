@@ -27,11 +27,16 @@ impl Reactor {
         zr: RangeInclusive<isize>,
     ) -> usize {
         let mut count = 0;
+        let mut total = 0;
+        let max =
+            (xr.end() - xr.start() + 1) * (yr.end() - yr.start() + 1) * (zr.end() - zr.start() + 1);
         for z in zr {
             for y in yr.clone() {
                 for x in xr.clone() {
                     count += self.get(x, y, z) as usize;
+                    total += 1;
                 }
+                eprint!(" {}% \r", total * 100 / max);
             }
         }
         count
@@ -104,4 +109,7 @@ fn main() {
 
     let part_1 = reactor.count(-50..=50, -50..=50, -50..=50);
     println!("part 1: {}", part_1);
+
+    let part_2 = reactor.count_all();
+    println!("part 2: {}", part_2);
 }
