@@ -1,19 +1,13 @@
-use std::{error::Error, str::FromStr};
-
-use aoc_2022::AoC;
+use std::str::FromStr;
 
 const INPUT: &str = include_str!("day-2.txt");
 
-fn main() -> Result<(), Box<dyn Error>> {
-    Day2::run(INPUT, None, None)
-}
+aoc_2022::aoc! {
+    struct Day2 {
+        rounds: Vec<Round>,
+    }
 
-struct Day2 {
-    rounds: Vec<Round>,
-}
-
-impl AoC for Day2 {
-    fn new(input: &str) -> Result<Self, Box<dyn Error>> {
+    self(input) {
         let mut rounds = Vec::new();
         for line in input.lines() {
             rounds.push(line.parse()?);
@@ -21,13 +15,16 @@ impl AoC for Day2 {
         Ok(Self { rounds })
     }
 
-    fn part_1(&self) -> usize {
-        self.rounds.iter().map(|r| r.response.vs(r.opponent)).sum()
+    part1 {
+        Ok(self.rounds.iter().map(|r| r.response.vs(r.opponent)).sum())
     }
 
-    fn part_2(&self) -> usize {
-        self.rounds.iter().map(|r| r.response.vs2(r.opponent)).sum()
+    part2 {
+        Ok(self.rounds.iter().map(|r| r.response.vs2(r.opponent)).sum())
     }
+
+    input = INPUT;
+    test day2(INPUT, 13268, 15508);
 }
 
 #[derive(Clone, Copy)]
@@ -96,15 +93,5 @@ impl FromStr for Round {
             _ => return Err("invalid response move"),
         };
         Ok(Self { opponent, response })
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn day2() {
-        Day2::run(INPUT, Some(13268), Some(15508)).unwrap();
     }
 }

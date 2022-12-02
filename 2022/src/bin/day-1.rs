@@ -1,19 +1,13 @@
-use std::{error::Error, num::ParseIntError, str::FromStr};
-
-use aoc_2022::AoC;
+use std::{num::ParseIntError, str::FromStr};
 
 const INPUT: &str = include_str!("day-1.txt");
 
-fn main() -> Result<(), Box<dyn Error>> {
-    Day1::run(INPUT, None, None)
-}
+aoc_2022::aoc! {
+    struct Day1 {
+        elves: Vec<Elf>,
+    }
 
-struct Day1 {
-    elves: Vec<Elf>,
-}
-
-impl AoC for Day1 {
-    fn new(input: &str) -> Result<Self, Box<dyn Error>> {
+    self(input) {
         let mut elves = Vec::<Elf>::new();
         for elf in input.trim().split("\n\n") {
             elves.push(elf.parse()?);
@@ -22,13 +16,16 @@ impl AoC for Day1 {
         Ok(Self { elves })
     }
 
-    fn part_1(&self) -> usize {
-        self.elves[0].calories
+    part1 {
+        Ok(self.elves[0].calories)
     }
 
-    fn part_2(&self) -> usize {
-        self.elves[0].calories + self.elves[1].calories + self.elves[2].calories
+    part2 {
+        Ok(self.elves[0].calories + self.elves[1].calories + self.elves[2].calories)
     }
+
+    input = INPUT;
+    test day1(INPUT, 64929, 193697);
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
@@ -45,15 +42,5 @@ impl FromStr for Elf {
             calories += food.parse::<usize>()?;
         }
         Ok(Self { calories })
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn day1() {
-        Day1::run(INPUT, Some(64929), Some(193697)).unwrap();
     }
 }

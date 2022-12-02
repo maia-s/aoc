@@ -1,22 +1,49 @@
-use std::error::Error;
+#[macro_export]
+macro_rules! aoc {
+    (
+        struct $Day:ident { $($fields:tt)* }
+        $self:ident($in:ident) { $($new:tt)* }
+        part1 { $($part1:tt)* }
+        part2 { $($part2:tt)* }
+        input = $input:expr;
+        $(test $tname:ident($tinput:expr, $tp1:expr $(, $tp2:expr)?);)*
+    ) => {
+        struct $Day { $($fields)* }
 
-pub trait AoC: Sized {
-    fn new(input: &str) -> Result<Self, Box<dyn Error>>;
-    fn part_1(&self) -> usize;
-    fn part_2(&self) -> usize;
+        impl $Day {
+            fn new($in: &str) -> Result<$Day, Box<dyn ::std::error::Error>> {
+                $($new)*
+            }
+    
+            fn part1(&$self) -> Result<usize, Box<dyn ::std::error::Error>> {
+                $($part1)*            
+            }
+    
+            fn part2(&$self) -> Result<usize, Box<dyn ::std::error::Error>> {
+                $($part2)*            
+            }
+        }
 
-    fn run(input: &str, p1: Option<usize>, p2: Option<usize>) -> Result<(), Box<dyn Error>> {
-        let day = Self::new(input)?;
-        let r1 = day.part_1();
-        println!("part 1: {}", r1);
-        if let Some(p1) = p1 {
-            assert_eq!(r1, p1, "part 1 expected {p1}, got {r1}");
+        fn main() -> Result<(), Box<dyn ::std::error::Error>> {
+            let day = $Day::new($input)?;
+            println!("part 1: {}", day.part1()?);
+            println!("part 2: {}", day.part2()?);
+            Ok(())
         }
-        let r2 = day.part_2();
-        println!("part 2: {}", r2);
-        if let Some(p2) = p2 {
-            assert_eq!(r2, p2, "part 2 expected {p2}, got {r2}");
+
+        #[cfg(test)]
+        mod tests {
+            use super::*;
+
+            $(
+                #[test]
+                fn $tname() -> Result<(), Box<dyn ::std::error::Error>> {
+                    let test = $Day::new($tinput)?;
+                    assert_eq!($tp1, test.part1()?, "wrong result for part 1");
+                    $( assert_eq!($tp2, test.part2()?, "wrong result for part 2"); )*
+                    Ok(())
+                }
+            )*
         }
-        Ok(())
-    }
+    };
 }
