@@ -15,7 +15,7 @@ struct Day1 {
 impl AoC for Day1 {
     fn new(input: &str) -> Result<Self, Box<dyn Error>> {
         let mut elves = Vec::<Elf>::new();
-        for elf in INPUT.trim().split("\n\n") {
+        for elf in input.trim().split("\n\n") {
             elves.push(elf.parse()?);
         }
         elves.sort_unstable_by(|a, b| b.cmp(a));
@@ -53,7 +53,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn day() {
+    fn day1() {
         Day1::run(INPUT, Some(64929), Some(193697)).unwrap();
     }
 }
