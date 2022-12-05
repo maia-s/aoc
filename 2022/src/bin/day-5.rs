@@ -54,15 +54,11 @@ aoc_2022::aoc! {
     }
 
     part2 String {
-        let mut w = Vec::new();
         for &Command { mov, from, to } in self.commands.iter() {
+            let ip = self.stacks[to - 1].len();
             for _ in 0..mov {
                 let b = self.stacks[from - 1].pop().unwrap();
-                w.push(b);
-            }
-            for _ in 0..mov {
-                let b = w.pop().unwrap();
-                self.stacks[to - 1].push(b);
+                self.stacks[to - 1].insert(ip, b);
             }
         }
         Ok(self.to_string())
