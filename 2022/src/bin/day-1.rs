@@ -16,11 +16,11 @@ aoc_2022::aoc! {
         Ok(Self { elves })
     }
 
-    part1 {
+    part1 usize {
         Ok(self.elves[0].calories)
     }
 
-    part2 {
+    part2 usize {
         Ok(self.elves[0].calories + self.elves[1].calories + self.elves[2].calories)
     }
 

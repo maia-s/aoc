@@ -15,11 +15,11 @@ aoc_2022::aoc! {
         Ok(Self { rounds })
     }
 
-    part1 {
+    part1 usize {
         Ok(self.rounds.iter().map(|r| r.response.vs(r.opponent)).sum())
     }
 
-    part2 {
+    part2 usize {
         Ok(self.rounds.iter().map(|r| r.response.vs2(r.opponent)).sum())
     }
 

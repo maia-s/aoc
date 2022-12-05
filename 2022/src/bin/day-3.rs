@@ -23,7 +23,7 @@ aoc_2022::aoc! {
         Ok(Self { rucksacks })
     }
 
-    part1 {
+    part1 usize {
         let mut priorities = 0;
         for rucksack in self.rucksacks.iter() {
             for i in rucksack.a.items.iter() {
@@ -35,7 +35,7 @@ aoc_2022::aoc! {
         Ok(priorities)
     }
 
-    part2 {
+    part2 usize {
         let mut priorities = 0;
         for group in self.rucksacks.chunks(3) {
             let a = &group[0];

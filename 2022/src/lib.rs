@@ -1,31 +1,32 @@
 #[macro_export]
 macro_rules! aoc {
     (
-        struct $Day:ident { $($fields:tt)* }
+        $(#[$attr:meta])* struct $Day:ident { $($fields:tt)* }
         $self:ident($in:ident) { $($new:tt)* }
-        part1 { $($part1:tt)* }
-        part2 { $($part2:tt)* }
+        part1 $p1ty:ty { $($part1:tt)* }
+        part2 $p2ty:ty { $($part2:tt)* }
         input = $input:expr;
         $(test $tname:ident($tinput:expr, $tp1:expr $(, $tp2:expr)?);)*
     ) => {
+        $(#[$attr])*
         struct $Day { $($fields)* }
 
         impl $Day {
             fn new($in: &str) -> Result<$Day, Box<dyn ::std::error::Error>> {
                 $($new)*
             }
-    
-            fn part1(&$self) -> Result<usize, Box<dyn ::std::error::Error>> {
-                $($part1)*            
+
+            fn part1(&mut $self) -> Result<$p1ty, Box<dyn ::std::error::Error>> {
+                $($part1)*
             }
-    
-            fn part2(&$self) -> Result<usize, Box<dyn ::std::error::Error>> {
-                $($part2)*            
+
+            fn part2(&mut $self) -> Result<$p2ty, Box<dyn ::std::error::Error>> {
+                $($part2)*
             }
         }
 
         fn main() -> Result<(), Box<dyn ::std::error::Error>> {
-            let day = $Day::new($input)?;
+            let mut day = $Day::new($input)?;
             println!("part 1: {}", day.part1()?);
             println!("part 2: {}", day.part2()?);
             Ok(())
@@ -38,7 +39,7 @@ macro_rules! aoc {
             $(
                 #[test]
                 fn $tname() -> Result<(), Box<dyn ::std::error::Error>> {
-                    let test = $Day::new($tinput)?;
+                    let mut test = $Day::new($tinput)?;
                     assert_eq!($tp1, test.part1()?, "wrong result for part 1");
                     $( assert_eq!($tp2, test.part2()?, "wrong result for part 2"); )*
                     Ok(())

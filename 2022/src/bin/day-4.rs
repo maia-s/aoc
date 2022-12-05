@@ -26,11 +26,11 @@ aoc_2022::aoc! {
         Ok(Self { pairs })
     }
 
-    part1 {
+    part1 usize {
         Ok(self.pairs.iter().map(|pair| (pair.0.contains(&pair.1) || pair.1.contains(&pair.0)) as usize).sum())
     }
 
-    part2 {
+    part2 usize {
         Ok(self.pairs.iter().map(|pair| pair.0.overlaps(&pair.1) as usize).sum())
     }
 
