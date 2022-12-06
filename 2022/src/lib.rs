@@ -1,18 +1,18 @@
 #[macro_export]
 macro_rules! aoc {
     (
-        $(#[$attr:meta])* struct $Day:ident { $($fields:tt)* }
+        $(#[$attr:meta])* struct $Day:ident $(<$lt:lifetime>)? { $($fields:tt)* }
         $self:ident($in:ident) { $($new:tt)* }
         part1 $p1ty:ty { $($part1:tt)* }
         part2 $p2ty:ty { $($part2:tt)* }
         input = $input:expr;
-        $(test $tname:ident($tinput:expr, $tp1:expr $(, $tp2:expr)?);)*
+        $(test $tname:ident($tinput:expr, $($tp1:expr)? $(, $tp2:expr)?);)*
     ) => {
         $(#[$attr])*
-        struct $Day { $($fields)* }
+        struct $Day $(<$lt>)? { $($fields)* }
 
-        impl $Day {
-            fn new($in: &str) -> Result<$Day, Box<dyn ::std::error::Error>> {
+        impl $(<$lt>)? $Day $(<$lt>)? {
+            fn new($in: & $($lt)? str) -> Result<$Day, Box<dyn ::std::error::Error>> {
                 $($new)*
             }
 
@@ -40,8 +40,8 @@ macro_rules! aoc {
                 #[test]
                 fn $tname() -> Result<(), Box<dyn ::std::error::Error>> {
                     let mut test = $Day::new($tinput)?;
-                    assert_eq!($tp1, test.part1()?, "wrong result for part 1");
-                    $( assert_eq!($tp2, test.part2()?, "wrong result for part 2"); )*
+                    $( assert_eq!(test.part1()?, $tp1, "wrong result for part 1"); )?
+                    $( assert_eq!(test.part2()?, $tp2, "wrong result for part 2"); )?
                     Ok(())
                 }
             )*
