@@ -96,16 +96,21 @@ aoc_2022::aoc! {
 
     part1 usize {
         let mut sizes = Vec::new();
-        self.root.borrow().get_sizes(&mut sizes, 100_000);
+        self.root.borrow().get_sizes(&mut sizes, &|x| x <= 100_000);
         Ok(sizes.into_iter().sum())
     }
 
     part2 usize {
-        todo!()
+        let need = 30_000_000 - (70_000_000 - self.root.borrow().size);
+        let mut sizes = Vec::new();
+        self.root.borrow().get_sizes(&mut sizes, &|x| x >= need);
+        sizes.sort_unstable();
+        Ok(sizes[0])
     }
 
     input = INPUT;
-    test day7_ex(INPUT_EX, 95437);
+    test day7_ex(INPUT_EX, 95437, 24933642);
+    test day7(INPUT, 1778099, 1623571);
 }
 
 #[derive(Default)]
@@ -129,13 +134,13 @@ impl Dir {
         size
     }
 
-    fn get_sizes(&self, v: &mut Vec<usize>, max: usize) {
-        if self.size <= max {
+    fn get_sizes(&self, v: &mut Vec<usize>, p: &impl Fn(usize) -> bool) {
+        if p(self.size) {
             v.push(self.size);
         }
         for e in self.entries.values() {
             if let Entry::Dir(d) = e {
-                d.borrow().get_sizes(v, max)
+                d.borrow().get_sizes(v, p)
             }
         }
     }
