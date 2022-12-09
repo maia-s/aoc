@@ -12,6 +12,16 @@ D 1
 L 5
 R 2";
 
+#[cfg(test)]
+const INPUT_EX2: &str = "R 5
+U 8
+L 8
+D 3
+R 17
+D 10
+L 25
+U 20";
+
 aoc_2022::aoc! {
     struct Day9 {
         motions: Vec<Motion>,
@@ -36,7 +46,7 @@ aoc_2022::aoc! {
     }
 
     part1 usize {
-        let mut rope = Rope::new();
+        let mut rope = Rope::new(1);
         for &m in self.motions.iter() {
             rope.motion(m);
         }
@@ -44,27 +54,33 @@ aoc_2022::aoc! {
     }
 
     part2 usize {
-        todo!()
+        let mut rope = Rope::new(9);
+        for &m in self.motions.iter() {
+            rope.motion(m);
+        }
+        Ok(rope.tail_history.len())
     }
 
     input = INPUT;
-    test day9_ex(INPUT_EX, 13);
-    test day9(INPUT, 6563);
+    test day9_ex(INPUT_EX, 13, 1);
+    test day9_ex2(INPUT_EX2,, 36);
+    test day9(INPUT, 6563, 2653);
 }
 
 struct Rope {
     head: (isize, isize),
-    tail: (isize, isize),
+    tail: Vec<(isize, isize)>,
     tail_history: HashSet<(isize, isize)>,
 }
 
 impl Rope {
-    fn new() -> Self {
+    fn new(len: usize) -> Self {
+        let tail = vec![(0, 0); len];
         let mut tail_history = HashSet::new();
         tail_history.insert((0, 0));
         Self {
             head: (0, 0),
-            tail: (0, 0),
+            tail,
             tail_history,
         }
     }
@@ -74,58 +90,45 @@ impl Rope {
             Motion::Horizontal(n) => {
                 if n < 0 {
                     for _ in 0..-n {
-                        self.move_left();
+                        self.step(-1, 0);
                     }
                 } else {
                     for _ in 0..n {
-                        self.move_right();
+                        self.step(1, 0);
                     }
                 }
             }
             Motion::Vertical(n) => {
                 if n < 0 {
                     for _ in 0..-n {
-                        self.move_up();
+                        self.step(0, -1);
                     }
                 } else {
                     for _ in 0..n {
-                        self.move_down();
+                        self.step(0, 1);
                     }
                 }
             }
         }
     }
 
-    fn move_left(&mut self) {
-        self.head.0 -= 1;
-        if self.tail.0 > self.head.0 + 1 {
-            self.tail = (self.head.0 + 1, self.head.1);
+    fn step(&mut self, dx: isize, dy: isize) {
+        self.head.0 += dx;
+        self.head.1 += dy;
+        let mut prev = self.head;
+        for tail in self.tail.iter_mut() {
+            let dx = prev.0 - tail.0;
+            let dy = prev.1 - tail.1;
+            if dx.abs() > 1 || dy.abs() > 1 {
+                let dx = dx.clamp(-1, 1);
+                let dy = dy.clamp(-1, 1);
+                *tail = (tail.0 + dx, tail.1 + dy);
+                prev = *tail;
+            } else {
+                break;
+            }
         }
-        self.tail_history.insert(self.tail);
-    }
-
-    fn move_right(&mut self) {
-        self.head.0 += 1;
-        if self.tail.0 < self.head.0 - 1 {
-            self.tail = (self.head.0 - 1, self.head.1);
-        }
-        self.tail_history.insert(self.tail);
-    }
-
-    fn move_up(&mut self) {
-        self.head.1 -= 1;
-        if self.tail.1 > self.head.1 + 1 {
-            self.tail = (self.head.0, self.head.1 + 1);
-        }
-        self.tail_history.insert(self.tail);
-    }
-
-    fn move_down(&mut self) {
-        self.head.1 += 1;
-        if self.tail.1 < self.head.1 - 1 {
-            self.tail = (self.head.0, self.head.1 - 1);
-        }
-        self.tail_history.insert(self.tail);
+        self.tail_history.insert(*self.tail.last().unwrap());
     }
 }
 
