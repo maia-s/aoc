@@ -1,4 +1,4 @@
-use std::{str::FromStr, error::Error};
+use std::{error::Error, str::FromStr};
 
 const INPUT: &str = include_str!("day-10.txt");
 
@@ -20,7 +20,6 @@ aoc_2022::aoc! {
         let mut signal = 0;
         for cycle in 0..=220 {
             if cycle >= 20 && (cycle - 20) % 40 == 0 {
-                eprintln!("{} {}", cycle, cpu.x);
                 signal += cycle * cpu.x;
             }
             cpu.step();
@@ -28,12 +27,41 @@ aoc_2022::aoc! {
         Ok(signal)
     }
 
-    part2 isize {
-        todo!()
+    part2 String {
+        let mut cpu = Cpu::new(&self.ops);
+        let mut buffer = String::new();
+        buffer.push('\n');
+        for _ in 0..6 {
+            for x in 0..40 {
+                cpu.step();
+                buffer.push(if cpu.x == x-1 || cpu.x == x || cpu.x == x+1 {
+                    '#'
+                } else {
+                    '.'
+                });
+            }
+            buffer.push('\n');
+        }
+        Ok(buffer)
     }
 
     input = INPUT;
-    test day10_ex(INPUT_EX, 13140);
+    test day10_ex(INPUT_EX, 13140, "
+##..##..##..##..##..##..##..##..##..##..
+###...###...###...###...###...###...###.
+####....####....####....####....####....
+#####.....#####.....#####.....#####.....
+######......######......######......####
+#######.......#######.......#######.....
+");
+    test day10(INPUT, 12540, "
+####.####..##..####.####.#....#..#.####.
+#....#....#..#....#.#....#....#..#.#....
+###..###..#......#..###..#....####.###..
+#....#....#.....#...#....#....#..#.#....
+#....#....#..#.#....#....#....#..#.#....
+#....####..##..####.####.####.#..#.####.
+");
 }
 
 struct Cpu<'a> {
@@ -69,7 +97,7 @@ impl<'a> Cpu<'a> {
             }
             self.ip += 1;
         }
-        self.wait -= 1;
+        self.wait = self.wait.wrapping_sub(1);
         self.cycle += 1;
     }
 }
@@ -84,7 +112,7 @@ impl FromStr for Op {
     type Err = Box<dyn Error>;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut s = s.trim().split_ascii_whitespace();        
+        let mut s = s.trim().split_ascii_whitespace();
         let op = s.next().ok_or("expected op")?;
         Ok(match op {
             "addx" => {
