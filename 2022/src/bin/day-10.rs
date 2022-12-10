@@ -18,11 +18,11 @@ aoc_2022::aoc! {
     part1 isize {
         let mut cpu = Cpu::new(&self.ops);
         let mut signal = 0;
-        for cycle in 0..=220 {
+        for cycle in 1..=220 {
+            cpu.step();
             if cycle >= 20 && (cycle - 20) % 40 == 0 {
                 signal += cycle * cpu.x;
             }
-            cpu.step();
         }
         Ok(signal)
     }
@@ -68,7 +68,6 @@ struct Cpu<'a> {
     x: isize,
     next_x: isize,
     wait: usize,
-    cycle: usize,
     ip: usize,
     ops: &'a [Op],
 }
@@ -79,7 +78,6 @@ impl<'a> Cpu<'a> {
             x: 1,
             next_x: 1,
             wait: 0,
-            cycle: 0,
             ip: 0,
             ops,
         }
@@ -98,7 +96,6 @@ impl<'a> Cpu<'a> {
             self.ip += 1;
         }
         self.wait = self.wait.wrapping_sub(1);
-        self.cycle += 1;
     }
 }
 
