@@ -32,34 +32,43 @@ Monkey 3:
     If false: throw to monkey 1";
 
 aoc_2022::aoc! {
+    #[derive(Clone)]
     struct Day11 {
         monkeys: Vec<Monkey>,
+        modulo: usize,
     }
 
     self(input) {
-        Ok(Self { monkeys: input.split("\n\n").map(|s| s.parse()).collect::<Result<_,_>>()? })
+        let monkeys: Vec<Monkey> = input.split("\n\n").map(|s| s.parse()).collect::<Result<_,_>>()?;
+        let modulo = monkeys.iter().map(|m| m.test.test).product();
+        Ok(Self { monkeys, modulo })
     }
 
     part1 usize {
+        let mut day = self.clone();
         for _ in 0..20 {
-            self.round();
+            day.round(3);
+        }
+        Ok(day.monkey_biz())
+    }
+
+    part2 usize {
+        for _ in 0..10_000 {
+            self.round(1);
         }
         Ok(self.monkey_biz())
     }
 
-    part2 usize {
-        todo!()
-    }
-
     input = INPUT;
-    test day11_ex(INPUT_EX, 10605);
+    test day11_ex(INPUT_EX, 10605, 2713310158);
+    test day11(INPUT, 58056, 15048718170);
 }
 
 impl Day11 {
-    fn round(&mut self) {
+    fn round(&mut self, worry_div: usize) {
         let n = self.monkeys.len();
         for m in 0..n {
-            while let Some((target, item)) = self.monkeys[m].inspect() {
+            while let Some((target, item)) = self.monkeys[m].inspect(worry_div, self.modulo) {
                 self.monkeys[target].receive(item);
             }
         }
@@ -72,6 +81,7 @@ impl Day11 {
     }
 }
 
+#[derive(Clone)]
 struct Monkey {
     items: VecDeque<usize>,
     op: Op,
@@ -80,9 +90,9 @@ struct Monkey {
 }
 
 impl Monkey {
-    fn inspect(&mut self) -> Option<(usize, usize)> {
+    fn inspect(&mut self, worry_div: usize, m: usize) -> Option<(usize, usize)> {
         if let Some(x) = self.items.pop_front() {
-            let x = self.op.do_op(x) / 3;
+            let x = self.op.do_op(x) / worry_div % m;
             self.inspections += 1;
             let target = self.test.get_target_monkey(x);
             Some((target, x))
