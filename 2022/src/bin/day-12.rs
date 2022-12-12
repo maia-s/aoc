@@ -68,9 +68,34 @@ aoc_2022::aoc! {
     }
 
     part2 usize {
-        todo!()
+        let mut map = self.map.clone();
+        let mut steps = VecDeque::new();
+        steps.push_back((0, self.end));
+        while let Some((n, pos)) = steps.pop_front() {
+            let here = map[pos.1][pos.0];
+            match here {
+                b'|' => continue,
+                b'a' => return Ok(n),
+                _ => (),
+            }
+            map[pos.1][pos.0] = b'|';
+            if pos.0 > 0 && map[pos.1][pos.0 - 1] >= here - 1 {
+                steps.push_back((n + 1, (pos.0 - 1, pos.1)));
+            }
+            if pos.0 < map[0].len() - 1 && map[pos.1][pos.0 + 1] >= here - 1 {
+                steps.push_back((n + 1, (pos.0 + 1, pos.1)));
+            }
+            if pos.1 > 0 && map[pos.1 - 1][pos.0] >= here - 1 {
+                steps.push_back((n + 1, (pos.0, pos.1 - 1)));
+            }
+            if pos.1 < map.len() - 1 && map[pos.1 + 1][pos.0] >= here - 1 {
+                steps.push_back((n + 1, (pos.0, pos.1 + 1)));
+            }
+        }
+        Err("no path".into())
     }
 
     input = INPUT;
-    test day12_ex(INPUT_EX, 31);
+    test day12_ex(INPUT_EX, 31, 29);
+    test day12(INPUT, 383, 377);
 }
