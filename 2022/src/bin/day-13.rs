@@ -49,13 +49,31 @@ aoc_2022::aoc! {
     }
 
     part2 usize {
-        todo!()
+        let div2 = Packet::parse("[[2]]")?.0;
+        let div6 = Packet::parse("[[6]]")?.0;
+        let mut all: Vec<_> = self.pairs.iter().cloned().flat_map(|pair| [pair.0, pair.1]).collect();
+        all.push(div2.clone());
+        all.push(div6.clone());
+        all.sort_unstable();
+        let mut pos2 = 0;
+        let mut pos6 = 0;
+        for (i, p) in all.iter().enumerate() {
+            if *p == div2 {
+                pos2 = i + 1;
+            } else if *p == div6 {
+                pos6 = i + 1;
+                break;
+            }
+        }
+        Ok(pos2 * pos6)
     }
 
     input = INPUT;
-    test day13_ex(INPUT_EX, 13);
+    test day13_ex(INPUT_EX, 13, 140);
+    test day13(INPUT, 5580, 26200);
 }
 
+#[derive(Clone, PartialEq, Eq)]
 enum Packet {
     Vec(Vec<Packet>),
     Int(usize),
@@ -67,8 +85,8 @@ impl Packet {
             Some('[') => {
                 s = &s[1..];
                 let mut v = Vec::new();
-                if s.starts_with(']') {
-                    return Ok((Packet::Vec(v), &s[1..]));
+                if let Some(s) = s.strip_prefix(']') {
+                    return Ok((Packet::Vec(v), s));
                 }
                 loop {
                     let (p, new_s) = Packet::parse(s)?;
@@ -110,8 +128,8 @@ impl Ord for Packet {
                 }
                 l.len().cmp(&r.len())
             }
-            (Packet::Vec(l), Packet::Int(r)) => self.cmp(&Packet::Vec(vec![Packet::Int(*r)])),
-            (Packet::Int(l), Packet::Vec(r)) => Packet::Vec(vec![Packet::Int(*l)]).cmp(other),
+            (Packet::Vec(_), Packet::Int(r)) => self.cmp(&Packet::Vec(vec![Packet::Int(*r)])),
+            (Packet::Int(l), Packet::Vec(_)) => Packet::Vec(vec![Packet::Int(*l)]).cmp(other),
             (Packet::Int(l), Packet::Int(r)) => l.cmp(r),
         }
     }
@@ -122,11 +140,3 @@ impl PartialOrd for Packet {
         Some(self.cmp(other))
     }
 }
-
-impl PartialEq for Packet {
-    fn eq(&self, other: &Self) -> bool {
-        self.cmp(other) == Ordering::Equal
-    }
-}
-
-impl Eq for Packet {}
