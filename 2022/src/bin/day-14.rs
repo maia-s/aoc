@@ -4,6 +4,7 @@ const INPUT_EX: &str = "498,4 -> 498,6 -> 496,6
 503,4 -> 502,4 -> 502,9 -> 494,9";
 
 aoc_2022::aoc! {
+    #[derive(Clone)]
     struct Day14 {
         map: Box<[[u8; 1000]; 500]>,
         bounds_x: (usize, usize),
@@ -31,20 +32,25 @@ aoc_2022::aoc! {
     }
 
     part1 usize {
+        let mut day = self.clone();
         let mut grains = 0;
-        while self.grain((500, 0)) {
+        while day.grain((500, 0)) {
             grains += 1;
         }
         Ok(grains)
     }
 
     part2 usize {
-        todo!()
+        let mut grains = 0;
+        while self.grain2((500, 0)) {
+            grains += 1;
+        }
+        Ok(grains)
     }
 
     input = INPUT;
-    test day14_ex(INPUT_EX, 24);
-    test day14(INPUT, 672);
+    test day14_ex(INPUT_EX, 24, 93);
+    test day14(INPUT, 672, 26831);
 }
 
 impl Day14 {
@@ -88,6 +94,28 @@ impl Day14 {
                 y += 1;
             } else if x + 1 > self.bounds_x.1 {
                 return false;
+            } else if self.map[y + 1][x + 1] == b'.' {
+                x += 1;
+                y += 1;
+            } else {
+                self.map[y][x] = b'o';
+                return true;
+            }
+        }
+    }
+
+    fn grain2(&mut self, (mut x, mut y): (usize, usize)) -> bool {
+        loop {
+            if self.map[y][x] != b'.' {
+                return false;
+            } else if y + 1 == self.bounds_y.1 + 2 {
+                self.map[y][x] = b'o';
+                return true;
+            } else if self.map[y + 1][x] == b'.' {
+                y += 1;
+            } else if self.map[y + 1][x - 1] == b'.' {
+                x -= 1;
+                y += 1;
             } else if self.map[y + 1][x + 1] == b'.' {
                 x += 1;
                 y += 1;
