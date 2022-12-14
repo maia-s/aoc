@@ -1,5 +1,6 @@
 const INPUT: &str = include_str!("day-14.txt");
 
+#[cfg(test)]
 const INPUT_EX: &str = "498,4 -> 498,6 -> 496,6
 503,4 -> 502,4 -> 502,9 -> 494,9";
 
