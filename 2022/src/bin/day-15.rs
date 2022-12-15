@@ -53,12 +53,13 @@ aoc_2022::aoc! {
     }
 
     part2 isize {
-        let limit: isize = if self.check_y == 10 { 20 } else { 4_000_000 };
-        for y in 0..=limit {
-            for x in 0..=limit {
-                if !self.sensors.iter().any(|s| s.contains((x, y))) {
-                    return Ok(x * 4_000_000 + y)
-                }
+        let limit = 0..=(if self.check_y == 10 { 20 } else { 4_000_000 });
+        for s in self.sensors.iter() {
+            if let Some((x, y)) = s.for_edge(|(x, y)| {
+                limit.contains(&x) && limit.contains(&y) &&
+                !self.sensors.iter().any(|s| s.contains((x, y)))
+            }) {
+                return Ok(x * 4_000_000 + y);
             }
         }
         Err("not found".into())
@@ -66,7 +67,7 @@ aoc_2022::aoc! {
 
     input = INPUT;
     test day15_ex(INPUT_EX, 26, 56000011);
-    test day15(INPUT, 5461729);
+    test day15(INPUT, 5461729, 10621647166538);
 }
 
 #[derive(PartialEq, Eq, Hash)]
@@ -79,6 +80,23 @@ struct Sensor {
 impl Sensor {
     fn contains(&self, (x, y): (isize, isize)) -> bool {
         (x - self.pos.0).abs() + (y - self.pos.1).abs() <= self.dist
+    }
+
+    fn for_edge(&self, f: impl Fn((isize, isize)) -> bool) -> Option<(isize, isize)> {
+        let edge = self.dist + 1;
+        for i in 0..edge {
+            for p in [
+                (self.pos.0 - i, self.pos.1 - edge + i),
+                (self.pos.0 + i, self.pos.1 - edge + i),
+                (self.pos.0 - i, self.pos.1 + edge - i),
+                (self.pos.0 + i, self.pos.1 + edge - i),
+            ] {
+                if f(p) {
+                    return Some(p);
+                }
+            }
+        }
+        None
     }
 }
 
