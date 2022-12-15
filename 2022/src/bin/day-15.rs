@@ -52,12 +52,21 @@ aoc_2022::aoc! {
         ).sum())
     }
 
-    part2 usize {
-        todo!()
+    part2 isize {
+        let limit: isize = if self.check_y == 10 { 20 } else { 4_000_000 };
+        for y in 0..=limit {
+            for x in 0..=limit {
+                if !self.sensors.iter().any(|s| s.contains((x, y))) {
+                    return Ok(x * 4_000_000 + y)
+                }
+            }
+        }
+        Err("not found".into())
     }
 
     input = INPUT;
-    test day15_ex(INPUT_EX, 26);
+    test day15_ex(INPUT_EX, 26, 56000011);
+    test day15(INPUT, 5461729);
 }
 
 #[derive(PartialEq, Eq, Hash)]
