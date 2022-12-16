@@ -7,6 +7,7 @@ use std::{
 
 const INPUT: &str = include_str!("day-16.txt");
 
+#[cfg(test)]
 const INPUT_EX: &str = "Valve AA has flow rate=0; tunnels lead to valves DD, II, BB
 Valve BB has flow rate=13; tunnels lead to valves CC, AA
 Valve CC has flow rate=2; tunnels lead to valves DD, BB
@@ -37,16 +38,11 @@ aoc_2022::aoc! {
     part1 isize {
         let mut max = 0;
         let mut q = VecDeque::new();
-        q.push_back((30, 0, 0, 0, 0, ValveId::from_str("AA")?, HashSet::new(), String::from("AA")));
-        'step: while let Some((mut time, mut delay, mut fr, mut fra, mut fro, id, seen, p)) = q.pop_front() {
+        q.push_back((30, 0, 0, 0, ValveId::from_str("AA")?, HashSet::new()));
+        'step: while let Some((mut time, mut delay, mut fr, fra, id, seen)) = q.pop_front() {
             loop {
                 fr += fra;
-                fra += fro;
-                fro = 0;
-                if max < fr {
-                    eprintln!("{p} {max}");
-                    max = max.max(fr);
-                }
+                max = max.max(fr);
                 time -= 1;
                 if time == 0 {
                     continue 'step;
@@ -64,8 +60,7 @@ aoc_2022::aoc! {
             seen.insert(id);
             let fro = self.valves[&id].flow_rate;
             for (&tid, &td) in self.valves[&id].tunnels.iter() {
-                let p = format!("{p} -> {tid}");
-                q.push_back((time, td - 1 + (fro != 0) as isize, fr, fra+fro, 0, tid, seen.clone(), p));
+                q.push_back((time, td - 1 + (fro != 0) as isize, fr, fra+fro, tid, seen.clone()));
             }
         }
         Ok(max)
@@ -77,6 +72,7 @@ aoc_2022::aoc! {
 
     input = INPUT;
     test day16_ex(INPUT_EX, 1651);
+    test day16(INPUT, 2087);
 }
 
 #[derive(Clone)]
