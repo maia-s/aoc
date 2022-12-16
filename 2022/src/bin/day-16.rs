@@ -1,7 +1,7 @@
 use std::{
     collections::{HashMap, HashSet, VecDeque},
     error::Error,
-    fmt::{Display, Debug},
+    fmt::{Debug, Display},
     str::FromStr,
 };
 
@@ -66,12 +66,89 @@ aoc_2022::aoc! {
         Ok(max)
     }
 
-    part2 usize {
-        todo!()
+    part2 isize {
+        let mut max = 0;
+        let mut q = VecDeque::new();
+        let aa = ValveId::from_str("AA")?;
+        q.push_back((26, 0, 0, 0, 0, aa, aa, HashSet::new()));
+        'step: while let Some((mut time, mut d1, mut d2, mut fr, fra, id1, id2, seen)) = q.pop_front() {
+            let (do1, do2) = loop {
+                fr += fra;
+                max = max.max(fr);
+                time -= 1;
+                if time == 0 {
+                    continue 'step;
+                }
+                if d1 > 0 && d2 > 0 {
+                    d1 -= 1;
+                    d2 -= 1;
+                } else if d1 > 0 {
+                    d1 -= 1;
+                    break (false, true);
+                } else if d2 > 0 {
+                    d2 -= 1;
+                    break (true, false);
+                } else {
+                    break (true, true);
+                }
+            };
+
+            let (do1, do2) = (
+                do1 && !seen.contains(&id1),
+                do2 && !seen.contains(&id2)
+            );
+
+            if !do1 && !do2 {
+                continue;
+            }
+
+            let mut seen = seen.clone();
+            let mut fro1 = 0;
+            let mut fro2 = 0;
+
+            if do1 {
+                seen.insert(id1);
+                fro1 = self.valves[&id1].flow_rate;
+            }
+
+            if do2 {
+                seen.insert(id2);
+                fro2 = self.valves[&id2].flow_rate;
+            }
+
+            if do1 && !do2 {
+                for (&tid, &td) in self.valves[&id1].tunnels.iter() {
+                    let d1 = td - 1 + (fro1 != 0) as isize;
+                    if tid != id2 || d1 != d2 {
+                        q.push_back((time, d1, d2, fr, fra + fro1, tid, id2, seen.clone()));
+                    }
+                }
+            } else if do2 && !do1 {
+                for (&tid, &td) in self.valves[&id2].tunnels.iter() {
+                    let d2 = td - 1 + (fro2 != 0) as isize;
+                    if tid != id1 || d1 != d2 {
+                        q.push_back((time, d1, d2, fr, fra + fro2, id1, tid, seen.clone()));
+                    }
+                }
+            } else {
+                for (&tid1, &td1) in self.valves[&id1].tunnels.iter() {
+                    for (&tid2, &td2) in self.valves[&id2].tunnels.iter() {
+                        let d1 = td1 - 1 + (fro1 != 0) as isize;
+                        let d2 = td2 - 1 + (fro2 != 0) as isize;
+                        if tid1 != tid2 || d1 != d2 {
+                            q.push_back((time, d1, d2,
+                                fr, fra + fro1 + fro2, tid1, tid2, seen.clone())
+                            );
+                        }
+                    }
+                }
+            }
+        }
+        Ok(max)
     }
 
     input = INPUT;
-    test day16_ex(INPUT_EX, 1651);
+    test day16_ex(INPUT_EX, 1651, 1707);
     test day16(INPUT, 2087);
 }
 
