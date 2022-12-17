@@ -99,6 +99,7 @@ aoc_2022::aoc! {
             );
 
             if !do1 && !do2 {
+                max = max.max(fr + fra * time);
                 continue;
             }
 
