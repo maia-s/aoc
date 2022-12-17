@@ -1,8 +1,8 @@
 use std::{
-    collections::{HashMap, HashSet, VecDeque},
+    collections::{HashMap, HashSet, VecDeque, BinaryHeap},
     error::Error,
     fmt::{Debug, Display},
-    str::FromStr,
+    str::FromStr, rc::Rc, hash::Hash,
 };
 
 const INPUT: &str = include_str!("day-16.txt");
@@ -68,10 +68,10 @@ aoc_2022::aoc! {
 
     part2 isize {
         let mut max = 0;
-        let mut q = VecDeque::new();
+        let mut q = BinaryHeap::new();
         let aa = ValveId::from_str("AA")?;
-        q.push_back((26, 0, 0, 0, 0, aa, aa, HashSet::new()));
-        'step: while let Some((mut time, mut d1, mut d2, mut fr, fra, id1, id2, seen)) = q.pop_front() {
+        q.push(Node(26, 0, 0, 0, 0, aa, aa, Rc::new(HashSet::new())));
+        'step: while let Some(Node(mut time, mut d1, mut d2, mut fr, fra, id1, id2, seen)) = q.pop() {
             let (do1, do2) = loop {
                 fr += fra;
                 max = max.max(fr);
@@ -103,7 +103,7 @@ aoc_2022::aoc! {
                 continue;
             }
 
-            let mut seen = seen.clone();
+            let mut seen = (*seen).clone();
             let mut fro1 = 0;
             let mut fro2 = 0;
 
@@ -117,18 +117,20 @@ aoc_2022::aoc! {
                 fro2 = self.valves[&id2].flow_rate;
             }
 
+            let seen = Rc::new(seen);
+
             if do1 && !do2 {
                 for (&tid, &td) in self.valves[&id1].tunnels.iter() {
                     let d1 = td - 1 + (fro1 != 0) as isize;
                     if tid != id2 || d1 != d2 {
-                        q.push_back((time, d1, d2, fr, fra + fro1, tid, id2, seen.clone()));
+                        q.push(Node(time, d1, d2, fr, fra + fro1, tid, id2, Rc::clone(&seen)));
                     }
                 }
             } else if do2 && !do1 {
                 for (&tid, &td) in self.valves[&id2].tunnels.iter() {
                     let d2 = td - 1 + (fro2 != 0) as isize;
                     if tid != id1 || d1 != d2 {
-                        q.push_back((time, d1, d2, fr, fra + fro2, id1, tid, seen.clone()));
+                        q.push(Node(time, d1, d2, fr, fra + fro2, id1, tid, Rc::clone(&seen)));
                     }
                 }
             } else {
@@ -137,8 +139,8 @@ aoc_2022::aoc! {
                         let d1 = td1 - 1 + (fro1 != 0) as isize;
                         let d2 = td2 - 1 + (fro2 != 0) as isize;
                         if tid1 != tid2 || d1 != d2 {
-                            q.push_back((time, d1, d2,
-                                fr, fra + fro1 + fro2, tid1, tid2, seen.clone())
+                            q.push(Node(time, d1, d2,
+                                fr, fra + fro1 + fro2, tid1, tid2, Rc::clone(&seen))
                             );
                         }
                     }
@@ -151,6 +153,21 @@ aoc_2022::aoc! {
     input = INPUT;
     test day16_ex(INPUT_EX, 1651, 1707);
     test day16(INPUT, 2087);
+}
+
+#[derive(PartialEq, Eq)]
+struct Node(isize, isize, isize, isize, isize, ValveId, ValveId, Rc<HashSet<ValveId>>);
+
+impl Ord for Node {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        other.0.cmp(&self.0)
+    }
+}
+
+impl PartialOrd for Node {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
 }
 
 #[derive(Clone)]
