@@ -152,7 +152,7 @@ aoc_2022::aoc! {
 
     input = INPUT;
     test day16_ex(INPUT_EX, 1651, 1707);
-    test day16(INPUT, 2087);
+    test day16(INPUT, 2087 /* ,2591 */);
 }
 
 #[derive(PartialEq, Eq)]
