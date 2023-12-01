@@ -33,7 +33,7 @@ aoc_2023::aoc! {
     part1 usize {
         Ok(self.input.lines().map(|line| {
             get_number(line.trim().chars().filter_map(|c| match c {
-                '0'..='9' => Some(c as usize - b'0' as usize),
+                '0'..='9' => Some(c as usize - '0' as usize),
                 _ => None
             }))
         }).sum())
@@ -47,7 +47,7 @@ aoc_2023::aoc! {
             get_number((0..line.len()).filter_map(|i| {
                 let rest = &line[i..];
                 match rest.chars().next().unwrap() {
-                    c @ '0'..='9' => Some(c as usize - b'0' as usize),
+                    c @ '0'..='9' => Some(c as usize - '0' as usize),
                     _ => {
                         for (wi, word) in WORDS.iter().enumerate() {
                             if rest.starts_with(word) {
