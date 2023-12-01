@@ -64,9 +64,6 @@ aoc_2023::aoc! {
 
 fn get_number(mut it: impl Iterator<Item = usize>) -> usize {
     let first = it.next().unwrap_or(0);
-    let mut last = first;
-    for n in it {
-        last = n;
-    }
+    let last = it.last().unwrap_or(first);
     first * 10 + last
 }
