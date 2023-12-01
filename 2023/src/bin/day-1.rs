@@ -16,23 +16,29 @@ zoneight234
 7pqrstsixteen";
 
 aoc_2023::aoc! {
-    struct Day1 {
-        sum: usize,
-        sum2: usize,
+    struct Day1<'a> {
+        input: &'a str,
     }
 
     self(input) {
-        const WORDS: &[&str] = &["one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
-        let mut sum = 0;
-        let mut sum2 = 0;
+        Ok(Day1 { input })
+    }
 
-        for line in input.lines() {
-            let line = line.trim();
-
-            let nums: Vec<usize> = line.chars().filter_map(|c| match c {
+    part1 usize {
+        Ok(self.input.lines().map(|line| {
+            let nums: Vec<usize> = line.trim().chars().filter_map(|c| match c {
                 '0'..='9' => Some(c as usize - b'0' as usize),
                 _ => None
             }).collect();
+            nums.first().unwrap_or(&0) * 10 + nums.last().unwrap_or(&0)
+        }).sum())
+    }
+
+    part2 usize {
+        const WORDS: &[&str] = &["one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
+
+        Ok(self.input.lines().map(|line| {
+            let line = line.trim();
 
             let nums2: Vec<usize> = (0..line.len()).filter_map(|i| {
                 let rest = &line[i..];
@@ -49,18 +55,8 @@ aoc_2023::aoc! {
                 }
             }).collect();
 
-            sum += nums.first().unwrap_or(&0) * 10 + nums.last().unwrap_or(&0);
-            sum2 += nums2.first().unwrap_or(&0) * 10 + nums2.last().unwrap_or(&0);
-        }
-        Ok(Day1 { sum, sum2 })
-    }
-
-    part1 usize {
-        Ok(self.sum)
-    }
-
-    part2 usize {
-        Ok(self.sum2)
+            nums2.first().unwrap_or(&0) * 10 + nums2.last().unwrap_or(&0)
+        }).sum())
     }
 
     input = INPUT;
