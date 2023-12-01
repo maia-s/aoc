@@ -26,11 +26,10 @@ aoc_2023::aoc! {
 
     part1 usize {
         Ok(self.input.lines().map(|line| {
-            let nums: Vec<usize> = line.trim().chars().filter_map(|c| match c {
+            get_number(line.trim().chars().filter_map(|c| match c {
                 '0'..='9' => Some(c as usize - b'0' as usize),
                 _ => None
-            }).collect();
-            nums.first().unwrap_or(&0) * 10 + nums.last().unwrap_or(&0)
+            }))
         }).sum())
     }
 
@@ -39,8 +38,7 @@ aoc_2023::aoc! {
 
         Ok(self.input.lines().map(|line| {
             let line = line.trim();
-
-            let nums2: Vec<usize> = (0..line.len()).filter_map(|i| {
+            get_number((0..line.len()).filter_map(|i| {
                 let rest = &line[i..];
                 match rest.chars().next().unwrap() {
                     c @ '0'..='9' => Some(c as usize - b'0' as usize),
@@ -53,9 +51,7 @@ aoc_2023::aoc! {
                         None
                     }
                 }
-            }).collect();
-
-            nums2.first().unwrap_or(&0) * 10 + nums2.last().unwrap_or(&0)
+            }))
         }).sum())
     }
 
@@ -64,4 +60,13 @@ aoc_2023::aoc! {
     test day1_example(INPUT_EX, 142, 142);
     test day1_example2(INPUT_EX2, 209, 281);
     test day1(INPUT, 55712, 55413);
+}
+
+fn get_number(mut it: impl Iterator<Item = usize>) -> usize {
+    let first = it.next().unwrap_or(0);
+    let mut last = first;
+    for n in it {
+        last = n;
+    }
+    first * 10 + last
 }
