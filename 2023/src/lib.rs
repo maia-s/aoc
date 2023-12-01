@@ -4,7 +4,7 @@ macro_rules! aoc {
         $(#[$attr:meta])* struct $Day:ident $(<$lt:lifetime>)? { $($fields:tt)* }
         $self:ident($in:ident) { $($new:tt)* }
         part1 $p1ty:ty { $($part1:tt)* }
-        part2 $p2ty:ty { $($part2:tt)* }
+        $( part2 $p2ty:ty { $($part2:tt)* } )?
         input = $input:expr;
         $(test $tname:ident($tinput:expr, $($tp1:expr)? $(, $tp2:expr)?);)*
     ) => {
@@ -20,15 +20,17 @@ macro_rules! aoc {
                 $($part1)*
             }
 
-            fn part2(&mut $self) -> Result<$p2ty, Box<dyn ::std::error::Error>> {
-                $($part2)*
-            }
+            $(
+                fn part2(&mut $self) -> Result<$p2ty, Box<dyn ::std::error::Error>> {
+                    $($part2)*
+                }
+            )?
         }
 
         fn main() -> Result<(), Box<dyn ::std::error::Error>> {
             let mut day = $Day::new($input)?;
             println!("part 1: {}", day.part1()?);
-            println!("part 2: {}", day.part2()?);
+            $( println!("part 2: {}", day.part2()? as $p2ty); )?
             Ok(())
         }
 
