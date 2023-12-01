@@ -15,6 +15,12 @@ xtwone3four
 zoneight234
 7pqrstsixteen";
 
+fn get_number(mut it: impl Iterator<Item = usize>) -> usize {
+    let first = it.next().unwrap_or(0);
+    let last = it.last().unwrap_or(first);
+    first * 10 + last
+}
+
 aoc_2023::aoc! {
     struct Day1<'a> {
         input: &'a str,
@@ -60,10 +66,4 @@ aoc_2023::aoc! {
     test day1_example(INPUT_EX, 142, 142);
     test day1_example2(INPUT_EX2, 209, 281);
     test day1(INPUT, 55712, 55413);
-}
-
-fn get_number(mut it: impl Iterator<Item = usize>) -> usize {
-    let first = it.next().unwrap_or(0);
-    let last = it.last().unwrap_or(first);
-    first * 10 + last
 }
