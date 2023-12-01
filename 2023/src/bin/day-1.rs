@@ -34,23 +34,20 @@ aoc_2023::aoc! {
                 _ => None
             }).collect();
 
-            let mut nums2 = Vec::new();
-            'lines: for i in 0..line.len() {
+            let nums2: Vec<usize> = (0..line.len()).filter_map(|i| {
                 let rest = &line[i..];
-                nums2.push('num: {
-                    match rest.chars().next().unwrap() {
-                        c @ '0'..='9' => break 'num c as usize - b'0' as usize,
-                        _ => {
-                            for (wi, word) in WORDS.iter().enumerate() {
-                                if rest.starts_with(word) {
-                                    break 'num wi + 1;
-                                }
+                match rest.chars().next().unwrap() {
+                    c @ '0'..='9' => Some(c as usize - b'0' as usize),
+                    _ => {
+                        for (wi, word) in WORDS.iter().enumerate() {
+                            if rest.starts_with(word) {
+                                return Some(wi + 1);
                             }
-                            continue 'lines;
                         }
+                        None
                     }
-                });
-            }
+                }
+            }).collect();
 
             sum += nums.first().unwrap_or(&0) * 10 + nums.last().unwrap_or(&0);
             sum2 += nums2.first().unwrap_or(&0) * 10 + nums2.last().unwrap_or(&0);
