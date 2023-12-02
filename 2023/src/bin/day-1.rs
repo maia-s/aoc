@@ -26,7 +26,7 @@ aoc_2023::aoc! {
         input: &'a str,
     }
 
-    self(input) {
+    self(input = INPUT) {
         Ok(Day1 { input })
     }
 
@@ -60,8 +60,6 @@ aoc_2023::aoc! {
             }))
         }).sum())
     }
-
-    input = INPUT;
 
     test day1_example(INPUT_EX, 142, 142);
     test day1_example2(INPUT_EX2, 209, 281);

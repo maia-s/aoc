@@ -15,7 +15,7 @@ aoc_2023::aoc! {
         games: Vec<Game>,
     }
 
-    self(input) {
+    self(input = INPUT) {
         Ok(Self { games: input.lines().map(|line| {
             let (_, line) = line.split_once(": ").ok_or("invalid line")?;
             line.parse::<Game>()
@@ -32,8 +32,6 @@ aoc_2023::aoc! {
             red * green * blue
         }).sum())
     }
-
-    input = INPUT;
 
     test day2_example(INPUT_EX, 8, 2286);
     test day2(INPUT, 2683, 49710);

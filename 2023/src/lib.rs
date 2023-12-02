@@ -32,10 +32,9 @@ impl std::fmt::Debug for Error {
 macro_rules! aoc {
     (
         $(#[$attr:meta])* struct $Day:ident $(<$lt:lifetime>)? { $($fields:tt)* }
-        $self:ident($in:ident) { $($new:tt)* }
+        $self:ident($in:ident = $input:expr) { $($new:tt)* }
         part1 $p1ty:ty { $($part1:tt)* }
         $( part2 $p2ty:ty { $($part2:tt)* } )?
-        input = $input:expr;
         $(test $tname:ident($tinput:expr, $($tp1:expr)? $(, $tp2:expr)?);)*
     ) => {
         $(#[$attr])*
