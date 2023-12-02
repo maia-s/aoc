@@ -1,8 +1,16 @@
-pub struct Error(pub String);
+use std::borrow::Cow;
 
-impl From<&str> for Error {
-    fn from(value: &str) -> Self {
-        Self(value.to_owned())
+pub struct Error(Cow<'static, str>);
+
+impl From<&'static str> for Error {
+    fn from(value: &'static str) -> Self {
+        Self(Cow::Borrowed(value))
+    }
+}
+
+impl From<String> for Error {
+    fn from(value: String) -> Self {
+        Self(Cow::Owned(value))
     }
 }
 

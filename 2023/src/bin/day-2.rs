@@ -17,7 +17,7 @@ aoc_2023::aoc! {
 
     self(input) {
         Ok(Self { games: input.lines().map(|line| {
-            let (_, line) = line.split_once(": ").ok_or_else(|| Error::from("invalid line"))?;
+            let (_, line) = line.split_once(": ").ok_or(Error::from("invalid line"))?;
             line.parse::<Game>()
         }).collect::<Result<Vec<_>, _>>()?})
     }
@@ -90,10 +90,10 @@ impl FromStr for Round {
         for s in s.split(", ") {
             let (n, col) = s
                 .split_once(' ')
-                .ok_or_else(|| Error::from("missing space in round"))?;
+                .ok_or(Error::from("missing space in round"))?;
             let n = n
                 .parse()
-                .map_err(|_| Error(format!("invalid quantity `{n}`")))?;
+                .map_err(|_| Error::from(format!("invalid quantity `{n}`")))?;
             match col {
                 "red" => red = n,
                 "green" => green = n,
