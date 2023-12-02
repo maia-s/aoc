@@ -26,9 +26,17 @@ aoc_2023::aoc! {
         Ok(self.games.iter().enumerate().filter(|(_, game)| game.is_valid(12, 13, 14)).map(|(i, _)| i + 1).sum())
     }
 
+    part2 usize {
+        Ok(self.games.iter().map(|game| {
+            let Round { red, green, blue } = game.fewest();
+            red * green * blue
+        }).sum())
+    }
+
     input = INPUT;
 
-    test day2_example(INPUT_EX, 8);
+    test day2_example(INPUT_EX, 8, 2286);
+    test day2(INPUT, 2683, 49710);
 }
 
 struct Game {
@@ -51,6 +59,18 @@ impl FromStr for Game {
 impl Game {
     fn is_valid(&self, r: usize, g: usize, b: usize) -> bool {
         self.round.iter().all(|round| round.is_valid(r, g, b))
+    }
+
+    fn fewest(&self) -> Round {
+        let mut red = 0;
+        let mut green = 0;
+        let mut blue = 0;
+        for r in self.round.iter() {
+            red = red.max(r.red);
+            green = green.max(r.green);
+            blue = blue.max(r.blue);
+        }
+        Round { red, green, blue }
     }
 }
 
