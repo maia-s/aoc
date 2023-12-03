@@ -15,11 +15,15 @@ const INPUT_EX: &str = "467..114..
 .664.598..";
 
 aoc_2023::aoc! {
-    struct Day3 { sum: usize, }
+    struct Day3 {
+        sum: usize,
+        gears: HashMap::<(usize, usize), Vec<usize>>,
+    }
 
     self(input = INPUT) {
         let map: Vec<&[u8]> = input.lines().map(|line| line.as_bytes()).collect();
         let mut sum = 0;
+        let mut gears: HashMap::<(usize, usize), Vec<usize>> = HashMap::new();
         for y in 0..map.len() {
             let mut x = 0;
             let linelen = map[y].len();
@@ -36,17 +40,29 @@ aoc_2023::aoc! {
                     if attached(y0) || attached(y) || attached(y1) {
                         sum += num;
                     }
+                    for y in y0..=y1 {
+                        for x in x0..=x1 {
+                            if map[y][x] == b'*' {
+                                gears.entry((x, y)).or_default().push(num);
+                            }
+                        }
+                    }
                 } else {
                     x += 1;
                 }
             }
         }
-        Ok(Self { sum })
+        Ok(Self { sum, gears })
     }
 
     part1 usize {
         Ok(self.sum)
     }
 
-    test day3_example(INPUT_EX, 4361);
+    part2 usize {
+        Ok(self.gears.values().filter(|gear| gear.len() == 2).map(|gear| gear[0] * gear[1]).sum())
+    }
+
+    test day3_example(INPUT_EX, 4361, 467835);
+    test day3(INPUT, 509115, 75220503);
 }
