@@ -1,19 +1,23 @@
+use aoc_2023::str_block;
+
 const INPUT: &str = include_str!("day-1.txt");
 
 #[allow(dead_code)]
-const INPUT_EX: &str = "1abc2
+const INPUT_EX: &str = str_block! {"
+1abc2
 pqr3stu8vwx
 a1b2c3d4e5f
-treb7uchet";
+treb7uchet"};
 
 #[allow(dead_code)]
-const INPUT_EX2: &str = "two1nine
+const INPUT_EX2: &str = str_block! {"
+two1nine
 eightwothree
 abcone2threexyz
 xtwone3four
 4nineeightseven2
 zoneight234
-7pqrstsixteen";
+7pqrstsixteen"};
 
 fn get_number(mut it: impl Iterator<Item = usize>) -> usize {
     let first = it.next().unwrap_or(0);

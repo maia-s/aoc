@@ -1,9 +1,12 @@
 use std::{collections::HashMap, str::from_utf8};
 
+use aoc_2023::str_block;
+
 const INPUT: &str = include_str!("day-3.txt");
 
 #[allow(dead_code)]
-const INPUT_EX: &str = "467..114..
+const INPUT_EX: &str = str_block! {"
+467..114..
 ...*......
 ..35..633.
 ......#...
@@ -12,7 +15,7 @@ const INPUT_EX: &str = "467..114..
 ..592.....
 ......755.
 ...$.*....
-.664.598..";
+.664.598.."};
 
 aoc_2023::aoc! {
     struct Day3 {
@@ -40,6 +43,7 @@ aoc_2023::aoc! {
                     if attached(y0) || attached(y) || attached(y1) {
                         sum += num;
                     }
+                    #[allow(clippy::needless_range_loop)]
                     for y in y0..=y1 {
                         for x in x0..=x1 {
                             if map[y][x] == b'*' {

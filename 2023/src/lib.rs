@@ -29,6 +29,21 @@ impl std::fmt::Debug for Error {
 }
 
 #[macro_export]
+macro_rules! str_block {
+    ($s:literal) => {{
+        // const way to do &$s[1..]
+        let add = if $s.is_empty() { 0 } else { 1 };
+        let ptr = unsafe { $s.as_ptr().add(add) };
+        let bytes = unsafe { ::std::slice::from_raw_parts(ptr, $s.len() - add) };
+        if let Ok(s) = ::std::str::from_utf8(bytes) {
+            s
+        } else {
+            panic!("string didn't start with newline")
+        }
+    }};
+}
+
+#[macro_export]
 macro_rules! aoc {
     (
         $(#[$attr:meta])* struct $Day:ident $(<$lt:lifetime>)? { $($fields:tt)* }
