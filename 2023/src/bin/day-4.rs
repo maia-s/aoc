@@ -14,11 +14,13 @@ Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11
 aoc_2023::aoc! {
     struct Day4 {
         points: usize,
+        cards: usize,
     }
 
     self(input = INPUT) {
         let mut points = 0;
-        for card in input.lines() {
+        let mut cards = Vec::new();
+        for (i, card) in input.lines().enumerate() {
             let (_, card) = card.split_once(": ").ok_or("malformed line")?;
             let (win, have) = card.split_once(" | ").ok_or("missing `|`")?;
             let win = win.split_ascii_whitespace().map(|x| x.parse()).collect::<Result<HashSet<usize>, _>>()?;
@@ -28,14 +30,24 @@ aoc_2023::aoc! {
             if matches > 0 {
                 points += 1 << (matches - 1);
             }
+            if cards.len() < i + matches + 1 {
+                cards.resize(i + matches + 1, 1);
+            }
+            for j in 0..matches {
+                cards[i + j + 1] += cards[i];
+            }
         }
-        Ok(Self { points })
+        Ok(Self { points, cards: cards.into_iter().sum() })
     }
 
     part1 usize {
         Ok(self.points)
     }
 
-    test day4_example(INPUT_EX, 13);
-    test day4(INPUT, 26346);
+    part2 usize {
+        Ok(self.cards)
+    }
+
+    test day4_example(INPUT_EX, 13, 30);
+    test day4(INPUT, 26346, 8467762);
 }
