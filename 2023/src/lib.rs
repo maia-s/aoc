@@ -72,9 +72,31 @@ macro_rules! aoc {
         }
 
         fn main() -> Result<(), Box<dyn ::std::error::Error>> {
+            use ::std::time::Instant;
+
+            let p0t = Instant::now();
             let mut day = $Day::new($input)?;
-            println!("part 1: {}", day.part1()?);
-            $( println!("part 2: {}", day.part2()? as $p2ty); )?
+            let p0t = Instant::now().duration_since(p0t);
+
+            let p1t = Instant::now();
+            let part1 = day.part1()?;
+            let p1t = Instant::now().duration_since(p1t);
+            println!("part 1: {}", part1);
+
+            $(
+                let p2t = Instant::now();
+                let part2: $p2ty = day.part2()?;
+                let p2t = Instant::now().duration_since(p2t);
+                println!("part 2: {}", part2);
+            )?
+
+            print!("[ init: {p0t:?}, part 1: {p1t:?}");
+            $(
+                let _: $p2ty;
+                print!(", part 2: {p2t:?}");
+            )?
+            println!(" ]");
+
             Ok(())
         }
 
