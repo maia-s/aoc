@@ -66,21 +66,27 @@ aoc! {
     }
 
     part1 usize {
-        let mut location = usize::MAX;
-
-        for seed in self.seeds.iter() {
-            let mut index = *seed;
-            for map in self.maps.iter() {
-                index = map.get(index);
-            }
-            location = location.min(index);
-        }
-
-        Ok(location)
+        Ok(self.seeds.iter().map(|&seed| self.seed_location(seed)).min().unwrap())
     }
 
-    test day5_example(INPUT_EX, 35);
-    test day5(INPUT, 825516882);
+    part2 usize {
+        Ok(self.seeds.chunks(2).map(|c|
+            (c[0]..c[0] + c[1]).map(|seed| self.seed_location(seed)).min().unwrap()
+        ).min().unwrap())
+    }
+
+    test day5_example(INPUT_EX, 35, 46);
+    test day5(INPUT, 825516882, 136096660);
+}
+
+impl Day5 {
+    fn seed_location(&self, seed: usize) -> usize {
+        let mut index = seed;
+        for map in self.maps.iter() {
+            index = map.get(index);
+        }
+        index
+    }
 }
 
 struct Map(Vec<(usize, usize, usize)>);
