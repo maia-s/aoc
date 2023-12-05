@@ -81,11 +81,7 @@ aoc! {
 
 impl Day5 {
     fn seed_location(&self, seed: usize) -> usize {
-        let mut index = seed;
-        for map in self.maps.iter() {
-            index = map.get(index);
-        }
-        index
+        self.maps.iter().fold(seed, |index, map| map.get(index))
     }
 }
 
