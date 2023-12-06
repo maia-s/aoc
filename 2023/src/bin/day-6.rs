@@ -19,16 +19,18 @@ aoc! {
         let mut line = self.input.lines().map(|line| line.split_ascii_whitespace().skip(1).map(str::parse));
         let time = line.next().ok_or("missing times")?;
         let distance = line.next().ok_or("missing distances")?;
-        let races: Vec<(usize, usize)> = time.zip(distance).map(|(t, d)| match (t, d) {
+        Ok(time.zip(distance).map(|(t, d)| match (t, d) {
             (Ok(t), Ok(d)) => Ok((t, d)),
             (Err(e), _) | (_, Err(e)) => Err(e),
-        }).collect::<Result<_, _>>()?;
-        Ok(races.iter().map(|race| ways_to_win(race.0, race.1)).product())
+        }).map(|race| match race {
+            Ok((t, d)) => Ok(ways_to_win(t, d)),
+            Err(e) => Err(e),
+        }).product::<Result<_, _>>()?)
     }
 
     part2 usize {
         let mut line = self.input.lines().map(|line| {
-            let (_, line) = line.split_once(":").ok_or("missing `:`")?;
+            let (_, line) = line.split_once(':').ok_or("missing `:`")?;
             line.replace(' ', "").parse().map_err(|e| format!("parse error: {e}"))
         });
         let time = line.next().ok_or("missing time")??;
