@@ -9,25 +9,40 @@ Distance:  9  40  200
 "};
 
 aoc! {
-    struct Day6 {
-        races: Vec<(usize, usize)>,
-    }
+    struct Day6<'a> { input: &'a str }
 
     self(input = INPUT) {
-        let mut line = input.lines().map(|line| line.split_ascii_whitespace().skip(1).map(str::parse));
-        let time = line.next().ok_or("missing times")?;
-        let distance = line.next().ok_or("missing distances")?;
-        Ok(Self { races: time.zip(distance).map(|(t, d)| match (t, d) {
-            (Ok(t), Ok(d)) => Ok((t, d)),
-            (Err(e), _) | (_, Err(e)) => Err(e),
-        }).collect::<Result<_, _>>()? })
+        Ok(Self { input })
     }
 
     part1 usize {
-        Ok(self.races.iter().map(|race|
-            (1..race.0).map(|t| t * (race.0 - t)).filter(|&d| d > race.1).count()
-        ).product())
+        let mut line = self.input.lines().map(|line| line.split_ascii_whitespace().skip(1).map(str::parse));
+        let time = line.next().ok_or("missing times")?;
+        let distance = line.next().ok_or("missing distances")?;
+        let races: Vec<(usize, usize)> = time.zip(distance).map(|(t, d)| match (t, d) {
+            (Ok(t), Ok(d)) => Ok((t, d)),
+            (Err(e), _) | (_, Err(e)) => Err(e),
+        }).collect::<Result<_, _>>()?;
+        Ok(races.iter().map(|race| ways_to_win(race.0, race.1)).product())
     }
 
-    test day6_example(INPUT_EX, 288);
+    part2 usize {
+        let mut line = self.input.lines().map(|line| {
+            let (_, line) = line.split_once(":").ok_or("missing `:`")?;
+            line.replace(' ', "").parse().map_err(|e| format!("parse error: {e}"))
+        });
+        let time = line.next().ok_or("missing time")??;
+        let distance = line.next().ok_or("missing distance")??;
+        Ok(ways_to_win(time, distance))
+    }
+
+    test day6_example(INPUT_EX, 288, 71503);
+    test day6(INPUT, 4403592, 38017587);
+}
+
+fn ways_to_win(time: usize, distance: usize) -> usize {
+    (1..time)
+        .map(|t| t * (time - t))
+        .filter(|&d| d > distance)
+        .count()
 }
