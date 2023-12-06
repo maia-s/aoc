@@ -22,8 +22,7 @@ aoc! {
         Ok(time.zip(distance).map(|(t, d)| match (t, d) {
             (Ok(t), Ok(d)) => Ok((t, d)),
             (Err(e), _) | (_, Err(e)) => Err(e),
-        }).map(|race| race.map(|(t, d)| ways_to_win(t, d)))
-        .product::<Result<_, _>>()?)
+        }).map(|race| race.map(|(t, d)| ways_to_win(t, d))).product::<Result<_, _>>()?)
     }
 
     part2 usize {
