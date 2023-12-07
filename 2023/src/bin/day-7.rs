@@ -14,25 +14,30 @@ QQQJA 483
 "};
 
 aoc! {
-    struct Day7 {
-        hands: Vec<(Hand, usize)>,
+    struct Day7<'a> {
+        input: &'a str,
     }
 
     self(input = INPUT) {
-        let mut hands = input.lines().map(|line| {
+        Ok(Self { input })
+    }
+
+    part1 usize {
+        let mut hands = self.input.lines().map(|line| {
             let (hand, bid) = line.split_once(' ').ok_or("missing space")?;
             Ok((hand.parse()?, bid.parse().map_err(|_| "parse error")?))
         }).collect::<Result<Vec<(Hand, usize)>, Error>>()?;
         hands.sort_unstable_by(|a, b| b.0.cmp(&a.0));
-        Ok(Self { hands })
+        Ok(hands.iter().enumerate().map(|(i, hand)| (i + 1) * hand.1).sum())
     }
 
-    part1 usize {
-        Ok(self.hands.iter().enumerate().map(|(i, hand)| (i + 1) * hand.1).sum())
+    part2 usize {
+        let input = self.input.replace('J', "j");
+        Day7 { input: &input }.part1()
     }
 
-    test day7_example(INPUT_EX, 6440);
-    test day7(INPUT, 246409899);
+    test day7_example(INPUT_EX, 6440, 5905);
+    test day7(INPUT, 246409899, 244848487);
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -114,22 +119,40 @@ impl From<Hand> for Type {
         for card in value.0 {
             *counts.entry(card).or_default() += 1;
         }
+        let jokers = counts.get(&Card::Joker).copied().unwrap_or(0);
         let mut counts: Vec<usize> = counts.values().copied().collect();
         counts.sort_unstable_by(|a, b| b.cmp(a));
         match counts.len() {
             1 => Self::FiveOfAKind,
-            2 => match (counts[0], counts[1]) {
-                (4, 1) => Self::FourOfAKind,
-                (3, 2) => Self::FullHouse,
+            2 => match (jokers, counts[0], counts[1]) {
+                (4, 4, 1) => Self::FiveOfAKind,
+                (1, 4, 1) => Self::FiveOfAKind,
+                (0, 4, 1) => Self::FourOfAKind,
+                (3, 3, 2) => Self::FiveOfAKind,
+                (2, 3, 2) => Self::FiveOfAKind,
+                (0, 3, 2) => Self::FullHouse,
                 _ => unreachable!(),
             },
-            3 => match (counts[0], counts[1]) {
-                (3, 1) => Self::ThreeOfAKind,
-                (2, 2) => Self::TwoPairs,
+            3 => match (jokers, counts[0], counts[1]) {
+                (3, 3, 1) => Self::FourOfAKind,
+                (1, 3, 1) => Self::FourOfAKind,
+                (0, 3, 1) => Self::ThreeOfAKind,
+                (2, 2, 2) => Self::FourOfAKind,
+                (1, 2, 2) => Self::FullHouse,
+                (0, 2, 2) => Self::TwoPairs,
                 _ => unreachable!(),
             },
-            4 => Self::OnePair,
-            5 => Self::HighCard,
+            4 => match jokers {
+                2 => Self::ThreeOfAKind,
+                1 => Self::ThreeOfAKind,
+                0 => Self::OnePair,
+                _ => unreachable!(),
+            },
+            5 => match jokers {
+                1 => Self::OnePair,
+                0 => Self::HighCard,
+                _ => unreachable!(),
+            },
             _ => unreachable!(),
         }
     }
@@ -150,6 +173,7 @@ enum Card {
     Four,
     Three,
     Two,
+    Joker,
 }
 
 impl Card {
@@ -168,6 +192,7 @@ impl Card {
             '4' => Ok(Self::Four),
             '3' => Ok(Self::Three),
             '2' => Ok(Self::Two),
+            'j' => Ok(Self::Joker),
             s => Err(format!("invalid card: {s}").into()),
         }
     }
