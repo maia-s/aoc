@@ -86,14 +86,14 @@ aoc! {
         let step = self.path.iter().copied().cycle();
         Ok(
             self.map.keys().copied().filter(|key| key.ends_with('A'))
-            .map(|start| {
-                let mut node = start;
-                step.clone().enumerate().find_map(|(i, step)| {
-                    node = self.map.get(node).expect("missing node")[step as usize];
-                    node.ends_with('Z').then_some(i + 1)
-                }).expect("no end")
-            })
-            .reduce(lcm).unwrap()
+                .map(|start| {
+                    let mut node = start;
+                    step.clone().enumerate().find_map(|(i, step)| {
+                        node = self.map.get(node).expect("missing node")[step as usize];
+                        node.ends_with('Z').then_some(i + 1)
+                    }).expect("no end")
+                })
+                .reduce(lcm).unwrap()
         )
     }
 
@@ -117,5 +117,5 @@ fn gcd(mut a: usize, mut b: usize) -> usize {
 }
 
 fn lcm(a: usize, b: usize) -> usize {
-    a * b / gcd(a, b)
+    a * (b / gcd(a, b))
 }
