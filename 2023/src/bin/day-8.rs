@@ -1,4 +1,7 @@
-use std::collections::HashMap;
+use std::{
+    cmp::Ordering,
+    collections::{BinaryHeap, HashMap},
+};
 
 use aoc_2023::{aoc, str_block, Error};
 
@@ -84,32 +87,17 @@ aoc! {
         // is that each start only has one possible end and repeats after that with the same
         // cycle length each time
         let step = self.path.iter().copied().cycle();
-        let cycles = self.map.keys().copied().filter(|key| key.ends_with('A'))
+        Ok(
+            self.map.keys().copied().filter(|key| key.ends_with('A'))
             .map(|start| {
                 let mut node = start;
                 step.clone().enumerate().find_map(|(i, step)| {
                     node = self.map.get(node).expect("missing node")[step as usize];
                     node.ends_with('Z').then_some(i + 1)
                 }).expect("no end")
-            }).collect::<Vec<_>>();
-        let mut lcm = cycles.clone();
-        let lcm = loop {
-            let mut min = usize::MAX;
-            let mut min_i = 0;
-            let mut max = 0;
-            for (i, &n) in lcm.iter().enumerate() {
-                if min > n {
-                    min = n;
-                    min_i = i;
-                }
-                max = max.max(n);
-            }
-            if min == max {
-                break min;
-            }
-            lcm[min_i] += cycles[min_i];
-        };
-        Ok(lcm)
+            })
+            .reduce(lcm).unwrap()
+        )
     }
 
     test day8_example(INPUT_EX, 2);
@@ -122,4 +110,15 @@ aoc! {
 enum Dir {
     Left = 0,
     Right = 1,
+}
+
+fn gcd(mut a: usize, mut b: usize) -> usize {
+    while b != 0 {
+        (a, b) = (b, a % b);
+    }
+    a
+}
+
+fn lcm(a: usize, b: usize) -> usize {
+    a * b / gcd(a, b)
 }
