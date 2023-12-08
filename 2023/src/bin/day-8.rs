@@ -1,7 +1,4 @@
-use std::{
-    cmp::Ordering,
-    collections::{BinaryHeap, HashMap},
-};
+use std::collections::HashMap;
 
 use aoc_2023::{aoc, str_block, Error};
 
