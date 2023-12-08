@@ -66,7 +66,17 @@ aoc! {
     }
 
     part1 usize {
-        Ok(self.steps("AAA", "ZZZ", self.path.iter().copied().cycle())?)
+        let mut step = self.path.iter().copied().cycle();
+        let mut node = "AAA";
+        let mut steps = 0;
+        while node != "ZZZ" {
+            steps += 1;
+            node = self
+                .map
+                .get(&node)
+                .ok_or_else(|| format!("missing node `{node}`"))?[step.next().unwrap() as usize];
+        }
+        Ok(steps)
     }
 
     part2 usize {
@@ -106,26 +116,6 @@ aoc! {
     test day8_example2(INPUT_EX2, 6);
     test day8_example3(INPUT_EX3,, 6);
     test day8(INPUT, 18113, 12315788159977);
-}
-
-impl Day8<'_> {
-    fn steps(
-        &self,
-        src: &str,
-        dest: &str,
-        mut step: impl Iterator<Item = Dir>,
-    ) -> Result<usize, Error> {
-        let mut node = src;
-        let mut steps = 0;
-        while node != dest {
-            steps += 1;
-            node = self
-                .map
-                .get(&node)
-                .ok_or_else(|| format!("missing node `{node}`"))?[step.next().unwrap() as usize];
-        }
-        Ok(steps)
-    }
 }
 
 #[derive(Clone, Copy)]
