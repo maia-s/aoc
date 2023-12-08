@@ -24,6 +24,19 @@ AAA = (BBB, BBB)
 BBB = (AAA, ZZZ)
 ZZZ = (ZZZ, ZZZ)"};
 
+#[allow(dead_code)]
+const INPUT_EX3: &str = str_block! {"
+LR
+
+11A = (11B, XXX)
+11B = (XXX, 11Z)
+11Z = (11B, XXX)
+22A = (22B, XXX)
+22B = (22C, 22C)
+22C = (22Z, 22Z)
+22Z = (22B, 22B)
+XXX = (XXX, XXX)"};
+
 aoc! {
     struct Day8<'a> {
         path: Vec<Dir>,
@@ -56,8 +69,26 @@ aoc! {
         Ok(self.steps("AAA", "ZZZ", self.path.iter().copied().cycle())?)
     }
 
+    part2 usize {
+        let step = self.path.iter().copied().cycle();
+        let mut nodes = self.map.keys().copied().filter(|key| key.ends_with('A'))
+            .map(|start| Node::new(start, step.clone())).collect::<Vec<_>>();
+        let mut steps = 0;
+        'next: loop {
+            for node in nodes.iter_mut() {
+                let s = node.run(&self.map, |s, n| s >= steps && n.ends_with('Z'))?;
+                if s > steps {
+                    steps = s;
+                    continue 'next;
+                }
+            }
+            return Ok(steps)
+        }
+    }
+
     test day8_example(INPUT_EX, 2);
     test day8_example2(INPUT_EX2, 6);
+    test day8_example3(INPUT_EX3,, 6);
     test day8(INPUT, 18113);
 }
 
@@ -75,7 +106,7 @@ impl Day8<'_> {
             node = self
                 .map
                 .get(&node)
-                .ok_or(format!("missing node `{node}`"))?[step.next().unwrap() as usize];
+                .ok_or_else(|| format!("missing node `{node}`"))?[step.next().unwrap() as usize];
         }
         Ok(steps)
     }
@@ -85,4 +116,35 @@ impl Day8<'_> {
 enum Dir {
     Left = 0,
     Right = 1,
+}
+
+struct Node<'a, I: Iterator<Item = Dir>> {
+    current: &'a str,
+    step: I,
+    steps_taken: usize,
+}
+
+impl<'a, I: Iterator<Item = Dir>> Node<'a, I> {
+    fn new(start: &'a str, step: I) -> Self {
+        Self {
+            current: start,
+            step,
+            steps_taken: 0,
+        }
+    }
+
+    fn run(
+        &mut self,
+        map: &HashMap<&'a str, [&'a str; 2]>,
+        stop: impl Fn(usize, &str) -> bool,
+    ) -> Result<usize, Error> {
+        while !stop(self.steps_taken, self.current) {
+            self.steps_taken += 1;
+            self.current = map
+                .get(&self.current)
+                .ok_or_else(|| format!("missing node {}", self.current))?
+                [self.step.next().unwrap() as usize];
+        }
+        Ok(self.steps_taken)
+    }
 }
