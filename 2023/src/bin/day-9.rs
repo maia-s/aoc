@@ -25,7 +25,12 @@ aoc! {
         Ok(self.values.iter().map(find_sequence).sum())
     }
 
-    test day9_example(INPUT_EX, 114);
+    part2 isize {
+        Ok(self.values.iter().map(find_sequence_2).sum())
+    }
+
+    test day9_example(INPUT_EX, 114, 2);
+    test day9(INPUT, 1938731307, 948);
 }
 
 #[allow(clippy::ptr_arg)]
@@ -43,6 +48,25 @@ fn find_sequence(seq: &Vec<isize>) -> isize {
         } else {
             let last = seq.len() - 1;
             seq[last] + find_sequence_r(&mut seq[..last])
+        }
+    }
+    find_sequence_r(&mut seq.clone())
+}
+
+#[allow(clippy::ptr_arg)]
+fn find_sequence_2(seq: &Vec<isize>) -> isize {
+    fn find_sequence_r(seq: &mut [isize]) -> isize {
+        let mut all_zeroes = seq[0] == 0;
+        for i in (0..seq.len() - 1).rev() {
+            if seq[i + 1] != 0 {
+                all_zeroes = false;
+            }
+            seq[i + 1] -= seq[i];
+        }
+        if all_zeroes {
+            0
+        } else {
+            seq[0] - find_sequence_r(&mut seq[1..])
         }
     }
     find_sequence_r(&mut seq.clone())
