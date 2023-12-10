@@ -52,36 +52,26 @@ aoc! {
     }
 
     part1 usize {
-        let (mut pos, mut pc) = match self.tile(self.start.0, self.start.1).connections().0 {
-            0b1100 => ([(self.start.0, self.start.1 - 1), (self.start.0, self.start.1 + 1 )],
-                        [Connections::N, Connections::S]),
-            0b1010 => ([(self.start.0, self.start.1 - 1), (self.start.0 + 1, self.start.1 )],
-                        [Connections::N, Connections::E]),
-            0b1001 => ([(self.start.0, self.start.1 - 1), (self.start.0 - 1, self.start.1 )],
-                        [Connections::N, Connections::W]),
-            0b0110 => ([(self.start.0, self.start.1 + 1), (self.start.0 + 1, self.start.1 )],
-                        [Connections::S, Connections::E]),
-            0b0101 => ([(self.start.0, self.start.1 + 1), (self.start.0 - 1, self.start.1 )],
-                        [Connections::S, Connections::W]),
-            0b0011 => ([(self.start.0 + 1, self.start.1), (self.start.0 - 1, self.start.1 )],
-                        [Connections::E, Connections::W]),
+        let start = self.start;
+        let mut walkers = match self.tile(self.start.0, self.start.1).connections().0 {
+            0b1100 => [Walker::new(start.0, start.1, Dir::N), Walker::new(start.0, start.1, Dir::S)],
+            0b1010 => [Walker::new(start.0, start.1, Dir::N), Walker::new(start.0, start.1, Dir::E)],
+            0b1001 => [Walker::new(start.0, start.1, Dir::N), Walker::new(start.0, start.1, Dir::W)],
+            0b0110 => [Walker::new(start.0, start.1, Dir::S), Walker::new(start.0, start.1, Dir::E)],
+            0b0101 => [Walker::new(start.0, start.1, Dir::S), Walker::new(start.0, start.1, Dir::W)],
+            0b0011 => [Walker::new(start.0, start.1, Dir::E), Walker::new(start.0, start.1, Dir::W)],
             _ => unreachable!(),
         };
         let mut steps = 1;
-        while pos[0] != pos[1] {
+        while walkers[0].pos != walkers[1].pos {
             steps += 1;
-            for (p, pc) in pos.iter_mut().zip(pc.iter_mut()) {
-                let tc = self.tile(p.0, p.1).connections();
-                *pc = match (tc & !pc.rev()).0 {
-                    0b1000 => { p.1 -= 1; Connections::N }
-                    0b0100 => { p.1 += 1; Connections::S }
-                    0b0010 => { p.0 += 1; Connections::E }
-                    0b0001 => { p.0 -= 1; Connections::W }
-                    _ => unreachable!(),
-                };
-            }
+            walkers.iter_mut().for_each(|w| w.step(self));
         }
         Ok(steps)
+    }
+
+    part2 usize {
+        todo!()
     }
 
     test day10_example(INPUT_EX, 4);
@@ -118,21 +108,21 @@ impl Day10 {
 struct Tile(u8);
 
 impl Tile {
-    fn connections(&self) -> Connections {
+    fn connections(&self) -> Dir {
         (*self).into()
     }
 }
 
 #[derive(Clone, Copy)]
-struct Connections(u8);
+struct Dir(u8);
 
-impl Debug for Connections {
+impl Debug for Dir {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:04b}", self.0)
     }
 }
 
-impl From<Tile> for Connections {
+impl From<Tile> for Dir {
     fn from(value: Tile) -> Self {
         Self(match value.0 {
             b'|' => 0b1100,
@@ -146,21 +136,21 @@ impl From<Tile> for Connections {
     }
 }
 
-impl Not for Connections {
+impl Not for Dir {
     type Output = Self;
     fn not(self) -> Self::Output {
         Self(self.0 ^ 0x0f)
     }
 }
 
-impl BitAnd for Connections {
+impl BitAnd for Dir {
     type Output = Self;
     fn bitand(self, rhs: Self) -> Self::Output {
         Self(self.0 & rhs.0)
     }
 }
 
-impl Connections {
+impl Dir {
     const N: Self = Self(0b1000);
     const S: Self = Self(0b0100);
     const E: Self = Self(0b0010);
@@ -186,5 +176,59 @@ impl Connections {
 
     fn w(&self) -> bool {
         self.0 & 0b0001 != 0
+    }
+
+    fn dx(&self) -> isize {
+        match self.0 & 3 {
+            0b10 => 1,
+            0b01 => -1,
+            _ => 0,
+        }
+    }
+
+    fn dy(&self) -> isize {
+        match self.0 & 0xc {
+            0b1000 => -1,
+            0b0100 => 1,
+            _ => 0,
+        }
+    }
+}
+
+struct Walker {
+    pos: (isize, isize),
+    pdir: Dir,
+}
+
+impl Walker {
+    fn new(x: isize, y: isize, dir: Dir) -> Self {
+        assert!(dir.0.count_ones() == 1);
+        Self {
+            pos: (x + dir.dx(), y + dir.dy()),
+            pdir: dir,
+        }
+    }
+
+    fn step(&mut self, day: &Day10) {
+        let tc = day.tile(self.pos.0, self.pos.1).connections();
+        self.pdir = match (tc & !self.pdir.rev()).0 {
+            0b1000 => {
+                self.pos.1 -= 1;
+                Dir::N
+            }
+            0b0100 => {
+                self.pos.1 += 1;
+                Dir::S
+            }
+            0b0010 => {
+                self.pos.0 += 1;
+                Dir::E
+            }
+            0b0001 => {
+                self.pos.0 -= 1;
+                Dir::W
+            }
+            x => panic!("{x:04b}"),
+        }
     }
 }
