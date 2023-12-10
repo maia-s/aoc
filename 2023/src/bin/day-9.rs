@@ -2,6 +2,7 @@ use aoc_2023::{aoc, str_block};
 
 const INPUT: &str = include_str!("day-9.txt");
 
+#[allow(dead_code)]
 const INPUT_EX: &str = str_block! {"
 0 3 6 9 12 15
 1 3 6 10 15 21
