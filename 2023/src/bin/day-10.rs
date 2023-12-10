@@ -1,6 +1,6 @@
 use std::{
     fmt::Debug,
-    ops::{BitAnd, Not},
+    ops::{BitAnd, BitOr, Not},
 };
 
 use aoc_2023::{aoc, str_block, Error};
@@ -108,13 +108,13 @@ aoc! {
 
     part1 usize {
         let start = self.start;
-        let mut walkers = match self.tile(self.start.0, self.start.1).connections().0 {
-            0b1100 => [Walker::new(start.0, start.1, Dir::N), Walker::new(start.0, start.1, Dir::S)],
-            0b1010 => [Walker::new(start.0, start.1, Dir::N), Walker::new(start.0, start.1, Dir::E)],
-            0b1001 => [Walker::new(start.0, start.1, Dir::N), Walker::new(start.0, start.1, Dir::W)],
-            0b0110 => [Walker::new(start.0, start.1, Dir::S), Walker::new(start.0, start.1, Dir::E)],
-            0b0101 => [Walker::new(start.0, start.1, Dir::S), Walker::new(start.0, start.1, Dir::W)],
-            0b0011 => [Walker::new(start.0, start.1, Dir::E), Walker::new(start.0, start.1, Dir::W)],
+        let mut walkers = match self.tile(self.start.0, self.start.1).connections() {
+            Dir::NS => [Walker::new(start.0, start.1, Dir::N), Walker::new(start.0, start.1, Dir::S)],
+            Dir::NE => [Walker::new(start.0, start.1, Dir::N), Walker::new(start.0, start.1, Dir::E)],
+            Dir::NW => [Walker::new(start.0, start.1, Dir::N), Walker::new(start.0, start.1, Dir::W)],
+            Dir::SE => [Walker::new(start.0, start.1, Dir::S), Walker::new(start.0, start.1, Dir::E)],
+            Dir::SW => [Walker::new(start.0, start.1, Dir::S), Walker::new(start.0, start.1, Dir::W)],
+            Dir::EW => [Walker::new(start.0, start.1, Dir::E), Walker::new(start.0, start.1, Dir::W)],
             _ => unreachable!(),
         };
         let mut steps = 1;
@@ -129,13 +129,13 @@ aoc! {
         let mut new_map: Vec<Vec<_>> = self.map.iter().map(
             |row| row.iter().map(|_| Tile(b'.')).collect()
         ).collect();
-        let mut w = match self.tile(self.start.0, self.start.1).connections().0 {
-            0b1100 => Walker::new(self.start.0, self.start.1, Dir::N),
-            0b1010 => Walker::new(self.start.0, self.start.1, Dir::N),
-            0b1001 => Walker::new(self.start.0, self.start.1, Dir::N),
-            0b0110 => Walker::new(self.start.0, self.start.1, Dir::E),
-            0b0101 => Walker::new(self.start.0, self.start.1, Dir::W),
-            0b0011 => Walker::new(self.start.0, self.start.1, Dir::E),
+        let mut w = match self.tile(self.start.0, self.start.1).connections() {
+            Dir::NS => Walker::new(self.start.0, self.start.1, Dir::N),
+            Dir::NE => Walker::new(self.start.0, self.start.1, Dir::N),
+            Dir::NW => Walker::new(self.start.0, self.start.1, Dir::N),
+            Dir::SE => Walker::new(self.start.0, self.start.1, Dir::E),
+            Dir::SW => Walker::new(self.start.0, self.start.1, Dir::W),
+            Dir::EW => Walker::new(self.start.0, self.start.1, Dir::E),
             _ => unreachable!(),
         };
         let mut nwcpos = (isize::MAX, isize::MAX);
@@ -276,15 +276,15 @@ impl Debug for Dir {
 
 impl From<Tile> for Dir {
     fn from(value: Tile) -> Self {
-        Self(match value.0 {
-            b'|' => 0b1100,
-            b'L' => 0b1010,
-            b'J' => 0b1001,
-            b'F' => 0b0110,
-            b'7' => 0b0101,
-            b'-' => 0b0011,
-            _ => 0,
-        })
+        match value.0 {
+            b'|' => Dir::NS,
+            b'L' => Dir::NE,
+            b'J' => Dir::NW,
+            b'F' => Dir::SE,
+            b'7' => Dir::SW,
+            b'-' => Dir::EW,
+            _ => Dir(0),
+        }
     }
 }
 
@@ -302,11 +302,25 @@ impl BitAnd for Dir {
     }
 }
 
+impl BitOr for Dir {
+    type Output = Self;
+    fn bitor(self, rhs: Self) -> Self::Output {
+        Self(self.0 | rhs.0)
+    }
+}
+
 impl Dir {
     const N: Self = Self(0b1000);
     const S: Self = Self(0b0100);
     const E: Self = Self(0b0010);
     const W: Self = Self(0b0001);
+
+    const NS: Self = Self(0b1100);
+    const NE: Self = Self(0b1010);
+    const NW: Self = Self(0b1001);
+    const SE: Self = Self(0b0110);
+    const SW: Self = Self(0b0101);
+    const EW: Self = Self(0b0011);
 
     fn rev(&self) -> Self {
         let a = self.0 & 0b1010;
@@ -314,20 +328,20 @@ impl Dir {
         Self(a >> 1 | b << 1)
     }
 
-    fn n(&self) -> bool {
-        self.0 & 0b1000 != 0
+    fn n(self) -> bool {
+        (self & Self::N).0 != 0
     }
 
-    fn s(&self) -> bool {
-        self.0 & 0b0100 != 0
+    fn s(self) -> bool {
+        (self & Self::S).0 != 0
     }
 
-    fn e(&self) -> bool {
-        self.0 & 0b0010 != 0
+    fn e(self) -> bool {
+        (self & Self::E).0 != 0
     }
 
-    fn w(&self) -> bool {
-        self.0 & 0b0001 != 0
+    fn w(self) -> bool {
+        (self & Self::W).0 != 0
     }
 
     fn dx(&self) -> isize {
@@ -363,24 +377,8 @@ impl Walker {
 
     fn step(&mut self, day: &Day10) {
         let tc = day.tile(self.pos.0, self.pos.1).connections();
-        self.pdir = match (tc & !self.pdir.rev()).0 {
-            0b1000 => {
-                self.pos.1 -= 1;
-                Dir::N
-            }
-            0b0100 => {
-                self.pos.1 += 1;
-                Dir::S
-            }
-            0b0010 => {
-                self.pos.0 += 1;
-                Dir::E
-            }
-            0b0001 => {
-                self.pos.0 -= 1;
-                Dir::W
-            }
-            x => panic!("{x:04b}"),
-        }
+        self.pdir = tc & !self.pdir.rev();
+        self.pos.0 += self.pdir.dx();
+        self.pos.1 += self.pdir.dy();
     }
 }
