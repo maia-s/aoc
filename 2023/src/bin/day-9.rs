@@ -36,39 +36,42 @@ aoc! {
 
 #[allow(clippy::ptr_arg)]
 fn find_sequence(seq: &Vec<isize>) -> isize {
-    fn find_sequence_r(seq: &mut [isize]) -> isize {
+    let mut seq = seq.clone();
+    let mut sum = 0;
+    for len in (0..=seq.len()).rev() {
         let mut all_zeroes = true;
-        for i in 0..seq.len() - 1 {
+        for i in 0..len - 1 {
             seq[i] = seq[i + 1] - seq[i];
             if seq[i] != 0 {
                 all_zeroes = false;
             }
         }
-        let last = seq.len() - 1;
+        sum += seq[len - 1];
         if all_zeroes {
-            seq[last]
-        } else {
-            seq[last] + find_sequence_r(&mut seq[..last])
+            return sum;
         }
     }
-    find_sequence_r(&mut seq.clone())
+    unreachable!();
 }
 
 #[allow(clippy::ptr_arg)]
 fn find_sequence_2(seq: &Vec<isize>) -> isize {
-    fn find_sequence_r(seq: &mut [isize]) -> isize {
+    let mut seq = seq.clone();
+    let mut sum = 0;
+    let mut n = 1;
+    for start in 0.. {
         let mut all_zeroes = true;
-        for i in (0..seq.len() - 1).rev() {
+        for i in (start..seq.len() - 1).rev() {
             seq[i + 1] -= seq[i];
             if seq[i + 1] != 0 {
                 all_zeroes = false;
             }
         }
+        sum += n * seq[start];
+        n = -n;
         if all_zeroes {
-            seq[0]
-        } else {
-            seq[0] - find_sequence_r(&mut seq[1..])
+            return sum;
         }
     }
-    find_sequence_r(&mut seq.clone())
+    unreachable!();
 }
