@@ -25,10 +25,65 @@ SJ.L7
 LJ...
 "};
 
+#[allow(dead_code)]
+const INPUT_EX3: &str = str_block! {"
+...........
+.S-------7.
+.|F-----7|.
+.||.....||.
+.||.....||.
+.|L-7.F-J|.
+.|..|.|..|.
+.L--J.L--J.
+...........
+"};
+
+#[allow(dead_code)]
+const INPUT_EX4: &str = str_block! {"
+..........
+.S------7.
+.|F----7|.
+.||....||.
+.||....||.
+.|L-7F-J|.
+.|..||..|.
+.L--JL--J.
+..........
+"};
+
+#[allow(dead_code)]
+const INPUT_EX5: &str = str_block! {"
+.F----7F7F7F7F-7....
+.|F--7||||||||FJ....
+.||.FJ||||||||L7....
+FJL7L7LJLJ||LJ.L-7..
+L--J.L7...LJS7F-7L7.
+....F-J..F7FJ|L7L7L7
+....L7.F7||L7|.L7L7|
+.....|FJLJ|FJ|F7|.LJ
+....FJL-7.||.||||...
+....L---J.LJ.LJLJ...
+"};
+
+#[allow(dead_code)]
+const INPUT_EX6: &str = str_block! {"
+FF7FSF7F7F7F7F7F---7
+L|LJ||||||||||||F--J
+FL-7LJLJ||||||LJL-77
+F--JF--7||LJLJ7F7FJ-
+L---JF-JLJ.||-FJLJJ7
+|F|F-JF---7F7-L7L|7|
+|FFJF7L7F-JF7|JL---7
+7-L-JL7||F7|L7F-7F7|
+L.L7LFJ|||||FJL7||LJ
+L7JLJL-JLJLJL--JLJ.L
+"};
+
 aoc! {
     struct Day10 {
         map: Vec<Vec<Tile>>,
         start: (isize, isize),
+        marked: usize,
     }
 
     self(input = INPUT) {
@@ -46,7 +101,7 @@ aoc! {
             return Err("all lines aren't the same length".into());
         }
 
-        let mut s = Self { map, start };
+        let mut s = Self { map, start, marked: 0 };
         s.map[start.1 as usize][start.0 as usize] = s.get_missing_tile(start.0, start.1)?;
         Ok(s)
     }
@@ -71,12 +126,94 @@ aoc! {
     }
 
     part2 usize {
-        todo!()
+        let mut new_map: Vec<Vec<_>> = self.map.iter().map(
+            |row| row.iter().map(|_| Tile(b'.')).collect()
+        ).collect();
+        let mut w = match self.tile(self.start.0, self.start.1).connections().0 {
+            0b1100 => Walker::new(self.start.0, self.start.1, Dir::N),
+            0b1010 => Walker::new(self.start.0, self.start.1, Dir::N),
+            0b1001 => Walker::new(self.start.0, self.start.1, Dir::N),
+            0b0110 => Walker::new(self.start.0, self.start.1, Dir::E),
+            0b0101 => Walker::new(self.start.0, self.start.1, Dir::W),
+            0b0011 => Walker::new(self.start.0, self.start.1, Dir::E),
+            _ => unreachable!(),
+        };
+        let mut nwcpos = (isize::MAX, isize::MAX);
+        while new_map[w.pos.1 as usize][w.pos.0 as usize].0 == b'.' {
+            let tile = self.tile(w.pos.0, w.pos.1);
+            if tile.0 == b'F' && w.pos < nwcpos {
+                nwcpos = w.pos;
+            }
+            new_map[w.pos.1 as usize][w.pos.0 as usize] = tile;
+            w.step(self);
+        }
+        self.map = new_map;
+
+        let mut w = Walker::new(nwcpos.0, nwcpos.1, Dir::E);
+        while w.pos != nwcpos {
+            let (x, y) = w.pos;
+            match (self.tile(x, y).0, w.pdir) {
+                (b'|', Dir::N) => self.mark(x + 1, y),
+                (b'|', Dir::S) => self.mark(x - 1, y),
+                (b'-', Dir::E) => self.mark(x, y + 1),
+                (b'-', Dir::W) => self.mark(x, y - 1),
+                (b'F', Dir::N) => (),
+                (b'F', Dir::W) => {
+                    self.mark(x, y - 1);
+                    self.mark(x - 1, y - 1);
+                    self.mark(x - 1, y);
+                }
+                (b'7', Dir::E) => (),
+                (b'7', Dir::N) => {
+                    self.mark(x + 1, y);
+                    self.mark(x + 1, y - 1);
+                    self.mark(x, y - 1);
+                }
+                (b'J', Dir::S) => (),
+                (b'J', Dir::E) => {
+                    self.mark(x, y + 1);
+                    self.mark(x + 1, y + 1);
+                    self.mark(x + 1, y);
+                }
+                (b'L', Dir::W) => (),
+                (b'L', Dir::S) => {
+                    self.mark(x - 1, y);
+                    self.mark(x - 1, y + 1);
+                    self.mark(x, y + 1);
+                }
+                _ => unreachable!(),
+            }
+            w.step(self);
+        }
+
+        let mut prev_marked = 0;
+        while prev_marked != self.marked {
+            prev_marked = self.marked;
+            for y in 0..self.map.len() as isize {
+                for x in 0..self.map[0].len() as isize {
+                    if self.map[y as usize][x as usize].0 == b'.' &&
+                        (self.tile(x, y - 1).0 == b'I' ||
+                        self.tile(x - 1, y).0 == b'I' ||
+                        self.tile(x + 1, y).0 == b'I' ||
+                        self.tile(x, y + 1).0 == b'I')
+                    {
+                        self.map[y as usize][x as usize].0 = b'I';
+                        self.marked += 1;
+                    }
+                }
+            }
+        }
+
+        Ok(self.marked)
     }
 
     test day10_example(INPUT_EX, 4);
     test day10_example2(INPUT_EX2, 8);
-    test day10(INPUT, 6599);
+    test day10_example3(INPUT_EX3,, 4);
+    test day10_example4(INPUT_EX4,, 4);
+    test day10_example5(INPUT_EX5,, 8);
+    test day10_example6(INPUT_EX6,, 10);
+    test day10(INPUT, 6599, 477);
 }
 
 impl Day10 {
@@ -102,9 +239,18 @@ impl Day10 {
             _ => Err(format!("tile at ({x}, {y}) doesn't have exactly two connections").into()),
         }
     }
+
+    fn mark(&mut self, x: isize, y: isize) {
+        let x = x as usize;
+        let y = y as usize;
+        if self.map.get(y).and_then(|row| row.get(x).copied()) == Some(Tile(b'.')) {
+            self.map[y][x].0 = b'I';
+            self.marked += 1;
+        }
+    }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 struct Tile(u8);
 
 impl Tile {
@@ -113,7 +259,13 @@ impl Tile {
     }
 }
 
-#[derive(Clone, Copy)]
+impl Debug for Tile {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", char::from(self.0))
+    }
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
 struct Dir(u8);
 
 impl Debug for Dir {
