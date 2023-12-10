@@ -83,7 +83,6 @@ aoc! {
     struct Day10 {
         map: Vec<Vec<Tile>>,
         start: (isize, isize),
-        marked: usize,
     }
 
     self(input = INPUT) {
@@ -101,7 +100,7 @@ aoc! {
             return Err("all lines aren't the same length".into());
         }
 
-        let mut s = Self { map, start, marked: 0 };
+        let mut s = Self { map, start };
         s.map[start.1 as usize][start.0 as usize] = s.get_missing_tile(start.0, start.1)?;
         Ok(s)
     }
@@ -149,62 +148,24 @@ aoc! {
         }
         self.map = new_map;
 
-        let mut w = Walker::new(nwcpos.0, nwcpos.1, Dir::E);
-        while w.pos != nwcpos {
-            let (x, y) = w.pos;
-            match (self.tile(x, y).0, w.pdir) {
-                (b'|', Dir::N) => self.mark(x + 1, y),
-                (b'|', Dir::S) => self.mark(x - 1, y),
-                (b'-', Dir::E) => self.mark(x, y + 1),
-                (b'-', Dir::W) => self.mark(x, y - 1),
-                (b'F', Dir::N) => (),
-                (b'F', Dir::W) => {
-                    self.mark(x, y - 1);
-                    self.mark(x - 1, y - 1);
-                    self.mark(x - 1, y);
-                }
-                (b'7', Dir::E) => (),
-                (b'7', Dir::N) => {
-                    self.mark(x + 1, y);
-                    self.mark(x + 1, y - 1);
-                    self.mark(x, y - 1);
-                }
-                (b'J', Dir::S) => (),
-                (b'J', Dir::E) => {
-                    self.mark(x, y + 1);
-                    self.mark(x + 1, y + 1);
-                    self.mark(x + 1, y);
-                }
-                (b'L', Dir::W) => (),
-                (b'L', Dir::S) => {
-                    self.mark(x - 1, y);
-                    self.mark(x - 1, y + 1);
-                    self.mark(x, y + 1);
-                }
-                _ => unreachable!(),
-            }
-            w.step(self);
-        }
-
-        let mut prev_marked = 0;
-        while prev_marked != self.marked {
-            prev_marked = self.marked;
-            for y in 0..self.map.len() as isize {
-                for x in 0..self.map[0].len() as isize {
-                    if self.map[y as usize][x as usize].0 == b'.' &&
-                        (self.tile(x, y - 1).0 == b'I' ||
-                        self.tile(x - 1, y).0 == b'I' ||
-                        self.tile(x + 1, y).0 == b'I' ||
-                        self.tile(x, y + 1).0 == b'I')
-                    {
-                        self.map[y as usize][x as usize].0 = b'I';
-                        self.marked += 1;
-                    }
+        let mut is_in = false;
+        let mut from_s = false;
+        let mut marked = 0;
+        for row in self.map.iter() {
+            for tile in row.iter() {
+                match tile.0 {
+                    b'F' => from_s = true,
+                    b'L' => from_s = false,
+                    b'|' => is_in = !is_in,
+                    b'7' => if !from_s { is_in = !is_in },
+                    b'J' => if from_s { is_in = !is_in },
+                    b'.' => if is_in { marked += 1 },
+                    _ => (),
                 }
             }
         }
 
-        Ok(self.marked)
+        Ok(marked)
     }
 
     test day10_example(INPUT_EX, 4);
@@ -237,15 +198,6 @@ impl Day10 {
             (false, true, false, true) => Ok(Tile(b'7')),
             (false, false, true, true) => Ok(Tile(b'-')),
             _ => Err(format!("tile at ({x}, {y}) doesn't have exactly two connections").into()),
-        }
-    }
-
-    fn mark(&mut self, x: isize, y: isize) {
-        let x = x as usize;
-        let y = y as usize;
-        if self.map.get(y).and_then(|row| row.get(x).copied()) == Some(Tile(b'.')) {
-            self.map[y][x].0 = b'I';
-            self.marked += 1;
         }
     }
 }
