@@ -37,17 +37,17 @@ aoc! {
 #[allow(clippy::ptr_arg)]
 fn find_sequence(seq: &Vec<isize>) -> isize {
     fn find_sequence_r(seq: &mut [isize]) -> isize {
-        let mut all_zeroes = seq[0] == 0;
+        let mut all_zeroes = true;
         for i in 0..seq.len() - 1 {
-            if seq[i + 1] != 0 {
+            seq[i] = seq[i + 1] - seq[i];
+            if seq[i] != 0 {
                 all_zeroes = false;
             }
-            seq[i] = seq[i + 1] - seq[i];
         }
+        let last = seq.len() - 1;
         if all_zeroes {
-            0
+            seq[last]
         } else {
-            let last = seq.len() - 1;
             seq[last] + find_sequence_r(&mut seq[..last])
         }
     }
@@ -57,15 +57,15 @@ fn find_sequence(seq: &Vec<isize>) -> isize {
 #[allow(clippy::ptr_arg)]
 fn find_sequence_2(seq: &Vec<isize>) -> isize {
     fn find_sequence_r(seq: &mut [isize]) -> isize {
-        let mut all_zeroes = seq[0] == 0;
+        let mut all_zeroes = true;
         for i in (0..seq.len() - 1).rev() {
+            seq[i + 1] -= seq[i];
             if seq[i + 1] != 0 {
                 all_zeroes = false;
             }
-            seq[i + 1] -= seq[i];
         }
         if all_zeroes {
-            0
+            seq[0]
         } else {
             seq[0] - find_sequence_r(&mut seq[1..])
         }
