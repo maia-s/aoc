@@ -137,12 +137,8 @@ aoc! {
             Dir::EW => Walker::new(self.start.0, self.start.1, Dir::E),
             _ => unreachable!(),
         };
-        let mut nwcpos = (isize::MAX, isize::MAX);
         while new_map[w.pos.1 as usize][w.pos.0 as usize].0 == b'.' {
             let tile = self.tile(w.pos.0, w.pos.1);
-            if tile.0 == b'F' && w.pos < nwcpos {
-                nwcpos = w.pos;
-            }
             new_map[w.pos.1 as usize][w.pos.0 as usize] = tile;
             w.step(self);
         }
