@@ -7,4 +7,4 @@ authors = ["Maia <66437537+maia-s@users.noreply.github.com>"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [profile.dev]
-opt-level = 2
+opt-level = 3

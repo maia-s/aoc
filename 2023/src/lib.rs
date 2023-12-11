@@ -53,6 +53,7 @@ macro_rules! aoc {
         $(test $tname:ident($tinput:expr, $($tp1:expr)? $(, $tp2:expr)?);)*
     ) => {
         $(#[$attr])*
+        #[derive(Clone)]
         struct $Day $(<$lt>)? { $($fields)* }
 
         impl $(<$lt>)? $Day $(<$lt>)? {
@@ -72,28 +73,42 @@ macro_rules! aoc {
         }
 
         fn main() -> Result<(), Box<dyn ::std::error::Error>> {
-            use ::std::time::Instant;
+            use ::std::time::{Instant, Duration};
+            type Res<T> = Result<T, Box<dyn ::std::error::Error>>;
+            const TIME_LIMIT: Duration = Duration::new(0, 500_000_000);
 
-            let p0t = Instant::now();
-            let mut day = $Day::new($input)?;
-            let p0t = Instant::now().duration_since(p0t);
+            fn time<S, T>(s: impl Fn() -> S, f: impl Fn(&mut S) -> Res<T>) -> Res<(T, u32, Duration)> {
+                let mut n = 0;
+                let mut t = Duration::new(0, 0);
+                let ts = Instant::now();
+                loop {
+                    n += 1;
+                    let mut s = s();
+                    let t0 = Instant::now();
+                    let x = f(&mut s)?;
+                    let t1 = Instant::now();
+                    t += t1.duration_since(t0);
+                    if t1.duration_since(ts) >= TIME_LIMIT || n == u32::MAX {
+                        return Ok((x, n, t));
+                    }
+                }
+            }
 
-            let p1t = Instant::now();
-            let part1 = day.part1()?;
-            let p1t = Instant::now().duration_since(p1t);
+            let (day, p0n, p0t) = time(||(), |_| $Day::new($input))?;
+
+            let (part1, p1n, p1t) = time(|| day.clone(), |day| day.part1())?;
             println!("part 1: {}", part1);
 
             $(
-                let p2t = Instant::now();
-                let part2: $p2ty = day.part2()?;
-                let p2t = Instant::now().duration_since(p2t);
+                let _: $p2ty;
+                let (part2, p2n, p2t) = time(|| day.clone(), |day| day.part2())?;
                 println!("part 2: {}", part2);
             )?
 
-            print!("[ init: {p0t:?}, part 1: {p1t:?}");
+            print!("[ init: {:?}, part 1: {:?}", p0t / p0n, p1t / p1n);
             $(
                 let _: $p2ty;
-                print!(", part 2: {p2t:?}");
+                print!(", part 2: {:?}", p2t / p2n);
             )?
             println!(" ]");
 
@@ -107,9 +122,8 @@ macro_rules! aoc {
             $(
                 #[test]
                 fn $tname() -> Result<(), Box<dyn ::std::error::Error>> {
-                    let mut test = $Day::new($tinput)?;
-                    $( assert_eq!(test.part1()?, $tp1, "wrong result for part 1"); )?
-                    $( assert_eq!(test.part2()?, $tp2, "wrong result for part 2"); )?
+                    $( assert_eq!($Day::new($tinput)?.part1()?, $tp1, "wrong result for part 1"); )?
+                    $( assert_eq!($Day::new($tinput)?.part2()?, $tp2, "wrong result for part 2"); )?
                     Ok(())
                 }
             )*

@@ -39,6 +39,7 @@ aoc_2023::aoc! {
     test day2(INPUT, 2683, 49710);
 }
 
+#[derive(Clone)]
 struct Game {
     round: Vec<Round>,
 }
@@ -74,6 +75,7 @@ impl Game {
     }
 }
 
+#[derive(Clone)]
 struct Round {
     red: usize,
     green: usize,

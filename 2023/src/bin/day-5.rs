@@ -85,6 +85,7 @@ impl Day5 {
     }
 }
 
+#[derive(Clone)]
 struct Map(Vec<(usize, usize, usize)>);
 
 impl Map {
