@@ -36,10 +36,12 @@ aoc! {
                 line
             }
         ).collect());
-        let exp_rows = map.rows().enumerate()
-            .filter_map(|(i, row)| row.iter().all(|&c| c == b'.').then_some(i)).collect();
-        let exp_cols = map.cols().enumerate()
-            .filter_map(|(i, col)| col.iter().all(|&c| c == b'.').then_some(i)).collect();
+        let exp_rows = map.rows().enumerate().filter_map(
+            |(i, row)| row.iter().all(|&c| c == b'.').then_some(i)
+        ).collect();
+        let exp_cols = map.cols().enumerate().filter_map(
+            |(i, col)| col.iter().all(|&c| c == b'.').then_some(i)
+        ).collect();
         Ok(Self {
             galaxies,
             exp_rows,
