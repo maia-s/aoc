@@ -63,10 +63,13 @@ aoc! {
 
 impl Day11 {
     fn dist_all(&self, exp: usize) -> usize {
-        (0..self.galaxies.len() - 1)
-            .map(|i| {
-                (i + 1..self.galaxies.len())
-                    .map(|j| self.dist(self.galaxies[i], self.galaxies[j], exp))
+        self.galaxies[..self.galaxies.len() - 1]
+            .iter()
+            .enumerate()
+            .map(|(i, &ga)| {
+                self.galaxies[i + 1..]
+                    .iter()
+                    .map(|&gb| self.dist(ga, gb, exp))
                     .sum::<usize>()
             })
             .sum()
