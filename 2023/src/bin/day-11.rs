@@ -52,21 +52,30 @@ aoc! {
     part1 usize {
         Ok((0..self.galaxies.len() - 1).map(
             |i| (i + 1..self.galaxies.len()).map(
-                |j| self.dist(self.galaxies[i], self.galaxies[j])
+                |j| self.dist(self.galaxies[i], self.galaxies[j], 1)
+            ).sum::<usize>()
+        ).sum())
+    }
+
+    part2 usize {
+        Ok((0..self.galaxies.len() - 1).map(
+            |i| (i + 1..self.galaxies.len()).map(
+                |j| self.dist(self.galaxies[i], self.galaxies[j], 999_999)
             ).sum::<usize>()
         ).sum())
     }
 
     test day11_example(INPUT_EX, 374);
+    test day11(INPUT, 9536038, 447744640566);
 }
 
 impl Day11 {
-    fn dist(&self, (ax, ay): (usize, usize), (bx, by): (usize, usize)) -> usize {
+    fn dist(&self, (ax, ay): (usize, usize), (bx, by): (usize, usize), exp: usize) -> usize {
         let (ax, bx) = (ax.min(bx), ax.max(bx));
         let mut dx = bx - ax;
         for ix in ax..bx {
             if self.exp_cols.contains(&ix) {
-                dx += 1;
+                dx += exp;
             }
         }
 
@@ -74,7 +83,7 @@ impl Day11 {
         let mut dy = by - ay;
         for iy in ay..by {
             if self.exp_rows.contains(&iy) {
-                dy += 1;
+                dy += exp;
             }
         }
 
