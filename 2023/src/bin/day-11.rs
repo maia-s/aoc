@@ -26,21 +26,28 @@ aoc! {
     self(input = INPUT) {
         let mut galaxies = Vec::new();
         let mut exp_rows = Vec::new();
-        let map: Vec<&[u8]> = input.lines().enumerate().map(
-            |(y, line)| {
-                let line = line.as_bytes();
-                if line.iter().all(|&c| c == b'.') {
-                    exp_rows.push(y);
-                }
-                for x in line.iter().enumerate().filter(|(_, &b)| b == b'#').map(|(x, _)| x) {
-                    galaxies.push((x, y));
-                }
-                line
+        let mut colacc = Vec::new();
+        for (y, line) in input.lines().enumerate() {
+            let line = line.as_bytes();
+            if colacc.len() < line.len() {
+                colacc.resize(line.len(), true);
             }
-        ).collect();
-        let exp_cols = (0..map[0].len()).filter(|&col|
-            map.iter().map(|row| row[col]).all(|c| c == b'.')
-        ).collect();
+            let mut any_galaxies = false;
+            for x in line.iter().enumerate().filter_map(|(x, &b)| {
+                let has_galaxy = b == b'#';
+                if has_galaxy {
+                    colacc[x] = false;
+                }
+                has_galaxy.then_some(x)
+            }) {
+                any_galaxies = true;
+                galaxies.push((x, y));
+            }
+            if !any_galaxies {
+                exp_rows.push(y);
+            }
+        }
+        let exp_cols = colacc.iter().enumerate().filter_map(|(x, c)| c.then_some(x)).collect();
         Ok(Self {
             galaxies,
             exp_rows,
