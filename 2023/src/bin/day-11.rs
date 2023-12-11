@@ -20,7 +20,6 @@ const INPUT_EX: &str = str_block! {"
 
 aoc! {
     struct Day11 {
-        map: Map,
         galaxies: Vec<(usize, usize)>,
         exp_rows: HashSet<usize>,
         exp_cols: HashSet<usize>,
@@ -42,7 +41,6 @@ aoc! {
         let exp_cols = map.cols().enumerate()
             .filter_map(|(i, col)| col.iter().all(|&c| c == b'.').then_some(i)).collect();
         Ok(Self {
-            map,
             galaxies,
             exp_rows,
             exp_cols,
