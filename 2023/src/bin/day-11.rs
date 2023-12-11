@@ -1,4 +1,4 @@
-use std::{collections::HashSet, ops::Index};
+use std::ops::Index;
 
 use aoc_2023::{aoc, str_block};
 
@@ -21,8 +21,8 @@ const INPUT_EX: &str = str_block! {"
 aoc! {
     struct Day11 {
         galaxies: Vec<(usize, usize)>,
-        exp_rows: HashSet<usize>,
-        exp_cols: HashSet<usize>,
+        exp_rows: Vec<usize>,
+        exp_cols: Vec<usize>,
     }
 
     self(input = INPUT) {
@@ -76,7 +76,7 @@ impl Day11 {
         self.dist_part(ax, bx, &self.exp_cols, exp) + self.dist_part(ay, by, &self.exp_rows, exp)
     }
 
-    fn dist_part(&self, a: usize, b: usize, exps: &HashSet<usize>, exp: usize) -> usize {
+    fn dist_part(&self, a: usize, b: usize, exps: &[usize], exp: usize) -> usize {
         let (a, b) = (a.min(b), a.max(b));
         let mut d = b - a;
         for i in exps.iter() {
