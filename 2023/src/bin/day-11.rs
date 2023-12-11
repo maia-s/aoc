@@ -48,19 +48,11 @@ aoc! {
     }
 
     part1 usize {
-        Ok((0..self.galaxies.len() - 1).map(
-            |i| (i + 1..self.galaxies.len()).map(
-                |j| self.dist(self.galaxies[i], self.galaxies[j], 1)
-            ).sum::<usize>()
-        ).sum())
+        Ok(self.dist_all(1))
     }
 
     part2 usize {
-        Ok((0..self.galaxies.len() - 1).map(
-            |i| (i + 1..self.galaxies.len()).map(
-                |j| self.dist(self.galaxies[i], self.galaxies[j], 999_999)
-            ).sum::<usize>()
-        ).sum())
+        Ok(self.dist_all(999_999))
     }
 
     test day11_example(INPUT_EX, 374);
@@ -68,6 +60,16 @@ aoc! {
 }
 
 impl Day11 {
+    fn dist_all(&self, exp: usize) -> usize {
+        (0..self.galaxies.len() - 1)
+            .map(|i| {
+                (i + 1..self.galaxies.len())
+                    .map(|j| self.dist(self.galaxies[i], self.galaxies[j], exp))
+                    .sum::<usize>()
+            })
+            .sum()
+    }
+
     fn dist(&self, (ax, ay): (usize, usize), (bx, by): (usize, usize), exp: usize) -> usize {
         let (ax, bx) = (ax.min(bx), ax.max(bx));
         let mut dx = bx - ax;
