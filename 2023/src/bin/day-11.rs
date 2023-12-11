@@ -79,8 +79,8 @@ impl Day11 {
     fn dist_part(&self, a: usize, b: usize, exps: &HashSet<usize>, exp: usize) -> usize {
         let (a, b) = (a.min(b), a.max(b));
         let mut d = b - a;
-        for i in a..b {
-            if exps.contains(&i) {
+        for i in exps.iter() {
+            if (a..b).contains(i) {
                 d += exp;
             }
         }
