@@ -71,23 +71,18 @@ impl Day11 {
     }
 
     fn dist(&self, (ax, ay): (usize, usize), (bx, by): (usize, usize), exp: usize) -> usize {
-        let (ax, bx) = (ax.min(bx), ax.max(bx));
-        let mut dx = bx - ax;
-        for ix in ax..bx {
-            if self.exp_cols.contains(&ix) {
-                dx += exp;
+        self.dist_part(ax, bx, &self.exp_cols, exp) + self.dist_part(ay, by, &self.exp_rows, exp)
+    }
+
+    fn dist_part(&self, a: usize, b: usize, exps: &HashSet<usize>, exp: usize) -> usize {
+        let (a, b) = (a.min(b), a.max(b));
+        let mut d = b - a;
+        for i in a..b {
+            if exps.contains(&i) {
+                d += exp;
             }
         }
-
-        let (ay, by) = (ay.min(by), ay.max(by));
-        let mut dy = by - ay;
-        for iy in ay..by {
-            if self.exp_rows.contains(&iy) {
-                dy += exp;
-            }
-        }
-
-        dx + dy
+        d
     }
 }
 
