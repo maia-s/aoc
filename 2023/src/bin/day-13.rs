@@ -37,11 +37,17 @@ aoc! {
     }
 
     part1 usize {
-        Ok(self.maps.iter().map(Map::score).sum::<Result<_, _>>()?)
+        self.maps.iter().map(|map| {
+            map.score().ok_or_else(|| format!("no reflections found in\n{map}").into())
+        }).sum::<Result<_, _>>()
     }
 
-    test day13_example(INPUT_EX, 405);
-    test day13(INPUT,);
+    part2 usize {
+        Ok(self.maps.iter_mut().map(Map::repair_score).sum::<Result<_, _>>()?)
+    }
+
+    test day13_example(INPUT_EX, 405, 400);
+    test day13(INPUT, 40006);
 }
 
 #[derive(Clone)]
@@ -68,10 +74,31 @@ impl Map {
         self.0.len()
     }
 
-    fn score(&self) -> Result<usize, Error> {
+    fn score(&self) -> Option<usize> {
         self.find_horizontal_mirror()
             .or_else(|| self.find_vertical_mirror())
-            .ok_or_else(|| format!("no reflections found in\n{}", *self).into())
+    }
+
+    fn repair_score(&mut self) -> Result<usize, Error> {
+        let old_score = self.score().ok_or("couldn't get old score")?;
+        for y in 0..self.height() {
+            for x in 0..self.width() {
+                let tile = self.0[y][x];
+                self.0[y][x] = match tile {
+                    b'#' => b'.',
+                    b'.' => b'#',
+                    _ => continue,
+                };
+                let score = self.score();
+                self.0[y][x] = tile;
+                if let Some(score) = score {
+                    if score != old_score {
+                        return Ok(score);
+                    }
+                }
+            }
+        }
+        Err(format!("no smudge found:\n{self}").into())
     }
 
     fn find_horizontal_mirror(&self) -> Option<usize> {
