@@ -1,3 +1,5 @@
+use std::collections::{hash_map::Entry, HashMap};
+
 use aoc_2023::{aoc, str_block};
 
 const INPUT: &str = include_str!("day-14.txt");
@@ -18,33 +20,48 @@ O.#..O.#.#
 
 aoc! {
     struct Day14 {
-        map: Vec<Vec<u8>>,
+        map: Map,
     }
 
     self(input = INPUT) {
-        Ok(Self { map: input.lines().map(|line| line.as_bytes().to_owned()).collect() })
+        Ok(Self { map: Map { map: input.lines().map(|line| line.as_bytes().to_owned()).collect() } })
     }
 
     part1 usize {
-        self.tilt_north();
-        Ok(self.support_beam_weight())
+        self.map.tilt_north();
+        Ok(self.map.support_beam_weight())
     }
 
     part2 usize {
-        for _ in 0..1_000_000_000 {
-            self.tilt_north();
-            self.tilt_west();
-            self.tilt_south();
-            self.tilt_east();
+        let mut memo = HashMap::new();
+        let mut i = 1_000_000_000;
+        while i > 0 {
+            i -= 1;
+            self.map.tilt_north();
+            self.map.tilt_west();
+            self.map.tilt_south();
+            self.map.tilt_east();
+            match memo.entry(self.map.clone()) {
+                Entry::Vacant(e) => { e.insert(i); }
+                Entry::Occupied(e) => {
+                    let diff = e.get() - i;
+                    i -= i / diff * diff;
+                },
+            }
         }
-        Ok(self.support_beam_weight())
+        Ok(self.map.support_beam_weight())
     }
 
     test day14_example(INPUT_EX, 136, 64);
-    test day14(INPUT, 109755);
+    test day14(INPUT, 109755, 90928);
 }
 
-impl Day14 {
+#[derive(Clone, PartialEq, Eq, Hash)]
+struct Map {
+    map: Vec<Vec<u8>>,
+}
+
+impl Map {
     fn width(&self) -> usize {
         self.map[0].len()
     }
