@@ -53,44 +53,49 @@ impl Day14 {
         self.map.len()
     }
 
-    fn tilt(
+    fn tilt<const DX: isize, const DY: isize>(
         &mut self,
         xr: impl Clone + Iterator<Item = usize>,
         yr: impl Clone + Iterator<Item = usize>,
-        dx: isize,
-        dy: isize,
+        go: impl Fn(usize, usize) -> bool,
     ) {
-        let mut moved = true;
-        while moved {
-            moved = false;
-            for y in yr.clone() {
-                let y1 = (y as isize + dy) as usize;
-                for x in xr.clone() {
-                    let x1 = (x as isize + dx) as usize;
-                    if self.map[y][x] == b'.' && self.map[y1][x1] == b'O' {
-                        moved = true;
-                        self.map[y][x] = b'O';
-                        self.map[y1][x1] = b'.';
+        for y in yr {
+            for x in xr.clone() {
+                if self.map[y][x] == b'O' {
+                    self.map[y][x] = b'.';
+                    let (mut xi, mut yi) = (x as isize, y as isize);
+                    while go(xi as usize, yi as usize)
+                        && self.map[(yi + DY) as usize][(xi + DX) as usize] == b'.'
+                    {
+                        xi += DX;
+                        yi += DY;
                     }
+                    self.map[yi as usize][xi as usize] = b'O';
                 }
             }
         }
     }
 
     fn tilt_north(&mut self) {
-        self.tilt(0..self.width(), 0..self.height() - 1, 0, 1);
+        self.tilt::<0, -1>(0..self.width(), 0..self.height(), |_, y| y != 0);
     }
 
     fn tilt_west(&mut self) {
-        self.tilt(0..self.width() - 1, 0..self.height(), 1, 0);
+        self.tilt::<-1, 0>(0..self.width(), 0..self.height(), |x, _| x != 0);
     }
 
     fn tilt_south(&mut self) {
-        self.tilt(0..self.width(), (1..self.height()).rev(), 0, -1);
+        let height = self.height();
+        self.tilt::<0, 1>(0..self.width(), (0..self.height()).rev(), move |_, y| {
+            y != height - 1
+        });
     }
 
     fn tilt_east(&mut self) {
-        self.tilt((1..self.width()).rev(), 0..self.height(), -1, 0);
+        let width = self.width();
+        self.tilt::<1, 0>((0..self.width()).rev(), 0..self.height(), move |x, _| {
+            x != width - 1
+        });
     }
 
     fn support_beam_weight(&self) -> usize {
