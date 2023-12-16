@@ -47,7 +47,7 @@ aoc! {
     }
 
     test day13_example(INPUT_EX, 405, 400);
-    test day13(INPUT, 40006);
+    test day13(INPUT, 40006, 28627);
 }
 
 #[derive(Clone)]
@@ -75,12 +75,14 @@ impl Map {
     }
 
     fn score(&self) -> Option<usize> {
-        self.find_horizontal_mirror()
-            .or_else(|| self.find_vertical_mirror())
+        self.find_horizontal_mirror(|_| true)
+            .map(|y| y * 100)
+            .or_else(|| self.find_vertical_mirror(|_| true))
     }
 
     fn repair_score(&mut self) -> Result<usize, Error> {
-        let old_score = self.score().ok_or("couldn't get old score")?;
+        let h = self.find_horizontal_mirror(|_| true);
+        let v = self.find_vertical_mirror(|_| true);
         for y in 0..self.height() {
             for x in 0..self.width() {
                 let tile = self.0[y][x];
@@ -89,20 +91,26 @@ impl Map {
                     b'.' => b'#',
                     _ => continue,
                 };
-                let score = self.score();
+                let score = self
+                    .find_horizontal_mirror(|y| if let Some(h) = h { h != y } else { true })
+                    .map(|y| y * 100)
+                    .or_else(|| {
+                        self.find_vertical_mirror(|x| if let Some(v) = v { v != x } else { true })
+                    });
                 self.0[y][x] = tile;
                 if let Some(score) = score {
-                    if score != old_score {
-                        return Ok(score);
-                    }
+                    return Ok(score);
                 }
             }
         }
         Err(format!("no smudge found:\n{self}").into())
     }
 
-    fn find_horizontal_mirror(&self) -> Option<usize> {
+    fn find_horizontal_mirror(&self, accept: impl Fn(usize) -> bool) -> Option<usize> {
         'find: for y in 1..self.height() {
+            if !accept(y) {
+                continue;
+            }
             let mut ym = y as isize - 1;
             let mut yp = y;
             while ym >= 0 && yp < self.height() {
@@ -112,13 +120,16 @@ impl Map {
                 ym -= 1;
                 yp += 1;
             }
-            return Some(y * 100);
+            return Some(y);
         }
         None
     }
 
-    fn find_vertical_mirror(&self) -> Option<usize> {
+    fn find_vertical_mirror(&self, accept: impl Fn(usize) -> bool) -> Option<usize> {
         'find: for x in 1..self.width() {
+            if !accept(x) {
+                continue;
+            }
             let mut xm = x as isize - 1;
             let mut xp = x;
             while xm >= 0 && xp < self.width() {
