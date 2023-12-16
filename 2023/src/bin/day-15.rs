@@ -24,23 +24,20 @@ aoc! {
         let mut boxes: [_; 256] = array::from_fn(|_| Vec::<(&str, u8)>::new());
 
         for s in self.words.iter() {
-            let hash = hash(s);
-            let bx = &mut boxes[hash];
             if let Some(lens) = s.strip_suffix('-') {
+                let hash = hash(lens);
+                let bx = &mut boxes[hash];
                 if let Some(i) = find_lens(bx, lens) {
-                    eprintln!("remove {lens} from box {hash} at {i}");
                     bx.remove(i);
-                } else {
-                    eprintln!("remove {lens} (ignored)");
                 }
             } else {
                 let (lens, focal) = s.split_once('=').ok_or_else(|| format!("couldn't split {s}"))?;
                 let flen: u8 = focal.parse().map_err(|_| "parse error")?;
+                let hash = hash(lens);
+                let bx = &mut boxes[hash];
                 if let Some(i) = find_lens(bx, lens) {
-                    eprintln!("replace {lens} at box {hash}/{i} with focal length {flen}");
                     bx[i].1 = flen;
                 } else {
-                    eprintln!("add {lens} to box {hash}/{} with focal length {flen}", bx.len());
                     bx.push((lens, flen));
                 }
             }
@@ -53,7 +50,7 @@ aoc! {
     }
 
     test day15_example(INPUT_EX, 1320, 145);
-    test day15(INPUT, 517315);
+    test day15(INPUT, 517315, 247763);
 }
 
 fn hash(s: &str) -> usize {
