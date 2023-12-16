@@ -51,7 +51,7 @@ aoc! {
     }
 
     test day16_example(INPUT_EX, 46, 51);
-    test day16(INPUT, 7543);
+    test day16(INPUT, 7543, 8231);
 }
 
 impl Day16 {
