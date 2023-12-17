@@ -61,6 +61,7 @@ impl Day17 {
             x: i32,
             y: i32,
             run: [u8; 4],
+            entered_dir: Dir,
         }
         impl PartialOrd for Node {
             fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
@@ -83,15 +84,24 @@ impl Day17 {
             x: 0,
             y: 0,
             run: [0; 4],
+            entered_dir: Dir::S,
         });
 
-        while let Some(Node { cost, x, y, run }) = queue.pop() {
+        while let Some(Node {
+            cost,
+            x,
+            y,
+            run,
+            entered_dir,
+        }) = queue.pop()
+        {
             if x == width - 1 && y == height - 1 {
                 return cost;
             }
             let mut push = |x, y, dir: Dir| {
                 if (0..width).contains(&x)
                     && (0..height).contains(&y)
+                    && (entered_dir as usize + 2) % 4 != dir as usize
                     && run[dir as usize] < MAX_STRAIGHT
                 {
                     let mut new_run = run;
@@ -109,6 +119,7 @@ impl Day17 {
                             x,
                             y,
                             run: new_run,
+                            entered_dir: dir,
                         });
                     }
                 }
@@ -123,7 +134,7 @@ impl Day17 {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
 enum Dir {
     N,
