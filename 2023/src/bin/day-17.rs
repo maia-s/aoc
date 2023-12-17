@@ -39,18 +39,22 @@ aoc! {
         Ok(self.pathfind())
     }
 
-    test day17_example(INPUT_EX, 102);
-    test day17(INPUT, );
+    test day17_example(INPUT_EX, 102, 94);
+    test day17(INPUT, 1065);
 }
 
 impl Day17 {
     fn pathfind(&self) -> usize {
         const MAX_STRAIGHT: u8 = 3;
 
-        let mut visited: Vec<Vec<[usize; 4]>> = self
+        let mut visited: Vec<Vec<[[usize; 4]; MAX_STRAIGHT as usize]>> = self
             .map
             .iter()
-            .map(|row| row.iter().map(|_| [usize::MAX; 4]).collect())
+            .map(|row| {
+                row.iter()
+                    .map(|_| [[usize::MAX; 4]; MAX_STRAIGHT as usize])
+                    .collect()
+            })
             .collect();
         let width = visited[0].len() as i32;
         let height = visited.len() as i32;
@@ -105,15 +109,16 @@ impl Day17 {
                     && run[dir as usize] < MAX_STRAIGHT
                 {
                     let mut new_run = run;
-                    new_run[dir as usize] += 1;
                     for (d, nr) in new_run.iter_mut().enumerate() {
                         if dir as usize != d {
                             *nr = 0;
                         }
                     }
+                    let ndr = new_run[dir as usize] as usize;
+                    new_run[dir as usize] += 1;
                     let new_cost = cost + self.map[y as usize][x as usize] as usize;
-                    if visited[y as usize][x as usize][dir as usize] > new_cost {
-                        visited[y as usize][x as usize][dir as usize] = new_cost;
+                    if visited[y as usize][x as usize][ndr][dir as usize] > new_cost {
+                        visited[y as usize][x as usize][ndr][dir as usize] = new_cost;
                         queue.push(Node {
                             cost: new_cost,
                             x,
