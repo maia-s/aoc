@@ -111,12 +111,11 @@ macro_rules! aoc {
 
         #[cfg(test)]
         mod tests {
-            use super::*;
-
-            $(
+            #[allow(non_snake_case)]
+            mod $Day { $(
                 #[allow(non_snake_case)]
                 mod $tinput {
-                    use super::*;
+                    use super::super::super::*;
 
                     $(
                         #[test]
@@ -126,7 +125,7 @@ macro_rules! aoc {
                         }
                     )*
                 }
-            )*
+            )* }
         }
     };
 }
