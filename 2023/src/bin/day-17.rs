@@ -116,11 +116,7 @@ impl Day17 {
         }) = queue.pop()
         {
             if x == width - 1 && y == height - 1 {
-                if run[entered_dir as usize] >= MIN_STRAIGHT as u8 {
-                    return Ok(cost);
-                } else {
-                    continue;
-                }
+                return Ok(cost);
             }
             let mut push = |x, y, dir: Dir| {
                 if (0..width).contains(&x)
@@ -133,6 +129,14 @@ impl Day17 {
                 {
                     let mut new_run = run;
                     if dir != entered_dir {
+                        if !match dir {
+                            Dir::N => y >= MIN_STRAIGHT as i32,
+                            Dir::E => x <= width - MIN_STRAIGHT as i32,
+                            Dir::S => y <= height - MIN_STRAIGHT as i32,
+                            Dir::W => x >= MIN_STRAIGHT as i32,
+                        } {
+                            return;
+                        }
                         new_run[entered_dir as usize] = 0;
                     }
                     let ndr = new_run[dir as usize] as usize;
