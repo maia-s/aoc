@@ -54,7 +54,7 @@ aoc! {
 
     INPUT_EX { 1 part1 = 102, 2 part2 = 94 }
     INPUT_EX2 { 2 part2 = 71 }
-    INPUT { 1 part1 = 1065 }
+    INPUT { 1 part1 = 1065, 2 part2 = 1249 }
 }
 
 impl Day17 {
