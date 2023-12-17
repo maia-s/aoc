@@ -102,8 +102,10 @@ impl Day17 {
             x: 0,
             y: 0,
             run: [0; 4],
-            entered_dir: Dir::S,
+            entered_dir: Dir::N,
         });
+
+        let mut first = true;
 
         while let Some(Node {
             cost,
@@ -119,9 +121,11 @@ impl Day17 {
             let mut push = |x, y, dir: Dir| {
                 if (0..width).contains(&x)
                     && (0..height).contains(&y)
-                    && (entered_dir as usize + 2) % 4 != dir as usize
                     && run[dir as usize] < MAX_STRAIGHT as u8
-                    && (dir == entered_dir || run[entered_dir as usize] >= MIN_STRAIGHT as u8)
+                    && (first
+                        || (entered_dir as usize + 2) % 4 != dir as usize
+                            && (dir == entered_dir
+                                || run[entered_dir as usize] >= MIN_STRAIGHT as u8))
                 {
                     let mut new_run = run;
                     if dir != entered_dir {
@@ -146,6 +150,7 @@ impl Day17 {
             push(x - 1, y, Dir::W);
             push(x + 1, y, Dir::E);
             push(x, y + 1, Dir::S);
+            first = false;
         }
 
         Err("path not found".into())
