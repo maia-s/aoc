@@ -1,6 +1,6 @@
 use std::{cmp::Ordering, collections::BinaryHeap};
 
-use aoc_2023::{aoc, str_block};
+use aoc_2023::{aoc, str_block, Error};
 
 const INPUT: &str = include_str!("day-17.txt");
 
@@ -21,6 +21,15 @@ const INPUT_EX: &str = str_block! {"
 4322674655533
 "};
 
+#[allow(dead_code)]
+const INPUT_EX2: &str = str_block! {"
+111111111111
+999999999991
+999999999991
+999999999991
+999999999991
+"};
+
 aoc! {
     struct Day17 {
         map: Vec<Vec<u8>>,
@@ -36,27 +45,28 @@ aoc! {
     }
 
     1 part1 usize {
-        Ok(self.pathfind())
+        Ok(self.pathfind::<0, 3>()?)
     }
 
     2 part2 usize {
-        todo!()
+        Ok(self.pathfind::<4, 10>()?)
     }
 
     INPUT_EX { 1 part1 = 102, 2 part2 = 94 }
+    INPUT_EX2 { 2 part2 = 71 }
     INPUT { 1 part1 = 1065 }
 }
 
 impl Day17 {
-    fn pathfind(&self) -> usize {
-        const MAX_STRAIGHT: u8 = 3;
-
-        let mut visited: Vec<Vec<[[usize; 4]; MAX_STRAIGHT as usize]>> = self
+    fn pathfind<const MIN_STRAIGHT: usize, const MAX_STRAIGHT: usize>(
+        &self,
+    ) -> Result<usize, Error> {
+        let mut visited: Vec<Vec<[[usize; 4]; MAX_STRAIGHT]>> = self
             .map
             .iter()
             .map(|row| {
                 row.iter()
-                    .map(|_| [[usize::MAX; 4]; MAX_STRAIGHT as usize])
+                    .map(|_| [[usize::MAX; 4]; MAX_STRAIGHT])
                     .collect()
             })
             .collect();
@@ -104,19 +114,18 @@ impl Day17 {
         }) = queue.pop()
         {
             if x == width - 1 && y == height - 1 {
-                return cost;
+                return Ok(cost);
             }
             let mut push = |x, y, dir: Dir| {
                 if (0..width).contains(&x)
                     && (0..height).contains(&y)
                     && (entered_dir as usize + 2) % 4 != dir as usize
-                    && run[dir as usize] < MAX_STRAIGHT
+                    && run[dir as usize] < MAX_STRAIGHT as u8
+                    && (dir == entered_dir || run[entered_dir as usize] >= MIN_STRAIGHT as u8)
                 {
                     let mut new_run = run;
-                    for (d, nr) in new_run.iter_mut().enumerate() {
-                        if dir as usize != d {
-                            *nr = 0;
-                        }
+                    if dir != entered_dir {
+                        new_run[entered_dir as usize] = 0;
                     }
                     let ndr = new_run[dir as usize] as usize;
                     new_run[dir as usize] += 1;
@@ -139,7 +148,7 @@ impl Day17 {
             push(x, y + 1, Dir::S);
         }
 
-        unreachable!();
+        Err("path not found".into())
     }
 }
 
