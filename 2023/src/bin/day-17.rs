@@ -96,6 +96,11 @@ impl Day17 {
                 {
                     let mut new_run = run;
                     new_run[dir as usize] += 1;
+                    for (d, nr) in new_run.iter_mut().enumerate() {
+                        if dir as usize != d {
+                            *nr = 0;
+                        }
+                    }
                     let new_cost = cost + self.map[y as usize][x as usize] as usize;
                     if visited[y as usize][x as usize][dir as usize] > new_cost {
                         visited[y as usize][x as usize][dir as usize] = new_cost;
