@@ -116,7 +116,11 @@ impl Day17 {
         }) = queue.pop()
         {
             if x == width - 1 && y == height - 1 {
-                return Ok(cost);
+                if run[entered_dir as usize] >= MIN_STRAIGHT as u8 {
+                    return Ok(cost);
+                } else {
+                    continue;
+                }
             }
             let mut push = |x, y, dir: Dir| {
                 if (0..width).contains(&x)
