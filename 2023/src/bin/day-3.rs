@@ -59,14 +59,14 @@ aoc_2023::aoc! {
         Ok(Self { sum, gears })
     }
 
-    part1 usize {
+    1 part1 usize {
         Ok(self.sum)
     }
 
-    part2 usize {
+    2 part2 usize {
         Ok(self.gears.values().filter(|gear| gear.len() == 2).map(|gear| gear[0] * gear[1]).sum())
     }
 
-    test day3_example(INPUT_EX, 4361, 467835);
-    test day3(INPUT, 509115, 75220503);
+    INPUT_EX { 1 part1 = 4361, 2 part2 = 467835 }
+    INPUT { 1 part1 = 509115, 2 part2 = 75220503 }
 }

@@ -42,14 +42,14 @@ aoc_2023::aoc! {
         Ok(Self { points, cards: cards.into_iter().sum() })
     }
 
-    part1 usize {
+    1 part1 usize {
         Ok(self.points)
     }
 
-    part2 usize {
+    2 part2 usize {
         Ok(self.cards)
     }
 
-    test day4_example(INPUT_EX, 13, 30);
-    test day4(INPUT, 26346, 8467762);
+    INPUT_EX { 1 part1 = 13, 2 part2 = 30 }
+    INPUT { 1 part1 = 26346, 2 part2 = 8467762 }
 }

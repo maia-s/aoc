@@ -55,16 +55,16 @@ aoc! {
         })
     }
 
-    part1 usize {
+    1 part1 usize {
         Ok(self.dist_all(1))
     }
 
-    part2 usize {
+    2 part2 usize {
         Ok(self.dist_all(999_999))
     }
 
-    test day11_example(INPUT_EX, 374);
-    test day11(INPUT, 9536038, 447744640566);
+    INPUT_EX { 1 part1 = 374 }
+    INPUT { 1 part1 = 9536038, 2 part2 = 447744640566 }
 }
 
 impl Day11 {

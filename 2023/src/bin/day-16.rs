@@ -25,11 +25,11 @@ aoc! {
         Ok(Self { map: input.lines().map(|line| line.as_bytes().to_owned()).collect() })
     }
 
-    part1 usize {
+    1 part1 usize {
         Ok(self.trace_beam(0, 0, Dir::E)?)
     }
 
-    part2 usize {
+    2 part2 usize {
         let mut max = 0;
         for y in 0..self.height() {
             for x in 0..self.width() {
@@ -50,8 +50,8 @@ aoc! {
         Ok(max)
     }
 
-    test day16_example(INPUT_EX, 46, 51);
-    test day16(INPUT, 7543, 8231);
+    INPUT_EX { 1 part1 = 46, 2 part2 = 51 }
+    INPUT { 1 part1 = 7543, 2 part2 = 8231 }
 }
 
 impl Day16 {

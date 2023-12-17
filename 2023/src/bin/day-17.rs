@@ -35,12 +35,16 @@ aoc! {
         ).collect() })
     }
 
-    part1 usize {
+    1 part1 usize {
         Ok(self.pathfind())
     }
 
-    test day17_example(INPUT_EX, 102, 94);
-    test day17(INPUT, 1065);
+    2 part2 usize {
+        todo!()
+    }
+
+    INPUT_EX { 1 part1 = 102, 2 part2 = 94 }
+    INPUT { 1 part1 = 1065 }
 }
 
 impl Day17 {

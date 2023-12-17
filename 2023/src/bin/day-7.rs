@@ -22,7 +22,7 @@ aoc! {
         Ok(Self { input })
     }
 
-    part1 usize {
+    1 part1 usize {
         let mut hands = self.input.lines().map(|line| {
             let (hand, bid) = line.split_once(' ').ok_or("missing space")?;
             Ok((hand.parse()?, bid.parse().map_err(|_| "parse error")?))
@@ -31,13 +31,13 @@ aoc! {
         Ok(hands.iter().enumerate().map(|(i, hand)| (i + 1) * hand.1).sum())
     }
 
-    part2 usize {
+    2 part2 usize {
         let input = self.input.replace('J', "j");
         Day7 { input: &input }.part1()
     }
 
-    test day7_example(INPUT_EX, 6440, 5905);
-    test day7(INPUT, 246409899, 244848487);
+    INPUT_EX { 1 part1 = 6440, 2 part2 = 5905 }
+    INPUT { 1 part1 = 246409899, 2 part2 = 244848487 }
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]

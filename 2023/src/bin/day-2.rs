@@ -24,19 +24,19 @@ aoc_2023::aoc! {
         }).collect::<Result<Vec<_>, _>>()?})
     }
 
-    part1 usize {
+    1 part1 usize {
         Ok(self.games.iter().enumerate().filter(|(_, game)| game.is_valid(12, 13, 14)).map(|(i, _)| i + 1).sum())
     }
 
-    part2 usize {
+    2 part2 usize {
         Ok(self.games.iter().map(|game| {
             let Round { red, green, blue } = game.fewest();
             red * green * blue
         }).sum())
     }
 
-    test day2_example(INPUT_EX, 8, 2286);
-    test day2(INPUT, 2683, 49710);
+    INPUT_EX { 1 part1 = 8, 2 part2 = 2286 }
+    INPUT { 1 part1 = 2683, 2 part2 = 49710 }
 }
 
 #[derive(Clone)]

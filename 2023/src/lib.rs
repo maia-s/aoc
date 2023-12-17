@@ -48,9 +48,8 @@ macro_rules! aoc {
     (
         $(#[$attr:meta])* struct $Day:ident $(<$lt:lifetime>)? { $($fields:tt)* }
         $self:ident($in:ident = $input:expr) { $($new:tt)* }
-        part1 $p1ty:ty { $($part1:tt)* }
-        $( part2 $p2ty:ty { $($part2:tt)* } )?
-        $(test $tname:ident($tinput:expr, $($tp1:expr)? $(, $tp2:expr)?);)*
+        $($pno:literal $part:ident $pty:ty { $($part_body:tt)* })*
+        $($tinput:ident { $($tno:literal $tpart:ident = $tresult:expr),* $(,)? } )*
     ) => {
         $(#[$attr])*
         #[derive(Clone)]
@@ -61,15 +60,11 @@ macro_rules! aoc {
                 $($new)*
             }
 
-            fn part1(&mut $self) -> Result<$p1ty, Box<dyn ::std::error::Error>> {
-                $($part1)*
-            }
-
             $(
-                fn part2(&mut $self) -> Result<$p2ty, Box<dyn ::std::error::Error>> {
-                    $($part2)*
+                fn $part(&mut $self) -> Result<$pty, Box<dyn ::std::error::Error>> {
+                    $($part_body)*
                 }
-            )?
+            )*
         }
 
         fn main() -> Result<(), Box<dyn ::std::error::Error>> {
@@ -96,20 +91,19 @@ macro_rules! aoc {
 
             let (day, p0n, p0t) = time(||(), |_| $Day::new($input))?;
 
-            let (part1, p1n, p1t) = time(|| day.clone(), |day| day.part1())?;
-            println!("part 1: {}", part1);
-
+            let mut timings = Vec::new();
             $(
-                let _: $p2ty;
-                let (part2, p2n, p2t) = time(|| day.clone(), |day| day.part2())?;
-                println!("part 2: {}", part2);
-            )?
+                let (part, pn, pt) = time(|| day.clone(), |day| day.$part())?;
+                timings.push((pn, pt));
+                println!("part {}: {}", $pno, part);
+            )*
 
-            print!("[ init: {:?}, part 1: {:?}", p0t / p0n, p1t / p1n);
+            print!("[ init: {:?}", p0t / p0n);
+            let ti = 0;
             $(
-                let _: $p2ty;
-                print!(", part 2: {:?}", p2t / p2n);
-            )?
+                print!(", part {}: {:?}", $pno, timings[ti].1 / timings[ti].0);
+                let ti = ti + 1;
+            )*
             println!(" ]");
 
             Ok(())
@@ -120,11 +114,17 @@ macro_rules! aoc {
             use super::*;
 
             $(
-                #[test]
-                fn $tname() -> Result<(), Box<dyn ::std::error::Error>> {
-                    $( assert_eq!($Day::new($tinput)?.part1()?, $tp1, "wrong result for part 1"); )?
-                    $( assert_eq!($Day::new($tinput)?.part2()?, $tp2, "wrong result for part 2"); )?
-                    Ok(())
+                #[allow(non_snake_case)]
+                mod $tinput {
+                    use super::*;
+
+                    $(
+                        #[test]
+                        fn $tpart() -> Result<(), Box<dyn ::std::error::Error>> {
+                            assert_eq!($Day::new($tinput)?.$tpart()?, $tresult, "wrong result for part {}", $tno);
+                            Ok(())
+                        }
+                    )*
                 }
             )*
         }

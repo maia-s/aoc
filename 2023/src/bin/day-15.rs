@@ -16,11 +16,11 @@ aoc! {
         Ok(Self { words: input.trim().split(',').collect() })
     }
 
-    part1 usize {
+    1 part1 usize {
         Ok(self.words.iter().copied().map(hash).sum())
     }
 
-    part2 usize {
+    2 part2 usize {
         let mut boxes: [_; 256] = array::from_fn(|_| Vec::<(&str, u8)>::new());
 
         for s in self.words.iter() {
@@ -49,8 +49,8 @@ aoc! {
         }).sum())
     }
 
-    test day15_example(INPUT_EX, 1320, 145);
-    test day15(INPUT, 517315, 247763);
+    INPUT_EX { 1 part1 = 1320, 2 part2 = 145 }
+    INPUT { 1 part1 = 517315, 2 part2 = 247763 }
 }
 
 fn hash(s: &str) -> usize {

@@ -27,12 +27,12 @@ aoc! {
         Ok(Self { map: Map { map: input.lines().map(|line| line.as_bytes().to_owned()).collect() } })
     }
 
-    part1 usize {
+    1 part1 usize {
         self.map.tilt_north();
         Ok(self.map.support_beam_weight())
     }
 
-    part2 usize {
+    2 part2 usize {
         let mut memo = HashMap::new();
         let mut i = 1_000_000_000;
         while i > 0 {
@@ -52,8 +52,8 @@ aoc! {
         Ok(self.map.support_beam_weight())
     }
 
-    test day14_example(INPUT_EX, 136, 64);
-    test day14(INPUT, 109755, 90928);
+    INPUT_EX { 1 part1 = 136, 2 part2 = 64 }
+    INPUT { 1 part1 = 109755, 2 part2 = 90928 }
 }
 
 #[derive(Clone, PartialEq, Eq, Hash)]

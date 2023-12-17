@@ -15,7 +15,7 @@ aoc! {
         Ok(Self { input })
     }
 
-    part1 usize {
+    1 part1 usize {
         let mut line = self.input.lines().map(|line| line.split_ascii_whitespace().skip(1).map(str::parse));
         let time = line.next().ok_or("missing times")?;
         let distance = line.next().ok_or("missing distances")?;
@@ -25,7 +25,7 @@ aoc! {
         }).map(|race| race.map(|(t, d)| ways_to_win(t, d))).product::<Result<_, _>>()?)
     }
 
-    part2 usize {
+    2 part2 usize {
         let mut line = self.input.lines().map(|line| {
             let (_, line) = line.split_once(':').ok_or("missing `:`")?;
             line.replace(' ', "").parse().map_err(|e| format!("parse error: {e}"))
@@ -35,8 +35,8 @@ aoc! {
         Ok(ways_to_win(time, distance))
     }
 
-    test day6_example(INPUT_EX, 288, 71503);
-    test day6(INPUT, 4403592, 38017587);
+    INPUT_EX { 1 part1 = 288, 2 part2 = 71503 }
+    INPUT { 1 part1 = 4403592, 2 part2 = 38017587 }
 }
 
 fn ways_to_win(time: usize, distance: usize) -> usize {

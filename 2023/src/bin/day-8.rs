@@ -65,7 +65,7 @@ aoc! {
         Ok(Self { path, map })
     }
 
-    part1 usize {
+    1 part1 usize {
         let mut step = self.path.iter().copied().cycle();
         let mut node = "AAA";
         let mut steps = 0;
@@ -79,7 +79,7 @@ aoc! {
         Ok(steps)
     }
 
-    part2 usize {
+    2 part2 usize {
         // so not stated in the puzzle description but apparently something we can rely on
         // is that each start only has one possible end and repeats after that with the same
         // cycle length each time
@@ -97,10 +97,10 @@ aoc! {
         )
     }
 
-    test day8_example(INPUT_EX, 2);
-    test day8_example2(INPUT_EX2, 6);
-    test day8_example3(INPUT_EX3,, 6);
-    test day8(INPUT, 18113, 12315788159977);
+    INPUT_EX { 1 part1 = 2 }
+    INPUT_EX2 { 1 part1 = 6 }
+    INPUT_EX3 { 2 part2 = 6 }
+    INPUT { 1 part1 = 18113, 2 part2 = 12315788159977 }
 }
 
 #[derive(Clone, Copy)]

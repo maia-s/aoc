@@ -36,18 +36,18 @@ aoc! {
         })
     }
 
-    part1 usize {
+    1 part1 usize {
         self.maps.iter().map(|map| {
             map.score().ok_or_else(|| format!("no reflections found in\n{map}").into())
         }).sum::<Result<_, _>>()
     }
 
-    part2 usize {
+    2 part2 usize {
         Ok(self.maps.iter_mut().map(Map::repair_score).sum::<Result<_, _>>()?)
     }
 
-    test day13_example(INPUT_EX, 405, 400);
-    test day13(INPUT, 40006, 28627);
+    INPUT_EX { 1 part1 = 405, 2 part2 = 400 }
+    INPUT { 1 part1 = 40006, 2 part2 = 28627 }
 }
 
 #[derive(Clone)]

@@ -34,7 +34,7 @@ aoc_2023::aoc! {
         Ok(Day1 { input })
     }
 
-    part1 usize {
+    1 part1 usize {
         Ok(self.input.lines().map(|line| {
             get_number(line.trim().chars().filter_map(|c| match c {
                 '0'..='9' => Some(c as usize - '0' as usize),
@@ -43,7 +43,7 @@ aoc_2023::aoc! {
         }).sum())
     }
 
-    part2 usize {
+    2 part2 usize {
         const WORDS: &[&str] = &["one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
 
         Ok(self.input.lines().map(|line| {
@@ -65,7 +65,7 @@ aoc_2023::aoc! {
         }).sum())
     }
 
-    test day1_example(INPUT_EX, 142, 142);
-    test day1_example2(INPUT_EX2, 209, 281);
-    test day1(INPUT, 55712, 55413);
+    INPUT_EX { 1 part1 = 142, 2 part2 = 142 }
+    INPUT_EX2 { 1 part1 = 209, 2 part2 = 281 }
+    INPUT { 1 part1 = 55712, 2 part2 = 55413 }
 }

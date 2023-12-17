@@ -105,7 +105,7 @@ aoc! {
         Ok(s)
     }
 
-    part1 usize {
+    1 part1 usize {
         let start = self.start;
         let mut walkers = match self.tile(self.start.0, self.start.1).connections() {
             Dir::NS => [Walker::new(start.0, start.1, Dir::N), Walker::new(start.0, start.1, Dir::S)],
@@ -124,7 +124,7 @@ aoc! {
         Ok(steps)
     }
 
-    part2 usize {
+    2 part2 usize {
         let mut new_map: Vec<Vec<_>> = self.map.iter().map(
             |row| row.iter().map(|_| Tile(b'.')).collect()
         ).collect();
@@ -164,13 +164,13 @@ aoc! {
         Ok(marked)
     }
 
-    test day10_example(INPUT_EX, 4);
-    test day10_example2(INPUT_EX2, 8);
-    test day10_example3(INPUT_EX3,, 4);
-    test day10_example4(INPUT_EX4,, 4);
-    test day10_example5(INPUT_EX5,, 8);
-    test day10_example6(INPUT_EX6,, 10);
-    test day10(INPUT, 6599, 477);
+    INPUT_EX { 1 part1 = 4 }
+    INPUT_EX2 { 1 part1 = 8 }
+    INPUT_EX3 { 2 part2 = 4 }
+    INPUT_EX4 { 2 part2 = 4 }
+    INPUT_EX5 { 2 part2 = 8 }
+    INPUT_EX6 { 2 part2 = 10 }
+    INPUT { 1 part1 = 6599, 2 part2 = 477 }
 }
 
 impl Day10 {

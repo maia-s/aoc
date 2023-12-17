@@ -65,18 +65,18 @@ aoc! {
         Ok(Self { seeds, maps })
     }
 
-    part1 usize {
+    1 part1 usize {
         Ok(self.seeds.iter().map(|&seed| self.seed_location(seed)).min().unwrap())
     }
 
-    part2 usize {
+    2 part2 usize {
         Ok(self.seeds.chunks(2).map(|c|
             (c[0]..c[0] + c[1]).map(|seed| self.seed_location(seed)).min().unwrap()
         ).min().unwrap())
     }
 
-    test day5_example(INPUT_EX, 35, 46);
-    test day5(INPUT, 825516882, 136096660);
+    INPUT_EX { 1 part1 = 35, 2 part2 = 46 }
+    INPUT { 1 part1 = 825516882, 2 part2 = 136096660 }
 }
 
 impl Day5 {

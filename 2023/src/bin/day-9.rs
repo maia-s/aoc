@@ -22,16 +22,16 @@ aoc! {
         })
     }
 
-    part1 isize {
+    1 part1 isize {
         Ok(self.values.iter().map(find_sequence).sum())
     }
 
-    part2 isize {
+    2 part2 isize {
         Ok(self.values.iter().map(find_sequence_2).sum())
     }
 
-    test day9_example(INPUT_EX, 114, 2);
-    test day9(INPUT, 1938731307, 948);
+    INPUT_EX { 1 part1 = 114, 2 part2 = 2 }
+    INPUT { 1 part1 = 1938731307, 2 part2 = 948 }
 }
 
 #[allow(clippy::ptr_arg)]
