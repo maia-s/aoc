@@ -1,9 +1,6 @@
-use std::{
-    fmt::Debug,
-    ops::{BitAnd, BitOr, Not},
-};
+use std::fmt::Debug;
 
-use aoc_2023::{aoc, str_block, Error};
+use aoc_2023::{aoc, str_block, Dir, Error};
 
 const INPUT: &str = include_str!("day-10.txt");
 
@@ -113,7 +110,7 @@ aoc! {
             Dir::NW => [Walker::new(start.0, start.1, Dir::N), Walker::new(start.0, start.1, Dir::W)],
             Dir::SE => [Walker::new(start.0, start.1, Dir::S), Walker::new(start.0, start.1, Dir::E)],
             Dir::SW => [Walker::new(start.0, start.1, Dir::S), Walker::new(start.0, start.1, Dir::W)],
-            Dir::EW => [Walker::new(start.0, start.1, Dir::E), Walker::new(start.0, start.1, Dir::W)],
+            Dir::WE => [Walker::new(start.0, start.1, Dir::E), Walker::new(start.0, start.1, Dir::W)],
             _ => unreachable!(),
         };
         let mut steps = 1;
@@ -134,7 +131,7 @@ aoc! {
             Dir::NW => Walker::new(self.start.0, self.start.1, Dir::N),
             Dir::SE => Walker::new(self.start.0, self.start.1, Dir::E),
             Dir::SW => Walker::new(self.start.0, self.start.1, Dir::W),
-            Dir::EW => Walker::new(self.start.0, self.start.1, Dir::E),
+            Dir::WE => Walker::new(self.start.0, self.start.1, Dir::E),
             _ => unreachable!(),
         };
         while new_map[w.pos.1 as usize][w.pos.0 as usize].0 == b'.' {
@@ -182,10 +179,10 @@ impl Day10 {
     }
 
     fn get_missing_tile(&self, x: isize, y: isize) -> Result<Tile, Error> {
-        let scn = self.tile(x, y - 1).connections().s();
-        let scs = self.tile(x, y + 1).connections().n();
-        let sce = self.tile(x + 1, y).connections().w();
-        let scw = self.tile(x - 1, y).connections().e();
+        let scn = self.tile(x, y - 1).connections().has_s();
+        let scs = self.tile(x, y + 1).connections().has_n();
+        let sce = self.tile(x + 1, y).connections().has_w();
+        let scw = self.tile(x - 1, y).connections().has_e();
         match (scn, scs, sce, scw) {
             (true, true, false, false) => Ok(Tile(b'|')),
             (true, false, true, false) => Ok(Tile(b'L')),
@@ -213,15 +210,6 @@ impl Debug for Tile {
     }
 }
 
-#[derive(Clone, Copy, PartialEq, Eq)]
-struct Dir(u8);
-
-impl Debug for Dir {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:04b}", self.0)
-    }
-}
-
 impl From<Tile> for Dir {
     fn from(value: Tile) -> Self {
         match value.0 {
@@ -230,81 +218,8 @@ impl From<Tile> for Dir {
             b'J' => Dir::NW,
             b'F' => Dir::SE,
             b'7' => Dir::SW,
-            b'-' => Dir::EW,
-            _ => Dir(0),
-        }
-    }
-}
-
-impl Not for Dir {
-    type Output = Self;
-    fn not(self) -> Self::Output {
-        Self(self.0 ^ 0x0f)
-    }
-}
-
-impl BitAnd for Dir {
-    type Output = Self;
-    fn bitand(self, rhs: Self) -> Self::Output {
-        Self(self.0 & rhs.0)
-    }
-}
-
-impl BitOr for Dir {
-    type Output = Self;
-    fn bitor(self, rhs: Self) -> Self::Output {
-        Self(self.0 | rhs.0)
-    }
-}
-
-impl Dir {
-    const N: Self = Self(0b1000);
-    const S: Self = Self(0b0100);
-    const E: Self = Self(0b0010);
-    const W: Self = Self(0b0001);
-
-    const NS: Self = Self(0b1100);
-    const NE: Self = Self(0b1010);
-    const NW: Self = Self(0b1001);
-    const SE: Self = Self(0b0110);
-    const SW: Self = Self(0b0101);
-    const EW: Self = Self(0b0011);
-
-    fn rev(&self) -> Self {
-        let a = self.0 & 0b1010;
-        let b = self.0 & 0b0101;
-        Self(a >> 1 | b << 1)
-    }
-
-    fn n(self) -> bool {
-        (self & Self::N).0 != 0
-    }
-
-    fn s(self) -> bool {
-        (self & Self::S).0 != 0
-    }
-
-    fn e(self) -> bool {
-        (self & Self::E).0 != 0
-    }
-
-    fn w(self) -> bool {
-        (self & Self::W).0 != 0
-    }
-
-    fn dx(&self) -> isize {
-        match self.0 & 3 {
-            0b10 => 1,
-            0b01 => -1,
-            _ => 0,
-        }
-    }
-
-    fn dy(&self) -> isize {
-        match self.0 & 0xc {
-            0b1000 => -1,
-            0b0100 => 1,
-            _ => 0,
+            b'-' => Dir::WE,
+            _ => Dir::NONE,
         }
     }
 }
@@ -316,7 +231,7 @@ struct Walker {
 
 impl Walker {
     fn new(x: isize, y: isize, dir: Dir) -> Self {
-        assert!(dir.0.count_ones() == 1);
+        assert!(dir.count_dirs() == 1);
         Self {
             pos: (x + dir.dx(), y + dir.dy()),
             pdir: dir,

@@ -1,6 +1,6 @@
 use std::{cmp::Ordering, collections::BinaryHeap};
 
-use aoc_2023::{aoc, str_block, Error};
+use aoc_2023::{aoc, str_block, Dir, Error};
 
 const INPUT: &str = include_str!("day-17.txt");
 
@@ -121,11 +121,11 @@ impl Day17 {
             let mut push = |x, y, dir: Dir| {
                 if (0..width).contains(&x)
                     && (0..height).contains(&y)
-                    && run[dir as usize] < MAX_STRAIGHT as u8
+                    && run[dir.cardinal_index()] < MAX_STRAIGHT as u8
                     && (first
-                        || (entered_dir as usize + 2) % 4 != dir as usize
+                        || (entered_dir.cardinal_index() + 2) % 4 != dir.cardinal_index()
                             && (dir == entered_dir
-                                || run[entered_dir as usize] >= MIN_STRAIGHT as u8))
+                                || run[entered_dir.cardinal_index()] >= MIN_STRAIGHT as u8))
                 {
                     let mut new_run = run;
                     if dir != entered_dir {
@@ -134,16 +134,17 @@ impl Day17 {
                             Dir::E => x <= width - MIN_STRAIGHT as i32,
                             Dir::S => y <= height - MIN_STRAIGHT as i32,
                             Dir::W => x >= MIN_STRAIGHT as i32,
+                            _ => unreachable!(),
                         } {
                             return;
                         }
-                        new_run[entered_dir as usize] = 0;
+                        new_run[entered_dir.cardinal_index()] = 0;
                     }
-                    let ndr = new_run[dir as usize] as usize;
-                    new_run[dir as usize] += 1;
+                    let ndr = new_run[dir.cardinal_index()] as usize;
+                    new_run[dir.cardinal_index()] += 1;
                     let new_cost = cost + self.map[y as usize][x as usize] as usize;
-                    if visited[y as usize][x as usize][ndr][dir as usize] > new_cost {
-                        visited[y as usize][x as usize][ndr][dir as usize] = new_cost;
+                    if visited[y as usize][x as usize][ndr][dir.cardinal_index()] > new_cost {
+                        visited[y as usize][x as usize][ndr][dir.cardinal_index()] = new_cost;
                         queue.push(Node {
                             cost: new_cost,
                             x,
@@ -163,13 +164,4 @@ impl Day17 {
 
         Err("path not found".into())
     }
-}
-
-#[derive(Clone, Copy, PartialEq, Eq)]
-#[repr(u8)]
-enum Dir {
-    N,
-    E,
-    S,
-    W,
 }

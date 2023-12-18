@@ -1,5 +1,7 @@
+pub mod dir;
 pub mod error;
 
+pub use dir::Dir;
 pub use error::Error;
 
 #[macro_export]

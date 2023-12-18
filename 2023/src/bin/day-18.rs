@@ -1,6 +1,6 @@
-use std::{collections::BTreeMap, fmt::Display, ops::BitOr, str::FromStr};
+use std::{collections::BTreeMap, str::FromStr};
 
-use aoc_2023::{aoc, str_block, Error};
+use aoc_2023::{aoc, str_block, Dir, Error};
 
 const INPUT: &str = include_str!("day-18.txt");
 
@@ -38,10 +38,10 @@ aoc! {
     2 part2 usize {
         Ok(self.lagoon_size(|instr| (
             match instr.color.0 & 0xf {
-                0 => Dir::R,
-                1 => Dir::D,
-                2 => Dir::L,
-                3 => Dir::U,
+                0 => Dir::E,
+                1 => Dir::S,
+                2 => Dir::W,
+                3 => Dir::N,
                 _ => unreachable!(),
             },
             (instr.color.0 >> 4) as i32
@@ -60,10 +60,11 @@ impl Day18 {
         for instr in self.instructions.iter() {
             let (dir, count) = decode(instr);
             let (dx, dy) = dir.delta();
+            let (dx, dy) = (dx as i32, dy as i32);
             if let Some(tile) = map.0.get(&pos) {
                 map.0.insert(pos, tile.rev() | dir);
             }
-            if matches!(dir, Dir::U | Dir::D) {
+            if matches!(dir, Dir::N | Dir::S) {
                 for _ in 0..count - 1 {
                     pos.1 += dx;
                     pos.0 += dy;
@@ -82,13 +83,13 @@ impl Day18 {
         let dir1 = decode(self.instructions.last().unwrap()).0;
         let dir = dir0 | dir1.rev();
         match dir {
-            Dir::DR | Dir::DL | Dir::UL | Dir::UR => {
+            Dir::SE | Dir::SW | Dir::NW | Dir::NE => {
                 map.0.insert((0, 0), dir);
             }
-            Dir::UD => {
-                map.0.insert((0, 0), Dir::U);
+            Dir::NS => {
+                map.0.insert((0, 0), Dir::N);
             }
-            Dir::LR => {
+            Dir::WE => {
                 map.0.remove(&(0, 0));
             }
             _ => unreachable!(),
@@ -105,35 +106,35 @@ impl Day18 {
                 assert!(!inside);
             }
             match dir {
-                Dir::DR => {
+                Dir::SE => {
                     if inside {
                         filled += (x - fx) as usize;
                     }
                     fx = x;
                     up = true;
                 }
-                Dir::UR => {
+                Dir::NE => {
                     if inside {
                         filled += (x - fx) as usize;
                     }
                     fx = x;
                     up = false;
                 }
-                Dir::DL => {
+                Dir::SW => {
                     filled += (x - fx + 1) as usize;
                     if !up {
                         inside = !inside
                     }
                     fx = x + 1;
                 }
-                Dir::UL => {
+                Dir::NW => {
                     filled += (x - fx + 1) as usize;
                     if up {
                         inside = !inside
                     }
                     fx = x + 1;
                 }
-                Dir::U | Dir::D => {
+                Dir::N | Dir::S => {
                     filled += 1;
                     if inside {
                         filled += (x - fx) as usize;
@@ -141,7 +142,7 @@ impl Day18 {
                     inside = !inside;
                     fx = x + 1;
                 }
-                x => unreachable!("{:#04b}", x.0),
+                x => unreachable!("{:?}", x),
             }
         }
         filled
@@ -176,75 +177,6 @@ impl FromStr for Instruction {
             .map_err(|_| "invalid count")?;
         let color = it.next().ok_or("instruction missing color")?.parse()?;
         Ok(Self { dir, count, color })
-    }
-}
-
-#[derive(Clone, Copy, PartialEq, Eq)]
-struct Dir(u8);
-
-impl Display for Dir {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let c = match *self {
-            Self::U => '^',
-            Self::L => '<',
-            Self::D => 'v',
-            Self::R => '>',
-            Self::DR => '┌',
-            Self::DL => '┐',
-            Self::UL => '┘',
-            Self::UR => '└',
-            _ => unreachable!(),
-        };
-        write!(f, "{c}")
-    }
-}
-
-impl FromStr for Dir {
-    type Err = Error;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "U" => Ok(Self::U),
-            "L" => Ok(Self::L),
-            "D" => Ok(Self::D),
-            "R" => Ok(Self::R),
-            _ => Err("invalid direction".into()),
-        }
-    }
-}
-
-impl BitOr for Dir {
-    type Output = Self;
-    fn bitor(self, rhs: Self) -> Self::Output {
-        Self(self.0 | rhs.0)
-    }
-}
-
-impl Dir {
-    const U: Self = Self(0b1000);
-    const L: Self = Self(0b0100);
-    const D: Self = Self(0b0010);
-    const R: Self = Self(0b0001);
-
-    const UL: Self = Self(0b1100);
-    const UR: Self = Self(0b1001);
-    const DL: Self = Self(0b0110);
-    const DR: Self = Self(0b0011);
-    const UD: Self = Self(0b1010);
-    const LR: Self = Self(0b0101);
-
-    fn rev(self) -> Self {
-        Self(((self.0 | (self.0 << 4)) >> 2) & 0xf)
-    }
-
-    fn delta(self) -> (i32, i32) {
-        match self {
-            Self::U => (0, -1),
-            Self::L => (-1, 0),
-            Self::D => (0, 1),
-            Self::R => (1, 0),
-            _ => unreachable!(),
-        }
     }
 }
 

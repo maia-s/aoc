@@ -1,4 +1,4 @@
-use aoc_2023::{aoc, str_block, Error};
+use aoc_2023::{aoc, str_block, Dir, Error};
 
 const INPUT: &str = include_str!("day-16.txt");
 
@@ -75,11 +75,11 @@ impl Day16 {
         let mut energized = 0;
 
         while let Some(((x, y), dir)) = beams.pop() {
-            if bmap[y][x] & dir.0 == 0 {
+            if bmap[y][x] & dir.bits() == 0 {
                 if bmap[y][x] == 0 {
                     energized += 1;
                 }
-                bmap[y][x] |= dir.0;
+                bmap[y][x] |= dir.bits();
 
                 let mut push = |dir: Dir| {
                     if let Some((x, y)) = dir.mov(x, y, self.width(), self.height()) {
@@ -125,34 +125,5 @@ impl Day16 {
         }
 
         Ok(energized)
-    }
-}
-
-#[derive(Clone, Copy, PartialEq, Eq)]
-struct Dir(u8);
-
-impl Dir {
-    const N: Self = Self(0b1000);
-    const E: Self = Self(0b0100);
-    const S: Self = Self(0b0010);
-    const W: Self = Self(0b0001);
-
-    fn mov(&self, x: usize, y: usize, w: usize, h: usize) -> Option<(usize, usize)> {
-        let mut x = x as isize;
-        let mut y = y as isize;
-        let w = w as isize;
-        let h = h as isize;
-        match *self {
-            Dir::N => y -= 1,
-            Dir::E => x += 1,
-            Dir::S => y += 1,
-            Dir::W => x -= 1,
-            _ => panic!("can't move multiple directions"),
-        }
-        if (0..w).contains(&x) && (0..h).contains(&y) {
-            Some((x as usize, y as usize))
-        } else {
-            None
-        }
     }
 }
