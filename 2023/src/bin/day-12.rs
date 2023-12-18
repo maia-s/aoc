@@ -27,7 +27,14 @@ aoc! {
         Ok(self.records.iter().map(Record::combinations).sum())
     }
 
-    INPUT_EX { 1 part1 = 21 }
+    2 part2 usize {
+        Ok(self.records.iter_mut().map(|r| {
+            r.expand();
+            r.combinations()
+        }).sum())
+    }
+
+    INPUT_EX { 1 part1 = 21, 2 part2 = 525152 }
     INPUT { 1 part1 = 7599 }
 }
 
@@ -64,6 +71,17 @@ impl FromStr for Record {
 }
 
 impl Record {
+    fn expand(&mut self) {
+        let mut patexp = self.pattern.clone();
+        patexp.insert(0, Spring::Unknown);
+        let groupexp = self.groups.clone();
+        for _ in 0..4 {
+            self.pattern.extend_from_slice(&patexp);
+            self.groups.extend_from_slice(&groupexp);
+        }
+        self.min_len = self.groups.iter().sum::<usize>() + self.groups.len() - 1;
+    }
+
     fn combinations(&self) -> usize {
         fn rec(mut pattern: &[Spring], mut groups: &[usize], mut min_len: usize) -> usize {
             let mut combs = 0;
@@ -81,9 +99,7 @@ impl Record {
 
                         Spring::Damaged => {
                             let glen = groups[0];
-                            if pattern[1..glen].iter().any(|&p| p == Spring::Operational)
-                                || pattern.get(glen).copied() == Some(Spring::Damaged)
-                            {
+                            if pattern[1..glen].iter().any(|&p| p == Spring::Operational) {
                                 return combs;
                             }
                             if let Some(&s) = pattern.get(glen) {
