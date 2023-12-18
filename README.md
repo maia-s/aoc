@@ -1,7 +1,7 @@
 # Advent of Code
 
 These are my solutions for [Advent of Code][AoC].
-Most of them are first drafts and haven't been optimized
+Some are first drafts, some have been polished and optimized a bit (out of need or for fun)
 
 [AoC]: https://adventofcode.com/
 
