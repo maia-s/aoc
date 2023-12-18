@@ -1,4 +1,4 @@
-use std::{collections::BTreeMap, ops::BitOr, str::FromStr};
+use std::{collections::BTreeMap, fmt::Display, ops::BitOr, str::FromStr};
 
 use aoc_2023::{aoc, str_block, Error};
 
@@ -49,7 +49,7 @@ aoc! {
     }
 
     INPUT_EX { 1 part1 = 62, 2 part2 = 952408144115 }
-    INPUT { 1 part1 = 44436 }
+    INPUT { 1 part1 = 44436, 2 part2 = 106941819907437 }
 }
 
 impl Day18 {
@@ -76,6 +76,22 @@ impl Day18 {
                 pos.0 += dy * count;
             }
             map.0.insert(pos, dir);
+        }
+
+        let dir0 = decode(self.instructions.first().unwrap()).0;
+        let dir1 = decode(self.instructions.last().unwrap()).0;
+        let dir = dir0 | dir1.rev();
+        match dir {
+            Dir::DR | Dir::DL | Dir::UL | Dir::UR => {
+                map.0.insert((0, 0), dir);
+            }
+            Dir::UD => {
+                map.0.insert((0, 0), Dir::U);
+            }
+            Dir::LR => {
+                map.0.remove(&(0, 0));
+            }
+            _ => unreachable!(),
         }
 
         let mut filled = 0;
@@ -166,6 +182,23 @@ impl FromStr for Instruction {
 #[derive(Clone, Copy, PartialEq, Eq)]
 struct Dir(u8);
 
+impl Display for Dir {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let c = match *self {
+            Self::U => '^',
+            Self::L => '<',
+            Self::D => 'v',
+            Self::R => '>',
+            Self::DR => '┌',
+            Self::DL => '┐',
+            Self::UL => '┘',
+            Self::UR => '└',
+            _ => unreachable!(),
+        };
+        write!(f, "{c}")
+    }
+}
+
 impl FromStr for Dir {
     type Err = Error;
 
@@ -197,6 +230,8 @@ impl Dir {
     const UR: Self = Self(0b1001);
     const DL: Self = Self(0b0110);
     const DR: Self = Self(0b0011);
+    const UD: Self = Self(0b1010);
+    const LR: Self = Self(0b0101);
 
     fn rev(self) -> Self {
         Self(((self.0 | (self.0 << 4)) >> 2) & 0xf)
