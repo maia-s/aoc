@@ -1,4 +1,4 @@
-use std::{ops::BitOr, str::FromStr};
+use std::{collections::BTreeMap, ops::BitOr, str::FromStr};
 
 use aoc_2023::{aoc, str_block, Error};
 
@@ -32,7 +32,7 @@ aoc! {
     }
 
     1 part1 usize {
-        Ok(self.lagoon_size(|instr| (instr.dir, instr.count as isize)))
+        Ok(self.lagoon_size(|instr| (instr.dir, instr.count as i32)))
     }
 
     2 part2 usize {
@@ -44,7 +44,7 @@ aoc! {
                 3 => Dir::U,
                 _ => unreachable!(),
             },
-            (instr.color.0 >> 4) as isize
+            (instr.color.0 >> 4) as i32
         )))
     }
 
@@ -53,68 +53,90 @@ aoc! {
 }
 
 impl Day18 {
-    fn lagoon_size(&self, decode: impl Fn(&Instruction) -> (Dir, isize)) -> usize {
-        let (mut minx, mut maxx) = (0, 0);
-        let (mut miny, mut maxy) = (0, 0);
+    fn lagoon_size(&self, decode: impl Fn(&Instruction) -> (Dir, i32)) -> usize {
+        let mut map = Map::new();
         let mut pos = (0, 0);
+
         for instr in self.instructions.iter() {
             let (dir, count) = decode(instr);
             let (dx, dy) = dir.delta();
-            pos.0 += dx * count;
-            pos.1 += dy * count;
-            minx = minx.min(pos.0);
-            maxx = maxx.max(pos.0);
-            miny = miny.min(pos.1);
-            maxy = maxy.max(pos.1);
-        }
-
-        let width = maxx - minx + 1;
-        let height = maxy - miny + 1;
-        let mut map = vec![vec![Dir::NONE; width as usize]; height as usize];
-
-        let mut pos = (-minx, -miny);
-        for instr in self.instructions.iter() {
-            let (dir, count) = decode(instr);
-            let (dx, dy) = dir.delta();
-            let tile = &mut map[pos.1 as usize][pos.0 as usize];
-            *tile = tile.rev() | dir;
-            for _ in 0..count {
-                pos.0 += dx;
-                pos.1 += dy;
-                map[pos.1 as usize][pos.0 as usize] = dir;
+            if let Some(tile) = map.0.get(&pos) {
+                map.0.insert(pos, tile.rev() | dir);
             }
+            if matches!(dir, Dir::U | Dir::D) {
+                for _ in 0..count - 1 {
+                    pos.1 += dx;
+                    pos.0 += dy;
+                    map.0.insert(pos, dir);
+                }
+                pos.1 += dx;
+                pos.0 += dy;
+            } else {
+                pos.1 += dx * count;
+                pos.0 += dy * count;
+            }
+            map.0.insert(pos, dir);
         }
 
-        let mut filled = width as usize * height as usize;
-        for row in map.iter() {
-            let mut inside = false;
-            let mut up = false;
-            for &tile in row.iter() {
-                match tile {
-                    Dir::DR => up = true,
-                    Dir::UR => up = false,
-                    Dir::L | Dir::R => (),
-                    Dir::DL => {
-                        if !up {
-                            inside = !inside
-                        }
+        let mut filled = 0;
+        let mut py = -1;
+        let mut inside = false;
+        let mut up = false;
+        let mut fx = 0;
+        for (&(y, x), &dir) in map.0.iter() {
+            if py != y {
+                py = y;
+                assert!(!inside);
+            }
+            match dir {
+                Dir::DR => {
+                    if inside {
+                        filled += (x - fx) as usize;
                     }
-                    Dir::UL => {
-                        if up {
-                            inside = !inside
-                        }
-                    }
-                    Dir::U | Dir::D => inside = !inside,
-                    Dir::NONE => {
-                        if !inside {
-                            filled -= 1;
-                        }
-                    }
-                    _ => unreachable!(),
+                    fx = x;
+                    up = true;
                 }
+                Dir::UR => {
+                    if inside {
+                        filled += (x - fx) as usize;
+                    }
+                    fx = x;
+                    up = false;
+                }
+                Dir::DL => {
+                    filled += (x - fx + 1) as usize;
+                    if !up {
+                        inside = !inside
+                    }
+                    fx = x + 1;
+                }
+                Dir::UL => {
+                    filled += (x - fx + 1) as usize;
+                    if up {
+                        inside = !inside
+                    }
+                    fx = x + 1;
+                }
+                Dir::U | Dir::D => {
+                    filled += 1;
+                    if inside {
+                        filled += (x - fx) as usize;
+                    }
+                    inside = !inside;
+                    fx = x + 1;
+                }
+                x => unreachable!("{:#04b}", x.0),
             }
         }
         filled
+    }
+}
+
+struct Map(BTreeMap<(i32, i32), Dir>);
+
+impl Map {
+    fn new() -> Self {
+        Self(BTreeMap::new())
     }
 }
 
@@ -166,8 +188,6 @@ impl BitOr for Dir {
 }
 
 impl Dir {
-    const NONE: Self = Self(0);
-
     const U: Self = Self(0b1000);
     const L: Self = Self(0b0100);
     const D: Self = Self(0b0010);
@@ -182,7 +202,7 @@ impl Dir {
         Self(((self.0 | (self.0 << 4)) >> 2) & 0xf)
     }
 
-    fn delta(self) -> (isize, isize) {
+    fn delta(self) -> (i32, i32) {
         match self {
             Self::U => (0, -1),
             Self::L => (-1, 0),
