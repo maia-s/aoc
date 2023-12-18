@@ -24,22 +24,44 @@ U 2 (#7a21e3)
 
 aoc! {
     struct Day18 {
-        map: Vec<Vec<Tile>>,
-        width: usize,
-        height: usize,
+        instructions: Vec<Instruction>,
     }
 
     self(input = INPUT) {
-        let instructions = input.lines().map(str::parse).collect::<Result<Vec<Instruction>, _>>()?;
+        Ok(Self { instructions: input.lines().map(str::parse).collect::<Result<Vec<Instruction>, _>>()? })
+    }
+
+    1 part1 usize {
+        Ok(self.lagoon_size(|instr| (instr.dir, instr.count as isize)))
+    }
+
+    2 part2 usize {
+        Ok(self.lagoon_size(|instr| (
+            match instr.color.0 & 0xf {
+                0 => Dir::R,
+                1 => Dir::D,
+                2 => Dir::L,
+                3 => Dir::U,
+                _ => unreachable!(),
+            },
+            (instr.color.0 >> 4) as isize
+        )))
+    }
+
+    INPUT_EX { 1 part1 = 62, 2 part2 = 952408144115 }
+    INPUT { 1 part1 = 44436 }
+}
+
+impl Day18 {
+    fn lagoon_size(&self, decode: impl Fn(&Instruction) -> (Dir, isize)) -> usize {
         let (mut minx, mut maxx) = (0, 0);
         let (mut miny, mut maxy) = (0, 0);
         let mut pos = (0, 0);
-        for Instruction { dir, count, .. } in instructions.iter() {
+        for instr in self.instructions.iter() {
+            let (dir, count) = decode(instr);
             let (dx, dy) = dir.delta();
-            for _ in 0..*count {
-                pos.0 += dx;
-                pos.1 += dy;
-            }
+            pos.0 += dx * count;
+            pos.1 += dy * count;
             minx = minx.min(pos.0);
             maxx = maxx.max(pos.0);
             miny = miny.min(pos.1);
@@ -48,73 +70,51 @@ aoc! {
 
         let width = maxx - minx + 1;
         let height = maxy - miny + 1;
-        let mut map = vec![vec![Tile::default(); width as usize]; height as usize];
-        pos = (-minx, -miny);
-        for Instruction { dir, count, color } in instructions.iter() {
+        let mut map = vec![vec![Dir::NONE; width as usize]; height as usize];
+
+        let mut pos = (-minx, -miny);
+        for instr in self.instructions.iter() {
+            let (dir, count) = decode(instr);
             let (dx, dy) = dir.delta();
             let tile = &mut map[pos.1 as usize][pos.0 as usize];
-            tile.color = *color;
-            tile.dir = tile.dir.rev() | *dir;
-            for i in 0..*count {
+            *tile = tile.rev() | dir;
+            for _ in 0..count {
                 pos.0 += dx;
                 pos.1 += dy;
-                let tile = &mut map[pos.1 as usize][pos.0 as usize];
-                tile.dir = *dir;
-                if i != *count - 1 {
-                    tile.color = *color;
-                }
-            }
-        }
-        for row in map.iter_mut() {
-            for c in row.iter_mut() {
-                match c.dir {
-                    Dir::U | Dir::D => c.dir = Dir::U | Dir::D,
-                    Dir::L | Dir::R => c.dir = Dir::L | Dir::R,
-                    _ => (),
-                }
+                map[pos.1 as usize][pos.0 as usize] = dir;
             }
         }
 
-        Ok(Self { map, width: width as usize, height: height as usize })
-    }
-
-    1 part1 usize {
-        let mut filled = self.width * self.height;
-        for row in self.map.iter() {
+        let mut filled = width as usize * height as usize;
+        for row in map.iter() {
             let mut inside = false;
             let mut up = false;
-            for tile in row.iter() {
-                match tile.dir {
+            for &tile in row.iter() {
+                match tile {
                     Dir::DR => up = true,
                     Dir::UR => up = false,
-                    Dir::LR => (),
-                    Dir::DL => if !up { inside = !inside },
-                    Dir::UL => if up { inside = !inside },
-                    Dir::UD => inside = !inside,
-                    Dir::NONE => if !inside { filled -= 1; }
+                    Dir::L | Dir::R => (),
+                    Dir::DL => {
+                        if !up {
+                            inside = !inside
+                        }
+                    }
+                    Dir::UL => {
+                        if up {
+                            inside = !inside
+                        }
+                    }
+                    Dir::U | Dir::D => inside = !inside,
+                    Dir::NONE => {
+                        if !inside {
+                            filled -= 1;
+                        }
+                    }
                     _ => unreachable!(),
                 }
             }
         }
-        Ok(filled)
-    }
-
-    INPUT_EX { 1 part1 = 62 }
-    INPUT { 1 part1 = 44436 }
-}
-
-#[derive(Clone, Copy)]
-struct Tile {
-    color: Color,
-    dir: Dir,
-}
-
-impl Default for Tile {
-    fn default() -> Self {
-        Self {
-            color: Color::NONE,
-            dir: Dir::NONE,
-        }
+        filled
     }
 }
 
@@ -177,8 +177,6 @@ impl Dir {
     const UR: Self = Self(0b1001);
     const DL: Self = Self(0b0110);
     const DR: Self = Self(0b0011);
-    const UD: Self = Self(0b1010);
-    const LR: Self = Self(0b0101);
 
     fn rev(self) -> Self {
         Self(((self.0 | (self.0 << 4)) >> 2) & 0xf)
@@ -210,8 +208,4 @@ impl FromStr for Color {
             u32::from_str_radix(s, 16).map_err(|_| "invalid color code")?,
         ))
     }
-}
-
-impl Color {
-    const NONE: Self = Self(0xffffffff);
 }
