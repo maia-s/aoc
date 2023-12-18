@@ -1,4 +1,4 @@
-use std::{str::FromStr, usize};
+use std::{collections::HashSet, fmt::Debug, num::NonZeroU8, str::FromStr, usize};
 
 use aoc_2023::{aoc, str_block, Error};
 
@@ -24,7 +24,7 @@ aoc! {
     }
 
     1 part1 usize {
-        Ok(self.records.iter().map(Record::combinations).sum())
+        Ok(self.records.iter_mut().map(Record::combinations).sum())
     }
 
     2 part2 usize {
@@ -40,9 +40,35 @@ aoc! {
 
 #[derive(Clone)]
 struct Record {
-    pattern: Vec<Spring>,
-    groups: Vec<usize>,
+    pattern: Vec<(Spring, Bounds)>,
+    groups: Vec<u8>,
     min_len: usize,
+}
+
+impl Debug for Record {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "Record {{")?;
+        writeln!(f, "  pattern: [")?;
+        for p in self.pattern.iter() {
+            writeln!(f, "    {:?} {:?}", p.0, p.1)?;
+        }
+        writeln!(f, "  ],")?;
+        write!(f, "  groups: [")?;
+        let mut first = true;
+        for g in self.groups.iter() {
+            if first {
+                first = false;
+            } else {
+                write!(f, ",")?;
+            }
+            write!(f, " {}", g)?;
+        }
+        if !first {
+            write!(f, " ")?;
+        }
+        writeln!(f, "],")?;
+        writeln!(f, "}}")
+    }
 }
 
 impl FromStr for Record {
@@ -53,12 +79,13 @@ impl FromStr for Record {
         let pattern: Vec<_> = pattern
             .chars()
             .map(Spring::try_from)
+            .map(|s| s.map(|s| (s, Bounds::new())))
             .collect::<Result<_, _>>()?;
         let groups = groups
             .split(',')
             .map(|s| s.parse().map_err(|_| "parse_error"))
             .collect::<Result<Vec<_>, _>>()?;
-        let min_len = groups.iter().sum::<usize>() + groups.len() - 1;
+        let min_len = groups.iter().map(|&n| n as usize).sum::<usize>() + groups.len() - 1;
         if pattern.len() < min_len {
             return Err("group can't fit in pattern".into());
         }
@@ -73,64 +100,83 @@ impl FromStr for Record {
 impl Record {
     fn expand(&mut self) {
         let mut patexp = self.pattern.clone();
-        patexp.insert(0, Spring::Unknown);
+        patexp.insert(0, (Spring::Unknown, Bounds::new()));
         let groupexp = self.groups.clone();
         for _ in 0..4 {
             self.pattern.extend_from_slice(&patexp);
             self.groups.extend_from_slice(&groupexp);
         }
-        self.min_len = self.groups.iter().sum::<usize>() + self.groups.len() - 1;
+        self.min_len =
+            self.groups.iter().map(|&n| n as usize).sum::<usize>() + self.groups.len() - 1;
     }
 
-    fn combinations(&self) -> usize {
-        fn rec(mut pattern: &[Spring], mut groups: &[usize], mut min_len: usize) -> usize {
-            let mut combs = 0;
-            'next: loop {
-                if pattern.len() < min_len {
-                    return combs;
+    fn annotate(&mut self) {
+        for (_, bounds) in self.pattern.iter_mut() {
+            bounds.clear();
+        }
+        for run in self
+            .groups
+            .iter()
+            .copied()
+            .collect::<HashSet<_>>()
+            .into_iter()
+        {
+            'next: for i in 0..=self.pattern.len() - run as usize {
+                if i > 0 && matches!(self.pattern[i - 1], (Spring::Damaged, _)) {
+                    continue;
                 }
-                let mut pat0 = pattern[0];
-                loop {
-                    match pat0 {
-                        Spring::Operational => {
-                            pattern = &pattern[1..];
-                            continue 'next;
-                        }
-
-                        Spring::Damaged => {
-                            let glen = groups[0];
-                            if pattern[1..glen].iter().any(|&p| p == Spring::Operational) {
-                                return combs;
-                            }
-                            if let Some(&s) = pattern.get(glen) {
-                                if s == Spring::Damaged {
-                                    return combs;
-                                }
-                            } else {
-                                return combs + 1;
-                            }
-                            pattern = &pattern[glen + 1..];
-                            groups = &groups[1..];
-                            if groups.is_empty() {
-                                if pattern.iter().any(|&p| p == Spring::Damaged) {
-                                    return combs;
-                                } else {
-                                    return combs + 1;
-                                }
-                            }
-                            min_len -= glen + 1;
-                            continue 'next;
-                        }
-
-                        Spring::Unknown => {
-                            combs += rec(&pattern[1..], groups, min_len);
-                            pat0 = Spring::Damaged;
-                            continue;
-                        }
+                let mut j = i;
+                while matches!(self.pattern.get(j), Some((Spring::Operational, _))) {
+                    j += 1;
+                }
+                for j in j..=self.pattern.len() - run as usize {
+                    if self.pattern[j..j + run as usize]
+                        .iter()
+                        .all(|(s, _)| *s != Spring::Operational)
+                        && matches!(
+                            self.pattern.get(j + run as usize),
+                            Some((Spring::Operational | Spring::Unknown, _)) | None
+                        )
+                    {
+                        self.pattern[i].1.set(run, (j - i).try_into().unwrap());
+                        continue 'next;
+                    }
+                    if matches!(self.pattern[j], (Spring::Damaged, _)) {
+                        continue 'next;
                     }
                 }
             }
         }
+    }
+
+    fn combinations(&mut self) -> usize {
+        fn rec(mut pattern: &[(Spring, Bounds)], mut groups: &[u8], mut min_len: usize) -> usize {
+            let mut combs = 0;
+            while let Some(skip) = pattern.get(0).and_then(|p| p.1.get(groups[0])) {
+                if pattern.len() < min_len {
+                    break;
+                }
+                if skip == 0 {
+                    if matches!(pattern[0].0, Spring::Unknown) {
+                        if let Some(skip2) = pattern.get(1).and_then(|p| p.1.get(groups[0])) {
+                            combs += rec(&pattern[skip2 as usize + 1..], groups, min_len);
+                        }
+                    }
+                    let mlen = groups[0] as usize + 1;
+                    min_len = min_len.saturating_sub(mlen);
+                    pattern = &pattern[mlen.min(pattern.len())..];
+                    groups = &groups[1..];
+                    if groups.is_empty() {
+                        combs += pattern.iter().all(|p| !matches!(p.0, Spring::Damaged)) as usize;
+                        break;
+                    }
+                } else {
+                    pattern = &pattern[skip as usize..];
+                }
+            }
+            combs
+        }
+        self.annotate();
         rec(&self.pattern, &self.groups, self.min_len)
     }
 }
@@ -142,6 +188,20 @@ enum Spring {
     Unknown,
 }
 
+impl Debug for Spring {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match *self {
+                Self::Operational => '.',
+                Self::Damaged => '#',
+                Self::Unknown => '?',
+            }
+        )
+    }
+}
+
 impl TryFrom<char> for Spring {
     type Error = Error;
     fn try_from(value: char) -> Result<Self, Error> {
@@ -151,5 +211,55 @@ impl TryFrom<char> for Spring {
             '?' => Ok(Self::Unknown),
             x => Err(format!("invalid spring condition `{x}`").into()),
         }
+    }
+}
+
+#[derive(Clone)]
+struct Bounds(Vec<Option<NonZeroU8>>);
+
+impl Debug for Bounds {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut first = true;
+        write!(f, "Bounds{{")?;
+        for (run, dist) in self
+            .0
+            .iter()
+            .enumerate()
+            .filter(|(_, o)| o.is_some())
+            .map(|(i, o)| (i + 1, !o.unwrap().get()))
+        {
+            if first {
+                first = false
+            } else {
+                write!(f, ",")?;
+            }
+            write!(f, " {run} => {dist}")?;
+        }
+        if !first {
+            write!(f, " ")?;
+        }
+        write!(f, "}}")
+    }
+}
+
+impl Bounds {
+    fn new() -> Self {
+        Self(Vec::new())
+    }
+
+    fn clear(&mut self) {
+        self.0.clear();
+    }
+
+    fn get(&self, len: u8) -> Option<u8> {
+        Some(!(*self.0.get(len as usize - 1)?)?.get())
+    }
+
+    fn set(&mut self, len: u8, dist: u8) {
+        let len = len as usize;
+        if self.0.len() < len {
+            self.0.resize(len, None);
+        }
+        self.0[len - 1] = NonZeroU8::new(!dist);
     }
 }
