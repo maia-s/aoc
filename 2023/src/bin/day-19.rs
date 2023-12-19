@@ -399,7 +399,7 @@ impl Debug for Ranges {
 
 impl Ranges {
     fn new() -> Self {
-        Self([(1, 4000); 4])
+        Self([(1, 4001); 4])
     }
 
     fn combinations(&self) -> usize {
