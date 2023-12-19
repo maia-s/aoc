@@ -50,7 +50,7 @@ aoc! {
     }
 
     INPUT_EX { 1 part1 = 19114, 2 part2 = 167409079868000 }
-    INPUT { 1 part1 = 331208 }
+    INPUT { 1 part1 = 331208, 2 part2 = 121464316215623 }
 }
 
 #[derive(Clone)]
