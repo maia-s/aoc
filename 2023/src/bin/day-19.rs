@@ -33,9 +33,8 @@ aoc! {
 
     self(input = INPUT) {
         let (rules, parts) = input.split_once("\n\n").ok_or("invalid format")?;
-        let mut rules: Rules = rules.parse()?;
+        let rules: Rules = rules.parse()?;
         let parts = parts.parse()?;
-        rules.collapse();
         Ok(Self { rules, parts })
     }
 
@@ -158,56 +157,7 @@ impl Rules {
                 }
             }
         }
-
-        'merge: loop {
-            for i in 0..accepted.len() {
-                for j in 0..accepted.len() {
-                    if i != j && accepted[i].overlaps(&accepted[j]) {
-                        eprintln!("merge");
-                        let merged = accepted[i].merge(&accepted[j]);
-                        if i > j {
-                            accepted.remove(i);
-                        }
-                        accepted.remove(j);
-                        if i < j {
-                            accepted.remove(i);
-                        }
-                        accepted.push(merged);
-                        continue 'merge;
-                    }
-                }
-            }
-            return accepted;
-        }
-    }
-
-    fn collapse(&mut self) {
-        let mut changed = true;
-        while changed {
-            let mut names: Vec<String> = self.0.keys().cloned().collect();
-            for i in (0..names.len()).rev() {
-                let rule = &names[i];
-                if let Some(target) = self.0.get(rule).unwrap().collapse() {
-                    self.replace_target(rule, &target.to_owned());
-                } else {
-                    names.remove(i);
-                }
-            }
-            changed = !names.is_empty();
-            for name in names.into_iter() {
-                self.0.remove(&name);
-            }
-        }
-    }
-
-    fn replace_target(&mut self, src: &str, dst: &String) {
-        for rule in self.0.values_mut() {
-            for step in rule.steps.iter_mut() {
-                if step.target == src {
-                    step.target = dst.to_owned();
-                }
-            }
-        }
+        accepted
     }
 }
 
@@ -261,17 +211,6 @@ impl Rule {
             }
             None
         })
-    }
-
-    fn collapse(&self) -> Option<&str> {
-        let mut it = self.steps.iter();
-        let target = it.next().unwrap().target.as_str();
-        for step in it {
-            if step.target != target {
-                return None;
-            }
-        }
-        Some(target)
     }
 }
 
@@ -404,22 +343,6 @@ impl Ranges {
 
     fn combinations(&self) -> usize {
         self.0.iter().map(|(from, to)| to - from).product()
-    }
-
-    fn overlaps(&self, other: &Ranges) -> bool {
-        self.0
-            .iter()
-            .zip(other.0.iter())
-            .all(|(a, b)| (a.0 <= b.0 && b.0 < a.1) || (a.0 < b.1 && b.1 <= a.1))
-    }
-
-    fn merge(&self, other: &Ranges) -> Ranges {
-        Self([
-            (self.0[0].0.min(other.0[0].0), self.0[0].1.max(other.0[0].1)),
-            (self.0[1].0.min(other.0[1].0), self.0[1].1.max(other.0[1].1)),
-            (self.0[2].0.min(other.0[2].0), self.0[2].1.max(other.0[2].1)),
-            (self.0[3].0.min(other.0[3].0), self.0[3].1.max(other.0[3].1)),
-        ])
     }
 
     fn is_valid(&self) -> bool {
