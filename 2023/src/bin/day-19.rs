@@ -1,4 +1,9 @@
-use std::{collections::HashMap, str::FromStr};
+use std::{
+    collections::{HashMap, HashSet},
+    fmt::Debug,
+    iter,
+    str::FromStr,
+};
 
 use aoc_2023::{aoc, str_block, Error};
 
@@ -35,7 +40,7 @@ aoc! {
         let (rules, parts) = input.split_once("\n\n").ok_or("invalid format")?;
         let mut rules: Rules = rules.parse()?;
         let parts = parts.parse()?;
-        rules.collapse();
+        //rules.collapse();
         Ok(Self { rules, parts })
     }
 
@@ -45,7 +50,11 @@ aoc! {
         }).sum())
     }
 
-    INPUT_EX { 1 part1 = 19114 }
+    2 part2 usize {
+        Ok(self.rules.accepted_ranges().iter().map(Ranges::combinations).sum())
+    }
+
+    INPUT_EX { 1 part1 = 19114, 2 part2 = 167409079868000 }
     INPUT { 1 part1 = 331208 }
 }
 
@@ -142,6 +151,36 @@ impl Rules {
         target == "A"
     }
 
+    fn accepted_ranges(&self) -> Vec<Ranges> {
+        let mut queue = vec![("in", Ranges::new())];
+        let mut accepted = Vec::new();
+        while let Some((target, ranges)) = queue.pop() {
+            for (target, ranges) in self.0.get(target).unwrap().eval_ranges(ranges) {
+                if target == "A" {
+                    accepted.push(ranges);
+                } else if target != "R" {
+                    queue.push((target, ranges));
+                }
+            }
+        }
+        accepted
+        /*
+        let mut accepted: Vec<_> = accepted.into_iter().collect();
+        'vbrwuo: loop {
+            for i in 0..accepted.len() {
+                for j in 0..accepted.len() {
+                    if i != j && accepted[i].is_subrange_of(&accepted[j]) {
+                        eprintln!("removed subrange");
+                        accepted.remove(i);
+                        continue 'vbrwuo;
+                    }
+                }
+            }
+            return accepted;
+        }
+        */
+    }
+
     fn collapse(&mut self) {
         let mut changed = true;
         while changed {
@@ -206,6 +245,24 @@ impl Rule {
         unreachable!()
     }
 
+    fn eval_ranges(&self, mut ranges: Ranges) -> impl Iterator<Item = (&str, Ranges)> {
+        let mut steps = self.steps.iter();
+        iter::from_fn(move || {
+            if let Some(step) = steps.next() {
+                let (a, b) = step.eval_ranges(ranges);
+                if let Some(b) = b {
+                    ranges = b;
+                } else {
+                    while steps.next().is_some() {}
+                }
+                if let Some((target, ranges)) = a {
+                    return Some((target, ranges));
+                }
+            }
+            None
+        })
+    }
+
     fn collapse(&self) -> Option<&str> {
         let mut it = self.steps.iter();
         let target = it.next().unwrap().target.as_str();
@@ -246,6 +303,11 @@ impl Step {
     fn eval(&self, part: &Part) -> Option<&str> {
         self.cond.eval(part).then_some(&self.target)
     }
+
+    fn eval_ranges(&self, ranges: Ranges) -> (Option<(&str, Ranges)>, Option<Ranges>) {
+        let (a, b) = self.cond.eval_ranges(ranges);
+        (a.map(|a| (self.target.as_str(), a)), b)
+    }
 }
 
 #[derive(Clone, Copy)]
@@ -279,6 +341,14 @@ impl Cond {
             Self::Greater(cat, value) => part.0[cat as usize] > value,
         }
     }
+
+    fn eval_ranges(&self, ranges: Ranges) -> (Option<Ranges>, Option<Ranges>) {
+        match *self {
+            Self::Always => (Some(ranges), None),
+            Self::Less(cat, value) => (ranges.lt(cat, value), ranges.ge(cat, value)),
+            Self::Greater(cat, value) => (ranges.gt(cat, value), ranges.le(cat, value)),
+        }
+    }
 }
 
 #[repr(u8)]
@@ -301,5 +371,71 @@ impl TryFrom<char> for Cat {
             's' => Ok(Self::Shiny),
             _ => Err("unknown category".into()),
         }
+    }
+}
+
+impl TryFrom<usize> for Cat {
+    type Error = Error;
+
+    fn try_from(value: usize) -> Result<Self, Self::Error> {
+        match value {
+            0 => Ok(Self::Xtreme),
+            1 => Ok(Self::Musical),
+            2 => Ok(Self::Aerodynamic),
+            3 => Ok(Self::Shiny),
+            _ => Err("invalid category".into()),
+        }
+    }
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+struct Ranges([(usize, usize); 4]);
+
+impl Debug for Ranges {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self.0)
+    }
+}
+
+impl Ranges {
+    fn new() -> Self {
+        Self([(1, 4000); 4])
+    }
+
+    fn combinations(&self) -> usize {
+        self.0.iter().map(|(from, to)| to - from).product()
+    }
+
+    fn is_subrange_of(&self, other: &Ranges) -> bool {
+        self.0
+            .iter()
+            .zip(other.0.iter())
+            .all(|(a, b)| b.0 <= a.0 && b.1 >= a.1)
+    }
+
+    fn is_valid(&self) -> bool {
+        self.0.iter().all(|(from, to)| from < to)
+    }
+
+    #[must_use]
+    fn lt(mut self, cat: Cat, value: usize) -> Option<Self> {
+        self.0[cat as usize].1 = self.0[cat as usize].1.min(value);
+        self.is_valid().then_some(self)
+    }
+
+    #[must_use]
+    fn le(self, cat: Cat, value: usize) -> Option<Self> {
+        self.lt(cat, value - 1)
+    }
+
+    #[must_use]
+    fn gt(mut self, cat: Cat, value: usize) -> Option<Self> {
+        self.0[cat as usize].0 = self.0[cat as usize].0.max(value);
+        self.is_valid().then_some(self)
+    }
+
+    #[must_use]
+    fn ge(self, cat: Cat, value: usize) -> Option<Self> {
+        self.gt(cat, value - 1)
     }
 }
