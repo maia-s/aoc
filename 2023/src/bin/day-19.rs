@@ -35,7 +35,7 @@ aoc! {
         let (rules, parts) = input.split_once("\n\n").ok_or("invalid format")?;
         let mut rules: Rules = rules.parse()?;
         let parts = parts.parse()?;
-        //rules.collapse();
+        rules.collapse();
         Ok(Self { rules, parts })
     }
 
@@ -434,17 +434,17 @@ impl Ranges {
 
     #[must_use]
     fn le(self, cat: Cat, value: usize) -> Option<Self> {
-        self.lt(cat, value - 1)
+        self.lt(cat, value + 1)
     }
 
     #[must_use]
-    fn gt(mut self, cat: Cat, value: usize) -> Option<Self> {
+    fn gt(self, cat: Cat, value: usize) -> Option<Self> {
+        self.ge(cat, value + 1)
+    }
+
+    #[must_use]
+    fn ge(mut self, cat: Cat, value: usize) -> Option<Self> {
         self.0[cat as usize].0 = self.0[cat as usize].0.max(value);
         self.is_valid().then_some(self)
-    }
-
-    #[must_use]
-    fn ge(self, cat: Cat, value: usize) -> Option<Self> {
-        self.gt(cat, value - 1)
     }
 }
