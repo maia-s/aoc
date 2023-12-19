@@ -33,8 +33,9 @@ aoc! {
 
     self(input = INPUT) {
         let (rules, parts) = input.split_once("\n\n").ok_or("invalid format")?;
-        let rules = rules.parse()?;
+        let mut rules: Rules = rules.parse()?;
         let parts = parts.parse()?;
+        rules.collapse();
         Ok(Self { rules, parts })
     }
 
@@ -140,6 +141,35 @@ impl Rules {
         }
         target == "A"
     }
+
+    fn collapse(&mut self) {
+        let mut changed = true;
+        while changed {
+            let mut names: Vec<String> = self.0.keys().cloned().collect();
+            for i in (0..names.len()).rev() {
+                let rule = &names[i];
+                if let Some(target) = self.0.get(rule).unwrap().collapse() {
+                    self.replace_target(rule, &target.to_owned());
+                } else {
+                    names.remove(i);
+                }
+            }
+            changed = !names.is_empty();
+            for name in names.into_iter() {
+                self.0.remove(&name);
+            }
+        }
+    }
+
+    fn replace_target(&mut self, src: &str, dst: &String) {
+        for rule in self.0.values_mut() {
+            for step in rule.steps.iter_mut() {
+                if step.target == src {
+                    step.target = dst.to_owned();
+                }
+            }
+        }
+    }
 }
 
 #[derive(Clone)]
@@ -174,6 +204,17 @@ impl Rule {
             }
         }
         unreachable!()
+    }
+
+    fn collapse(&self) -> Option<&str> {
+        let mut it = self.steps.iter();
+        let target = it.next().unwrap().target.as_str();
+        for step in it {
+            if step.target != target {
+                return None;
+            }
+        }
+        Some(target)
     }
 }
 
