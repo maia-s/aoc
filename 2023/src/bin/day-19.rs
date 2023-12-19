@@ -1,9 +1,4 @@
-use std::{
-    collections::{HashMap, HashSet},
-    fmt::Debug,
-    iter,
-    str::FromStr,
-};
+use std::{collections::HashMap, fmt::Debug, iter, str::FromStr};
 
 use aoc_2023::{aoc, str_block, Error};
 
@@ -163,22 +158,27 @@ impl Rules {
                 }
             }
         }
-        accepted
-        /*
-        let mut accepted: Vec<_> = accepted.into_iter().collect();
-        'vbrwuo: loop {
+
+        'merge: loop {
             for i in 0..accepted.len() {
                 for j in 0..accepted.len() {
-                    if i != j && accepted[i].is_subrange_of(&accepted[j]) {
-                        eprintln!("removed subrange");
-                        accepted.remove(i);
-                        continue 'vbrwuo;
+                    if i != j && accepted[i].overlaps(&accepted[j]) {
+                        eprintln!("merge");
+                        let merged = accepted[i].merge(&accepted[j]);
+                        if i > j {
+                            accepted.remove(i);
+                        }
+                        accepted.remove(j);
+                        if i < j {
+                            accepted.remove(i);
+                        }
+                        accepted.push(merged);
+                        continue 'merge;
                     }
                 }
             }
             return accepted;
         }
-        */
     }
 
     fn collapse(&mut self) {
@@ -406,11 +406,20 @@ impl Ranges {
         self.0.iter().map(|(from, to)| to - from).product()
     }
 
-    fn is_subrange_of(&self, other: &Ranges) -> bool {
+    fn overlaps(&self, other: &Ranges) -> bool {
         self.0
             .iter()
             .zip(other.0.iter())
-            .all(|(a, b)| b.0 <= a.0 && b.1 >= a.1)
+            .all(|(a, b)| (a.0 <= b.0 && b.0 < a.1) || (a.0 < b.1 && b.1 <= a.1))
+    }
+
+    fn merge(&self, other: &Ranges) -> Ranges {
+        Self([
+            (self.0[0].0.min(other.0[0].0), self.0[0].1.max(other.0[0].1)),
+            (self.0[1].0.min(other.0[1].0), self.0[1].1.max(other.0[1].1)),
+            (self.0[2].0.min(other.0[2].0), self.0[2].1.max(other.0[2].1)),
+            (self.0[3].0.min(other.0[3].0), self.0[3].1.max(other.0[3].1)),
+        ])
     }
 
     fn is_valid(&self) -> bool {
