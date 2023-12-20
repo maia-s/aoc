@@ -61,11 +61,20 @@ aoc! {
         let mut lows = 0;
         let mut highs = 0;
         for _ in 0..1000 {
-            let (l, h) = self.system.push_button();
+            let (l, h, _) = self.system.push_button();
             lows += l;
             highs += h;
         }
         Ok(lows * highs)
+    }
+
+    2 part2 usize {
+        for i in 1_usize.. {
+            if self.system.push_button().2 {
+                return Ok(i)
+            }
+        }
+        unreachable!()
     }
 
     INPUT_EX { 1 part1 = 32000000 }
@@ -89,11 +98,14 @@ struct System<'a> {
 }
 
 impl<'a> System<'a> {
-    fn push_button(&mut self) -> (usize, usize) {
+    fn push_button(&mut self) -> (usize, usize, bool) {
         let mut lows = 0;
         let mut highs = 0;
         self.queue.push_back(("broadcaster", Port(0), Pulse::Low));
         while let Some((target, port, pulse)) = self.queue.pop_front() {
+            if target == "rx" && pulse == Pulse::Low {
+                return (0, 0, true);
+            }
             match pulse {
                 Pulse::Low => lows += 1,
                 Pulse::High => highs += 1,
@@ -105,7 +117,7 @@ impl<'a> System<'a> {
                 }
             }
         }
-        (lows, highs)
+        (lows, highs, false)
     }
 }
 
