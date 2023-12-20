@@ -1,4 +1,4 @@
-use std::collections::{HashMap, VecDeque};
+use std::collections::{HashMap, HashSet, VecDeque};
 
 use aoc_2023::{aoc, str_block, Error};
 
@@ -77,9 +77,29 @@ aoc! {
         unreachable!()
     }
 
-    INPUT_EX { 1 part1 = 32000000 }
-    INPUT_EX2 { 1 part1 = 11687500 }
-    INPUT { 1 part1 = 777666211 }
+    # graph {
+        let mut seen = HashSet::new();
+        let mut queue = Vec::new();
+        queue.push((0, "broadcaster"));
+        while let Some((i, module)) = queue.pop() {
+            for _ in 0..i { eprint!("  "); }
+            let m = self.system.modules.get(module).unwrap();
+            eprint!("{}{module}", m.kind());
+            if seen.contains(module) {
+                eprintln!(" => ...");
+                continue;
+            }
+            eprintln!();
+            seen.insert(module);
+            for (t, _) in m.targets.iter().rev() {
+                queue.push((i + 1, t));
+            }
+        }
+    }
+
+    INPUT_EX { 1 part1 = 32000000; graph }
+    INPUT_EX2 { 1 part1 = 11687500; graph }
+    INPUT { 1 part1 = 777666211; graph }
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -150,6 +170,10 @@ impl<'a> Module<'a> {
         self.targets.push((target, port));
     }
 
+    fn kind(&self) -> char {
+        self.implementation.kind()
+    }
+
     fn alloc_port(&mut self) -> Port {
         self.implementation.alloc_port()
     }
@@ -161,6 +185,10 @@ impl<'a> Module<'a> {
 
 trait ModuleImpl {
     fn clone(&self) -> Box<dyn ModuleImpl>;
+
+    fn kind(&self) -> char {
+        '_'
+    }
 
     fn alloc_port(&mut self) -> Port {
         Port(0)
@@ -206,6 +234,10 @@ impl ModuleImpl for FlipFlop {
         Box::new(Self(self.0))
     }
 
+    fn kind(&self) -> char {
+        '%'
+    }
+
     fn pulse(&mut self, _: Port, pulse: Pulse) -> Option<Pulse> {
         if pulse == Pulse::Low {
             self.0 = !self.0;
@@ -231,6 +263,10 @@ impl Conjunction {
 impl ModuleImpl for Conjunction {
     fn clone(&self) -> Box<dyn ModuleImpl> {
         Box::new(Self(self.0.clone()))
+    }
+
+    fn kind(&self) -> char {
+        '&'
     }
 
     fn alloc_port(&mut self) -> Port {
