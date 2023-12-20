@@ -25,7 +25,11 @@ macro_rules! aoc {
         $(#[$attr:meta])* struct $Day:ident $(<$lt:lifetime>)? { $($fields:tt)* }
         $self:ident($in:ident = $input:expr) { $($new:tt)* }
         $($pno:literal $part:ident $pty:ty { $($part_body:tt)* })*
-        $($tinput:ident { $($tno:literal $tpart:ident = $tresult:expr),* $(,)? } )*
+        $(# $upart:ident { $($upart_body:tt)* })*
+        $($tinput:ident {
+            $($tno:literal $tpart:ident = $tresult:expr),*
+            $(; $($tupart:ident),* $(,)? )?
+        } )*
     ) => {
         $(#[$attr])*
         #[derive(Clone)]
@@ -39,6 +43,12 @@ macro_rules! aoc {
             $(
                 fn $part(&mut $self) -> Result<$pty, Box<dyn ::std::error::Error>> {
                     $($part_body)*
+                }
+            )*
+
+            $(
+                fn $upart(&mut $self) {
+                    $($upart_body)*
                 }
             )*
         }
@@ -100,6 +110,14 @@ macro_rules! aoc {
                             Ok(())
                         }
                     )*
+
+                    $($(
+                        #[test]
+                        #[ignore]
+                        fn $tupart() -> Result<(), Box<dyn ::std::error::Error>> {
+                            Ok($Day::new($tinput)?.$tupart())
+                        }
+                    )*)*
                 }
             )* }
         }
