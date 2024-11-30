@@ -1,9 +1,19 @@
 # Advent of Code
 
-These are my solutions for [Advent of Code][AoC].
-Some are first drafts, some have been polished and optimized a bit (out of need or for fun)
+These are my solutions for [Advent of Code][AoC]! They're a mix of first drafts and
+sometimes more polished or optimized solutions
 
 [AoC]: https://adventofcode.com/
+
+## ✨ 2024 ✨
+
+|          |          |          |          |          |          |          |
+| -------: | -------: | -------: | -------: | -------: | -------: | -------: |
+|          |          |          |          |          |          |    ~~1~~ |
+|    ~~2~~ |    ~~3~~ |    ~~4~~ |    ~~5~~ |    ~~6~~ |    ~~7~~ |    ~~8~~ |
+|    ~~9~~ |   ~~10~~ |   ~~11~~ |   ~~12~~ |   ~~13~~ |   ~~14~~ |   ~~15~~ |
+|   ~~16~~ |   ~~17~~ |   ~~18~~ |   ~~19~~ |   ~~20~~ |   ~~21~~ |   ~~22~~ |
+|   ~~23~~ |   ~~24~~ |   ~~25~~ | | | | |
 
 ## ✨ 2023 ✨
 
