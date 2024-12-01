@@ -1,4 +1,21 @@
+use crate::Conf;
 use core::{convert::Infallible, str::FromStr};
+use str_block::str_block;
+
+pub const INPUT: Conf<u32> = Conf::new(include_str!("day1.txt"), 2196996, 23655822);
+
+pub const EX: Conf<u32> = Conf::new(
+    str_block! {"
+        3   4
+        4   3
+        2   5
+        1   3
+        3   9
+        3   3
+    "},
+    11,
+    31,
+);
 
 struct Part1 {
     left: Vec<u32>,

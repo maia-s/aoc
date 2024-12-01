@@ -9,17 +9,13 @@ const TIMEOUT: Duration = Duration::from_secs(3);
 const MAX_RUNS: usize = 10000;
 
 macro_rules! days {
-    ($($day:ident $(( $p1:expr $(, $p2:expr)? ))? ),* $(,)?) => {
+    ($($day:ident($maincfg:ident $(, $cfg:ident)* $(,)?)),* $(,)?) => {
         #[allow(non_upper_case_globals)]
-        mod inputs {
-            $( pub const $day: &str = include_str!(concat!(stringify!($day), ".txt")); )*
-        }
-
         $(
             fn $day() {
                 println!("=== {} ===", stringify!($day));
-                run("part 1", || aoc_2024::$day::part1(black_box(inputs::$day)));
-                run("part 2", || aoc_2024::$day::part2(black_box(inputs::$day)));
+                run("part 1", || aoc_2024::$day::part1(black_box(aoc_2024::$day::$maincfg.input)));
+                run("part 2", || aoc_2024::$day::part2(black_box(aoc_2024::$day::$maincfg.input)));
             }
         )*
 
@@ -34,15 +30,27 @@ macro_rules! days {
 
         #[cfg(test)]
         mod tests {
-            use super::*;
+            $(
+                mod $day {
+                    #[test]
+                    #[allow(non_snake_case)]
+                    fn $maincfg() {
+                        use aoc_2024::$day::*;
+                        assert_eq!(part1($maincfg.input), $maincfg.part1_expected);
+                        assert_eq!(part2($maincfg.input), $maincfg.part2_expected);
+                    }
 
-            $($(
-                #[test]
-                fn $day() {
-                    assert_eq!(aoc_2024::$day::part1(inputs::$day), $p1);
-                    $( assert_eq!(aoc_2024::$day::part2(inputs::$day), $p2); )?
+                    $(
+                        #[test]
+                        #[allow(non_snake_case)]
+                        fn $cfg() {
+                            use aoc_2024::$day::*;
+                            assert_eq!(part1($cfg.input), $cfg.part1_expected);
+                            assert_eq!(part2($cfg.input), $cfg.part2_expected);
+                        }
+                    )*
                 }
-            )?)*
+            )*
         }
     };
 }
@@ -74,5 +82,5 @@ fn run<R: Debug + Display + PartialEq>(name: &str, f: impl Fn() -> R) {
 }
 
 days! {
-    day1(2196996, 23655822),
+    day1(INPUT, EX),
 }
