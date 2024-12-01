@@ -5,6 +5,9 @@ use core::{
 };
 use std::time::Instant;
 
+const TIMEOUT: Duration = Duration::from_secs(3);
+const MAX_RUNS: usize = 10000;
+
 macro_rules! days {
     ($($day:ident $(( $p1:expr $(, $p2:expr)? ))? ),* $(,)?) => {
         #[allow(non_upper_case_globals)]
@@ -45,30 +48,28 @@ macro_rules! days {
 }
 
 fn run<R: Debug + Display + PartialEq>(name: &str, f: impl Fn() -> R) {
-    const TIMEOUT: Duration = Duration::from_secs(3);
-    let mut times: [u64; 1000] = [0; 1000];
+    let mut times = Vec::with_capacity(MAX_RUNS);
     let result = f();
     println!("{name}: {result}");
-    let mut n = 0_u32;
     let t0 = Instant::now();
     let mut tc = t0;
-    for time in times.iter_mut() {
+    for _ in 0..MAX_RUNS {
         let tp = Instant::now();
         assert_eq!(black_box(f()), result);
         tc = Instant::now();
-        *time = tc.duration_since(tp).as_nanos() as u64;
-        n += 1;
+        times.push(tc.duration_since(tp).as_nanos() as u64);
         if tc.duration_since(t0) > TIMEOUT {
             break;
         }
     }
-    times[..n as usize].sort_unstable();
+    times.sort_unstable();
     println!(
-        "[ {n}x avg:{:#?} min:{:#?} med:{:#?} max:{:#?} ]",
-        tc.duration_since(t0) / n,
+        "[ {}x avg:{:?} min:{:?} med:{:?} max:{:?} ]",
+        times.len(),
+        tc.duration_since(t0) / times.len() as u32,
         Duration::from_nanos(times[0]),
-        Duration::from_nanos(times[n as usize / 2]),
-        Duration::from_nanos(times[n as usize - 1]),
+        Duration::from_nanos(times[times.len() / 2]),
+        Duration::from_nanos(times[times.len() - 1]),
     );
 }
 
