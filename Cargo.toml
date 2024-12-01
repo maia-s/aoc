@@ -7,3 +7,6 @@ members = [
     "2023",
     "2024",
 ]
+
+[profile.dev]
+opt-level = 3
