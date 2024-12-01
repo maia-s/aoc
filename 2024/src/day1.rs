@@ -1,11 +1,16 @@
 use core::str::FromStr;
 
-struct Day1 {
+struct Part1 {
     left: Vec<isize>,
     right: Vec<isize>,
 }
 
-impl FromStr for Day1 {
+struct Part2 {
+    left: Vec<usize>,
+    right: Vec<usize>,
+}
+
+impl FromStr for Part1 {
     type Err = ();
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut left = Vec::new();
@@ -19,8 +24,22 @@ impl FromStr for Day1 {
     }
 }
 
+impl FromStr for Part2 {
+    type Err = ();
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut left = Vec::new();
+        let mut right = vec![0; 100_000];
+        for line in s.lines() {
+            let (l, r) = line.split_once("   ").unwrap();
+            left.push(l.parse().unwrap());
+            right[r.parse::<usize>().unwrap()] += 1;
+        }
+        Ok(Self { left, right })
+    }
+}
+
 pub fn part1(input: &str) -> usize {
-    let mut input: Day1 = input.parse().unwrap();
+    let mut input: Part1 = input.parse().unwrap();
     input.left.sort_unstable();
     input.right.sort_unstable();
     input
@@ -32,5 +51,6 @@ pub fn part1(input: &str) -> usize {
 }
 
 pub fn part2(input: &str) -> usize {
-    todo!()
+    let input: Part2 = input.parse().unwrap();
+    input.left.into_iter().map(|i| i * input.right[i]).sum()
 }
