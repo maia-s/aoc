@@ -10,15 +10,35 @@ struct Part2 {
     right: Vec<u32>,
 }
 
+fn parse_line(s: &str) -> (u32, u32) {
+    let mut l = 0;
+    let mut r = 0;
+    let mut bytes = s.as_bytes().iter().copied();
+    for b in bytes.by_ref() {
+        let v = b.wrapping_sub(b'0');
+        if v > 9 {
+            break;
+        }
+        l = l * 10 + v as u32;
+    }
+    bytes.next();
+    bytes.next();
+    for b in bytes {
+        let v = b.wrapping_sub(b'0');
+        r = r * 10 + v as u32;
+    }
+    (l, r)
+}
+
 impl FromStr for Part1 {
     type Err = Infallible;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut left = Vec::with_capacity(1000);
         let mut right = Vec::with_capacity(1000);
         for line in s.lines() {
-            let (l, r) = line.split_once("   ").unwrap();
-            left.push(l.parse().unwrap());
-            right.push(r.parse().unwrap());
+            let (l, r) = parse_line(line);
+            left.push(l);
+            right.push(r);
         }
         Ok(Self { left, right })
     }
@@ -30,9 +50,9 @@ impl FromStr for Part2 {
         let mut left = Vec::with_capacity(1000);
         let mut right = vec![0; 100_000];
         for line in s.lines() {
-            let (l, r) = line.split_once("   ").unwrap();
-            left.push(l.parse().unwrap());
-            right[r.parse::<usize>().unwrap()] += 1;
+            let (l, r) = parse_line(line);
+            left.push(l);
+            right[r as usize] += 1;
         }
         Ok(Self { left, right })
     }
