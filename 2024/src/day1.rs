@@ -1,20 +1,20 @@
-use core::str::FromStr;
+use core::{convert::Infallible, str::FromStr};
 
 struct Part1 {
-    left: Vec<isize>,
-    right: Vec<isize>,
+    left: Vec<u32>,
+    right: Vec<u32>,
 }
 
 struct Part2 {
-    left: Vec<usize>,
-    right: Vec<usize>,
+    left: Vec<u32>,
+    right: Vec<u32>,
 }
 
 impl FromStr for Part1 {
-    type Err = ();
+    type Err = Infallible;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut left = Vec::new();
-        let mut right = Vec::new();
+        let mut left = Vec::with_capacity(1000);
+        let mut right = Vec::with_capacity(1000);
         for line in s.lines() {
             let (l, r) = line.split_once("   ").unwrap();
             left.push(l.parse().unwrap());
@@ -25,9 +25,9 @@ impl FromStr for Part1 {
 }
 
 impl FromStr for Part2 {
-    type Err = ();
+    type Err = Infallible;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut left = Vec::new();
+        let mut left = Vec::with_capacity(1000);
         let mut right = vec![0; 100_000];
         for line in s.lines() {
             let (l, r) = line.split_once("   ").unwrap();
@@ -38,7 +38,7 @@ impl FromStr for Part2 {
     }
 }
 
-pub fn part1(input: &str) -> usize {
+pub fn part1(input: &str) -> u32 {
     let mut input: Part1 = input.parse().unwrap();
     input.left.sort_unstable();
     input.right.sort_unstable();
@@ -46,11 +46,15 @@ pub fn part1(input: &str) -> usize {
         .left
         .into_iter()
         .zip(input.right)
-        .map(|(l, r)| (l - r).unsigned_abs())
+        .map(|(l, r)| l.abs_diff(r))
         .sum()
 }
 
-pub fn part2(input: &str) -> usize {
+pub fn part2(input: &str) -> u32 {
     let input: Part2 = input.parse().unwrap();
-    input.left.into_iter().map(|i| i * input.right[i]).sum()
+    input
+        .left
+        .into_iter()
+        .map(|i| i * input.right[i as usize])
+        .sum()
 }
