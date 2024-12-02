@@ -6,7 +6,7 @@ use core::{
 use std::time::Instant;
 
 const TIMEOUT: Duration = Duration::from_secs(3);
-const MAX_RUNS: usize = 10000;
+const MAX_RUNS: usize = 50000;
 
 macro_rules! days {
     ($($day:ident($maincfg:ident $(, $cfg:ident)* $(,)?)),* $(,)?) => {
