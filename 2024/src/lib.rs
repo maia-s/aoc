@@ -1,4 +1,5 @@
 pub mod day1;
+pub mod day2;
 
 pub struct Conf<T, U = T> {
     pub input: &'static str,
