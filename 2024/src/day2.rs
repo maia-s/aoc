@@ -1,5 +1,4 @@
 use crate::Conf;
-use core::cmp::Ordering;
 use str_block::str_block;
 
 pub const INPUT: Conf<u32> = Conf::new(include_str!("day2.txt"), 383, 436);
@@ -34,18 +33,20 @@ pub fn part1(input: &str) -> u32 {
     'lines: for line in input.lines() {
         let mut nums = line.split_ascii_whitespace().map(parse);
         let first = nums.next().unwrap();
-        let mut prev = nums.next().unwrap();
+        let prev = nums.next().unwrap();
         let diff = prev - first;
         if diff == 0 || diff.abs() > 3 {
             continue;
         }
-        let ascending = diff > 0;
+        let (mina, maxa) = if diff > 0 { (1, 3) } else { (-3, -1) };
+        let mut min = prev + mina;
+        let mut max = prev + maxa;
         for num in nums {
-            let diff = num - prev;
-            prev = num;
-            if if ascending { diff <= 0 } else { diff >= 0 } || diff.abs() > 3 {
+            if !(min..max + 1).contains(&num) {
                 continue 'lines;
             }
+            min = num + mina;
+            max = num + maxa;
         }
         nsafe += 1;
     }
@@ -54,20 +55,17 @@ pub fn part1(input: &str) -> u32 {
 
 fn check(nums: &[i32]) -> bool {
     let first = nums[0];
-    let mut prev = nums[1];
+    let prev = nums[1];
     let diff = prev - first;
     if diff == 0 || diff.abs() > 3 {
         return check_with_dampen(nums, 0) || check_with_dampen(nums, 1);
     }
-    let ordering = if diff > 0 {
-        Ordering::Greater
-    } else {
-        Ordering::Less
-    };
     let mut try_dampen = 0;
-    for (i, &num) in nums[2..].iter().enumerate() {
-        let diff = num - prev;
-        if diff.cmp(&0) != ordering || diff.abs() > 3 {
+    let (mina, maxa) = if diff > 0 { (1, 3) } else { (-3, -1) };
+    let mut min = prev + mina;
+    let mut max = prev + maxa;
+    for (i, num) in nums[2..].iter().enumerate() {
+        if !(min..max + 1).contains(num) {
             if try_dampen == 0 {
                 try_dampen = i + 1;
                 continue;
@@ -76,13 +74,14 @@ fn check(nums: &[i32]) -> bool {
                     || (try_dampen == 1 && check_with_dampen(nums, 0));
             }
         }
-        prev = num;
+        min = num + mina;
+        max = num + maxa;
     }
     true
 }
 
 fn check_with_dampen(nums: &[i32], dampen: usize) -> bool {
-    let (rest, mut prev, diff) = if dampen < 2 {
+    let (rest, prev, diff) = if dampen < 2 {
         let rest = &nums[3..];
         let first = nums[(dampen == 0) as usize];
         let prev = nums[2];
@@ -98,17 +97,15 @@ fn check_with_dampen(nums: &[i32], dampen: usize) -> bool {
         let diff = prev - first;
         (rest, prev, diff)
     };
-    let ordering = if diff > 0 {
-        Ordering::Greater
-    } else {
-        Ordering::Less
-    };
-    for &num in rest {
-        let diff = num - prev;
-        if diff.cmp(&0) != ordering || diff.abs() > 3 {
+    let (mina, maxa) = if diff > 0 { (1, 3) } else { (-3, -1) };
+    let mut min = prev + mina;
+    let mut max = prev + maxa;
+    for num in rest {
+        if !(min..max + 1).contains(num) {
             return false;
         }
-        prev = num;
+        min = num + mina;
+        max = num + maxa;
     }
     true
 }
