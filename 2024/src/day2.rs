@@ -1,4 +1,5 @@
 use crate::Conf;
+use core::cmp::Ordering;
 use str_block::str_block;
 
 pub const INPUT: Conf<u32> = Conf::new(include_str!("day2.txt"), 383, 436);
@@ -58,11 +59,15 @@ fn check(nums: &[i32]) -> bool {
     if diff == 0 || diff.abs() > 3 {
         return check_with_dampen(nums, 0) || check_with_dampen(nums, 1);
     }
-    let ascending = diff > 0;
+    let ordering = if diff > 0 {
+        Ordering::Greater
+    } else {
+        Ordering::Less
+    };
     let mut try_dampen = 0;
     for (i, &num) in nums[2..].iter().enumerate() {
         let diff = num - prev;
-        if if ascending { diff <= 0 } else { diff >= 0 } || diff.abs() > 3 {
+        if diff.cmp(&0) != ordering || diff.abs() > 3 {
             if try_dampen == 0 {
                 try_dampen = i + 1;
                 continue;
@@ -84,10 +89,14 @@ fn check_with_dampen(nums: &[i32], dampen: usize) -> bool {
         if diff == 0 || diff.abs() > 3 {
             return false;
         }
-        let ascending = diff > 0;
+        let ordering = if diff > 0 {
+            Ordering::Greater
+        } else {
+            Ordering::Less
+        };
         for &num in nums[3..].iter() {
             let diff = num - prev;
-            if if ascending { diff <= 0 } else { diff >= 0 } || diff.abs() > 3 {
+            if diff.cmp(&0) != ordering || diff.abs() > 3 {
                 return false;
             }
             prev = num;
@@ -96,13 +105,17 @@ fn check_with_dampen(nums: &[i32], dampen: usize) -> bool {
         let first = nums[0];
         let mut prev = nums[1];
         let diff = prev - first;
-        let ascending = diff > 0;
+        let ordering = if diff > 0 {
+            Ordering::Greater
+        } else {
+            Ordering::Less
+        };
         for (i, &num) in nums[2..].iter().enumerate() {
             if i + 2 == dampen {
                 continue;
             }
             let diff = num - prev;
-            if if ascending { diff <= 0 } else { diff >= 0 } || diff.abs() > 3 {
+            if diff.cmp(&0) != ordering || diff.abs() > 3 {
                 return false;
             }
             prev = num;
