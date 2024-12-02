@@ -24,7 +24,7 @@ macro_rules! days {
             match args.get(1).map(String::as_str) {
                 $( Some(stringify!($day)) => $day(), )*
                 Some(arg) => { eprintln!("unknown argument: `{arg}`") }
-                None => { $(let f = $day;)* f(); }
+                None => { $(#[allow(unused)] let f = $day;)* f(); }
             }
         }
 
