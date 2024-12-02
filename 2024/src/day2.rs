@@ -14,6 +14,13 @@ pub const EX: Conf<u32> = Conf::new(
     2,
     4,
 );
+pub const EDGE_CASE: Conf<u32> = Conf::new(
+    str_block! {"
+        25 22 19 21 20 17 14 13
+    "},
+    0,
+    1,
+);
 
 fn parse(s: &str) -> i32 {
     s.as_bytes()
@@ -81,7 +88,12 @@ pub fn part2(input: &str) -> u32 {
     let mut nsafe = 0;
     for line in input.lines() {
         let nums = line.split_ascii_whitespace().map(parse);
-        nsafe += (p2_line(nums.clone(), 0) || p2_line(nums.clone(), 1) || p2_line(nums, 2)) as u32;
+        nsafe += (p2_line(nums.clone(), 0)
+            || p2_line(nums.clone(), 1)
+            || p2_line(nums.clone(), 2)
+            || p2_line(nums.clone().rev(), 0)
+            || p2_line(nums.clone().rev(), 1)
+            || p2_line(nums.rev(), 2)) as u32;
     }
     nsafe
 }

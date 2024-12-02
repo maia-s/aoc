@@ -83,5 +83,5 @@ fn run<R: Debug + Display + PartialEq>(name: &str, f: impl Fn() -> R) {
 
 days! {
     day1(INPUT, EX),
-    day2(INPUT, EX),
+    day2(INPUT, EX, EDGE_CASE),
 }
