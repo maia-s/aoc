@@ -1,4 +1,5 @@
 use crate::Conf;
+use core::iter;
 use str_block::str_block;
 
 pub const INPUT: Conf<u32> = Conf::new(include_str!("day2.txt"), 383, 436);
@@ -22,16 +23,33 @@ pub const EDGE_CASE: Conf<u32> = Conf::new(
     1,
 );
 
-fn parse(s: &str) -> i32 {
-    s.as_bytes()
-        .iter()
-        .fold(0, |acc, i| acc * 10 + (i - b'0') as i32)
+fn parse_line(line: &str) -> impl Iterator<Item = i32> + '_ {
+    let bytes = line.as_bytes();
+    let mut i = 0;
+    iter::from_fn(move || {
+        bytes.get(i).map(|b0| {
+            let b0 = (b0 - b'0') as i32;
+            if let Some(b1) = bytes.get(i + 1) {
+                let b1 = (b1.wrapping_sub(b'0')) as i32;
+                if b1 <= 9 {
+                    i += 3;
+                    b0 * 10 + b1
+                } else {
+                    i += 2;
+                    b0
+                }
+            } else {
+                i += 1;
+                b0
+            }
+        })
+    })
 }
 
 pub fn part1(input: &str) -> u32 {
     let mut nsafe = 0;
     'lines: for line in input.lines() {
-        let mut nums = line.split_ascii_whitespace().map(parse);
+        let mut nums = parse_line(line);
         let first = nums.next().unwrap();
         let prev = nums.next().unwrap();
         let diff = prev - first;
@@ -115,7 +133,7 @@ pub fn part2(input: &str) -> u32 {
     for line in input.lines() {
         let mut nums = [0; 10];
         let mut n = 0;
-        for num in line.split_ascii_whitespace().map(parse) {
+        for num in parse_line(line) {
             nums[n] = num;
             n += 1;
         }
