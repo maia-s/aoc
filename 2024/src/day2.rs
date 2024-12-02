@@ -82,44 +82,33 @@ fn check(nums: &[i32]) -> bool {
 }
 
 fn check_with_dampen(nums: &[i32], dampen: usize) -> bool {
-    if dampen < 2 {
+    let (rest, mut prev, diff) = if dampen < 2 {
+        let rest = &nums[3..];
         let first = nums[(dampen == 0) as usize];
-        let mut prev = nums[2];
+        let prev = nums[2];
         let diff = prev - first;
         if diff == 0 || diff.abs() > 3 {
             return false;
         }
-        let ordering = if diff > 0 {
-            Ordering::Greater
-        } else {
-            Ordering::Less
-        };
-        for &num in nums[3..].iter() {
-            let diff = num - prev;
-            if diff.cmp(&0) != ordering || diff.abs() > 3 {
-                return false;
-            }
-            prev = num;
-        }
+        (rest, prev, diff)
     } else {
-        let first = nums[0];
-        let mut prev = nums[1];
+        let rest = &nums[dampen + 1..];
+        let first = nums[dampen - 2];
+        let prev = nums[dampen - 1];
         let diff = prev - first;
-        let ordering = if diff > 0 {
-            Ordering::Greater
-        } else {
-            Ordering::Less
-        };
-        for (i, &num) in nums[2..].iter().enumerate() {
-            if i + 2 == dampen {
-                continue;
-            }
-            let diff = num - prev;
-            if diff.cmp(&0) != ordering || diff.abs() > 3 {
-                return false;
-            }
-            prev = num;
+        (rest, prev, diff)
+    };
+    let ordering = if diff > 0 {
+        Ordering::Greater
+    } else {
+        Ordering::Less
+    };
+    for &num in rest {
+        let diff = num - prev;
+        if diff.cmp(&0) != ordering || diff.abs() > 3 {
+            return false;
         }
+        prev = num;
     }
     true
 }
