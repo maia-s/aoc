@@ -34,11 +34,14 @@ fn mul(bytes: &[u8]) -> Option<u32> {
     for b in bytes {
         let v = b.wrapping_sub(b'0');
         if v > 9 {
-            return None;
+            if b == b')' {
+                return Some(l * r);
+            }
+            break;
         }
         r = r * 10 + v as u32
     }
-    Some(l * r)
+    None
 }
 
 fn matches(bytes: &[u8]) -> impl Iterator<Item = usize> + '_ {
@@ -69,25 +72,11 @@ fn matches(bytes: &[u8]) -> impl Iterator<Item = usize> + '_ {
 pub fn part1(input: &str) -> u32 {
     input
         .match_indices("mul(")
-        .filter_map(|(i, _)| {
-            let i = i + 4;
-            input.as_bytes()[i..]
-                .iter()
-                .position(|&b| b == b')')
-                .and_then(|j| mul(&input.as_bytes()[i..i + j]))
-        })
+        .filter_map(|(i, _)| mul(&input.as_bytes()[i + 4..]))
         .sum()
 }
 
 pub fn part2(input: &str) -> u32 {
     let input = input.as_bytes();
-    matches(input)
-        .filter_map(|i| {
-            let i = i + 4;
-            input[i..]
-                .iter()
-                .position(|&b| b == b')')
-                .and_then(|j| mul(&input[i..i + j]))
-        })
-        .sum()
+    matches(input).filter_map(|i| mul(&input[i + 4..])).sum()
 }
