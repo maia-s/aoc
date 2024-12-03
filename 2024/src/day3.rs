@@ -65,8 +65,9 @@ pub fn part1(input: &str) -> u32 {
         .match_indices("mul(")
         .filter_map(|(i, _)| {
             let i = i + 4;
-            input[i..]
-                .find(')')
+            input.as_bytes()[i..]
+                .iter()
+                .position(|&b| b == b')')
                 .and_then(|j| mul(&input.as_bytes()[i..i + j]))
         })
         .sum()
@@ -74,14 +75,16 @@ pub fn part1(input: &str) -> u32 {
 
 pub fn part2(input: &str) -> u32 {
     let mut enabled = true;
-    matches(input.as_bytes())
+    let input = input.as_bytes();
+    matches(input)
         .filter_map(|(alti, i)| match alti {
             0 => {
                 if enabled {
                     let i = i + 4;
                     input[i..]
-                        .find(')')
-                        .and_then(|j| mul(&input.as_bytes()[i..i + j]))
+                        .iter()
+                        .position(|&b| b == b')')
+                        .and_then(|j| mul(&input[i..i + j]))
                 } else {
                     None
                 }
