@@ -1,5 +1,5 @@
 use crate::Conf;
-use core::{hint::unreachable_unchecked, iter};
+use core::iter;
 use str_block::str_block;
 
 pub const INPUT: Conf<u32> = Conf::new(include_str!("day3.txt"), 181345830, 98729041);
@@ -41,19 +41,25 @@ fn mul(bytes: &[u8]) -> Option<u32> {
     Some(l * r)
 }
 
-fn matches(bytes: &[u8]) -> impl Iterator<Item = (usize, usize)> + '_ {
+fn matches(bytes: &[u8]) -> impl Iterator<Item = usize> + '_ {
     let mut i = 0;
     iter::from_fn(move || {
-        while let Some(j) = bytes[i..].iter().position(|b| matches!(b, b'm' | b'd')) {
+        'find: while let Some(j) = bytes[i..].iter().position(|b| matches!(b, b'm' | b'd')) {
             let j = i + j;
             i = j + 1;
-            for (alti, alt) in [b"mul(" as &[u8], b"do()", b"don't()"]
-                .into_iter()
-                .enumerate()
-            {
-                if bytes[j..].starts_with(alt) {
-                    return Some((alti, j));
+            if bytes[j..].starts_with(b"mul(") {
+                return Some(j);
+            } else if bytes[j..].starts_with(b"don't()") {
+                let mut k = j + 7;
+                while let Some(m) = bytes[k..].iter().position(|&b| b == b'd') {
+                    let m = m + k;
+                    if bytes[m..].starts_with(b"do()") {
+                        i = m + 4;
+                        continue 'find;
+                    }
+                    k = m + 1;
                 }
+                break;
             }
         }
         None
@@ -74,30 +80,14 @@ pub fn part1(input: &str) -> u32 {
 }
 
 pub fn part2(input: &str) -> u32 {
-    let mut enabled = true;
     let input = input.as_bytes();
     matches(input)
-        .filter_map(|(alti, i)| match alti {
-            0 => {
-                if enabled {
-                    let i = i + 4;
-                    input[i..]
-                        .iter()
-                        .position(|&b| b == b')')
-                        .and_then(|j| mul(&input[i..i + j]))
-                } else {
-                    None
-                }
-            }
-            1 => {
-                enabled = true;
-                None
-            }
-            2 => {
-                enabled = false;
-                None
-            }
-            _ => unsafe { unreachable_unchecked() },
+        .filter_map(|i| {
+            let i = i + 4;
+            input[i..]
+                .iter()
+                .position(|&b| b == b')')
+                .and_then(|j| mul(&input[i..i + j]))
         })
         .sum()
 }
