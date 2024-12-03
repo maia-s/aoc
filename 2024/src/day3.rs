@@ -62,48 +62,39 @@ fn matches(bytes: &[u8]) -> impl Iterator<Item = (usize, usize)> + '_ {
 
 pub fn part1(input: &str) -> u32 {
     input
-        .lines()
-        .map(|line| {
-            line.match_indices("mul(")
-                .filter_map(|(i, _)| {
-                    let i = i + 4;
-                    line[i..]
-                        .find(')')
-                        .and_then(|j| mul(&line.as_bytes()[i..i + j]))
-                })
-                .sum::<u32>()
+        .match_indices("mul(")
+        .filter_map(|(i, _)| {
+            let i = i + 4;
+            input[i..]
+                .find(')')
+                .and_then(|j| mul(&input.as_bytes()[i..i + j]))
         })
         .sum()
 }
 
 pub fn part2(input: &str) -> u32 {
     let mut enabled = true;
-    input
-        .lines()
-        .map(|line| {
-            matches(line.as_bytes())
-                .filter_map(|(alti, i)| match alti {
-                    0 => {
-                        if enabled {
-                            let i = i + 4;
-                            line[i..]
-                                .find(')')
-                                .and_then(|j| mul(&line.as_bytes()[i..i + j]))
-                        } else {
-                            None
-                        }
-                    }
-                    1 => {
-                        enabled = true;
-                        None
-                    }
-                    2 => {
-                        enabled = false;
-                        None
-                    }
-                    _ => unsafe { unreachable_unchecked() },
-                })
-                .sum::<u32>()
+    matches(input.as_bytes())
+        .filter_map(|(alti, i)| match alti {
+            0 => {
+                if enabled {
+                    let i = i + 4;
+                    input[i..]
+                        .find(')')
+                        .and_then(|j| mul(&input.as_bytes()[i..i + j]))
+                } else {
+                    None
+                }
+            }
+            1 => {
+                enabled = true;
+                None
+            }
+            2 => {
+                enabled = false;
+                None
+            }
+            _ => unsafe { unreachable_unchecked() },
         })
         .sum()
 }
