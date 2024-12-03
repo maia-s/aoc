@@ -41,14 +41,17 @@ fn mul(bytes: &[u8]) -> Option<u32> {
     Some(l * r)
 }
 
-fn matches<'a>(bytes: &'a [u8], alts: &'a [&[u8]]) -> impl Iterator<Item = (usize, usize)> + 'a {
+fn matches(bytes: &[u8]) -> impl Iterator<Item = (usize, usize)> + '_ {
     let mut i = 0;
     iter::from_fn(move || {
-        #[allow(clippy::mut_range_bound)] // false positive
-        for j in i..bytes.len() {
-            for (alti, alt) in alts.iter().enumerate() {
+        while let Some(j) = bytes[i..].iter().position(|b| matches!(b, b'm' | b'd')) {
+            let j = i + j;
+            i = j + 1;
+            for (alti, alt) in [b"mul(" as &[u8], b"do()", b"don't()"]
+                .into_iter()
+                .enumerate()
+            {
                 if bytes[j..].starts_with(alt) {
-                    i = j + 1;
                     return Some((alti, j));
                 }
             }
@@ -78,7 +81,7 @@ pub fn part2(input: &str) -> u32 {
     input
         .lines()
         .map(|line| {
-            matches(line.as_bytes(), &[b"mul(", b"do()", b"don't()"])
+            matches(line.as_bytes())
                 .filter_map(|(alti, i)| match alti {
                     0 => {
                         if enabled {
