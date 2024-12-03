@@ -44,20 +44,48 @@ fn mul(bytes: &[u8]) -> Option<u32> {
     None
 }
 
-fn matches(bytes: &[u8]) -> impl Iterator<Item = usize> + '_ {
+fn mul_with_len(bytes: &[u8]) -> Option<(usize, u32)> {
+    let mut l = 0;
+    let mut r = 0;
+    let mut bytes = bytes.iter().copied().enumerate();
+    for (_, b) in bytes.by_ref() {
+        let v = b.wrapping_sub(b'0');
+        if v > 9 {
+            break;
+        }
+        l = l * 10 + v as u32
+    }
+    for (i, b) in bytes {
+        let v = b.wrapping_sub(b'0');
+        if v > 9 {
+            if b == b')' {
+                return Some((i + 1, l * r));
+            }
+            break;
+        }
+        r = r * 10 + v as u32
+    }
+    None
+}
+
+fn matches(bytes: &[u8]) -> impl Iterator<Item = u32> + '_ {
     let mut i = 0;
     iter::from_fn(move || {
         'find: while let Some(j) = bytes[i..].iter().position(|b| matches!(b, b'm' | b'd')) {
-            let j = i + j;
-            i = j + 1;
-            if bytes[j..].starts_with(b"mul(") {
-                return Some(j);
-            } else if bytes[j..].starts_with(b"don't()") {
-                let mut k = j + 7;
+            i += j + 1;
+            if bytes[i..].starts_with(b"ul(") {
+                i += 3;
+                if let Some((n, val)) = mul_with_len(&bytes[i..]) {
+                    i += n;
+                    return Some(val);
+                }
+                continue;
+            } else if bytes[i..].starts_with(b"on't()") {
+                let mut k = i + 6;
                 while let Some(m) = bytes[k..].iter().position(|&b| b == b'd') {
-                    let m = m + k;
-                    if bytes[m..].starts_with(b"do()") {
-                        i = m + 4;
+                    let m = m + k + 1;
+                    if bytes[m..].starts_with(b"o()") {
+                        i = m + 3;
                         continue 'find;
                     }
                     k = m + 1;
@@ -77,6 +105,5 @@ pub fn part1(input: &str) -> u32 {
 }
 
 pub fn part2(input: &str) -> u32 {
-    let input = input.as_bytes();
-    matches(input).filter_map(|i| mul(&input[i + 4..])).sum()
+    matches(input.as_bytes()).sum()
 }
