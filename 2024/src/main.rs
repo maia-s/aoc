@@ -85,4 +85,5 @@ days! {
     day1(INPUT, EX),
     day2(INPUT, EX, EDGE_CASE),
     day3(INPUT, EX, EX2),
+    day4(INPUT, EX),
 }
