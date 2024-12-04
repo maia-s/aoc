@@ -21,6 +21,25 @@ pub const EX: Conf<u32> = Conf::new(
     9,
 );
 
+pub const LX: u32 = 1 << 0;
+pub const UX: u32 = 1 << 1;
+pub const RX: u32 = 1 << 2;
+pub const LS: u32 = 1 << 3;
+pub const US: u32 = 1 << 4;
+pub const RS: u32 = 1 << 5;
+pub const LXM: u32 = 1 << 6;
+pub const UXM: u32 = 1 << 7;
+pub const RXM: u32 = 1 << 8;
+pub const LSA: u32 = 1 << 9;
+pub const USA: u32 = 1 << 10;
+pub const RSA: u32 = 1 << 11;
+pub const LXMA: u32 = 1 << 12;
+pub const UXMA: u32 = 1 << 13;
+pub const RXMA: u32 = 1 << 14;
+pub const LSAM: u32 = 1 << 15;
+pub const USAM: u32 = 1 << 16;
+pub const RSAM: u32 = 1 << 17;
+
 fn match_indices<'a>(
     bytes: &'a [u8],
     f: impl Fn(u8) -> bool + 'a,
@@ -36,52 +55,77 @@ fn match_indices<'a>(
 }
 
 pub fn part1(input: &str) -> u32 {
-    let mut lines = input.lines().map(|line| line.as_bytes()).enumerate();
-    let mut buf = [b"" as &[u8]; 4];
+    let mut buf = [0; 256];
+    let mut lines = input.lines().map(|line| line.as_bytes());
+    let line = lines.next().unwrap();
+    let len = line.len();
     let mut count = 0;
-    for (i, line) in lines.by_ref().take(3) {
-        buf[i] = line;
-        for mi in match_indices(line, |b| matches!(b, b'X' | b'S')) {
-            if line[mi] == b'X' {
-                count += line[mi + 1..].starts_with(b"MAS") as u32;
-            } else {
-                count += line[mi + 1..].starts_with(b"AMX") as u32;
+    let mut n = 0;
+    for i in 0..len {
+        match line[i] {
+            b'X' => {
+                count += line[i + 1..].starts_with(b"MAS") as u32;
+                if i > 0 {
+                    buf[i - 1] |= RX;
+                }
+                buf[i] = n | UX;
+                n = LX
+            }
+            b'S' => {
+                count += line[i + 1..].starts_with(b"AMX") as u32;
+                if i > 0 {
+                    buf[i - 1] |= RS;
+                }
+                buf[i] = n | US;
+                n = LS
+            }
+            _ => {
+                buf[i] = n;
+                n = 0
             }
         }
     }
-    let len = buf[0].len();
-    for (i, line) in lines {
-        buf[i & 3] = line;
-        for mi in match_indices(line, |b| matches!(b, b'X' | b'S')) {
-            if line[mi] == b'X' {
-                count += line[mi + 1..].starts_with(b"MAS") as u32;
-                if mi > 2 {
-                    count += (buf[(i - 1) & 3][mi - 1] == b'M'
-                        && buf[(i - 2) & 3][mi - 2] == b'A'
-                        && buf[(i - 3) & 3][mi - 3] == b'S') as u32;
+    for line in lines {
+        let mut n = 0;
+        for i in 0..len {
+            match line[i] {
+                b'X' => {
+                    count += (buf[i] & (LSAM | USAM | RSAM)).count_ones()
+                        + line[i + 1..].starts_with(b"MAS") as u32;
+                    if i > 0 {
+                        buf[i - 1] |= RX;
+                    }
+                    buf[i] = n | UX;
+                    n = LX;
                 }
-                count += (buf[(i - 1) & 3][mi] == b'M'
-                    && buf[(i - 2) & 3][mi] == b'A'
-                    && buf[(i - 3) & 3][mi] == b'S') as u32;
-                if mi < len - 3 {
-                    count += (buf[(i - 1) & 3][mi + 1] == b'M'
-                        && buf[(i - 2) & 3][mi + 2] == b'A'
-                        && buf[(i - 3) & 3][mi + 3] == b'S') as u32;
+                b'S' => {
+                    count += (buf[i] & (LXMA | UXMA | RXMA)).count_ones()
+                        + line[i + 1..].starts_with(b"AMX") as u32;
+                    if i > 0 {
+                        buf[i - 1] |= RS;
+                    }
+                    buf[i] = n | US;
+                    n = LS;
                 }
-            } else {
-                count += line[mi + 1..].starts_with(b"AMX") as u32;
-                if mi > 2 {
-                    count += (buf[(i - 1) & 3][mi - 1] == b'A'
-                        && buf[(i - 2) & 3][mi - 2] == b'M'
-                        && buf[(i - 3) & 3][mi - 3] == b'X') as u32;
+                b'M' => {
+                    let pn = n;
+                    if i > 0 {
+                        buf[i - 1] |= (buf[i] & (RX | RSA)) << 6;
+                    }
+                    n = (buf[i] & (LX | LSA)) << 6;
+                    buf[i] = pn | ((buf[i] & (UX | USA)) << 6);
                 }
-                count += (buf[(i - 1) & 3][mi] == b'A'
-                    && buf[(i - 2) & 3][mi] == b'M'
-                    && buf[(i - 3) & 3][mi] == b'X') as u32;
-                if mi < len - 3 {
-                    count += (buf[(i - 1) & 3][mi + 1] == b'A'
-                        && buf[(i - 2) & 3][mi + 2] == b'M'
-                        && buf[(i - 3) & 3][mi + 3] == b'X') as u32;
+                b'A' => {
+                    let pn = n;
+                    if i > 0 {
+                        buf[i - 1] |= (buf[i] & (RXM | RS)) << 6;
+                    }
+                    n = (buf[i] & (LXM | LS)) << 6;
+                    buf[i] = pn | ((buf[i] & (UXM | US)) << 6);
+                }
+                _ => {
+                    buf[i] = n;
+                    n = 0
                 }
             }
         }
