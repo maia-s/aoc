@@ -2,7 +2,7 @@ use crate::Conf;
 use core::iter;
 use str_block::str_block;
 
-pub const INPUT: Conf<u32> = Conf::new(include_str!("day4.txt"), 2633, 0);
+pub const INPUT: Conf<u32> = Conf::new(include_str!("day4.txt"), 2633, 1936);
 
 pub const EX: Conf<u32> = Conf::new(
     str_block! {"
@@ -18,7 +18,7 @@ pub const EX: Conf<u32> = Conf::new(
         MXMXAXMASX
     "},
     18,
-    0,
+    9,
 );
 
 fn match_indices<'a>(
@@ -90,5 +90,21 @@ pub fn part1(input: &str) -> u32 {
 }
 
 pub fn part2(input: &str) -> u32 {
-    0
+    let mut lines = input.lines().map(|line| line.as_bytes());
+    let mut buf = [lines.next().unwrap(), lines.next().unwrap()];
+    let len = buf[0].len();
+    let mut count = 0;
+    let mut i = 0;
+    for line in lines {
+        for mi in match_indices(&buf[1 - i][1..len - 1], |b| b == b'A') {
+            let prev = &buf[i];
+            count += (((prev[mi] == b'M' && line[mi + 2] == b'S')
+                || (prev[mi] == b'S' && line[mi + 2] == b'M'))
+                && ((prev[mi + 2] == b'M' && line[mi] == b'S')
+                    || (prev[mi + 2] == b'S' && line[mi] == b'M'))) as u32;
+        }
+        buf[i] = line;
+        i = 1 - i;
+    }
+    count
 }
