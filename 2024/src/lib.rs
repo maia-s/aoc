@@ -8,7 +8,7 @@ pub enum Input {
     Str(&'static str),
 }
 
-pub struct Conf<T, U = T> {
+pub struct Conf<T = u32, U = T> {
     pub input: Input,
     pub part1_expected: T,
     pub part2_expected: U,

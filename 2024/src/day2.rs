@@ -2,12 +2,12 @@ use crate::{Conf, Input};
 use core::iter;
 use str_block::str_block;
 
-pub const INPUT: Conf<u32> = Conf::new(
+pub const INPUT: Conf = Conf::new(
     Input::FileHash("cb22dec174693f6ca8cbddc14d4457f0eced03f6d2a071bc47219f8858463926"),
     383,
     436,
 );
-pub const EX: Conf<u32> = Conf::new(
+pub const EX: Conf = Conf::new(
     Input::Str(str_block! {"
         7 6 4 2 1
         1 2 7 8 9
@@ -19,7 +19,7 @@ pub const EX: Conf<u32> = Conf::new(
     2,
     4,
 );
-pub const EDGE_CASE: Conf<u32> = Conf::new(
+pub const EDGE_CASE: Conf = Conf::new(
     Input::Str(str_block! {"
         25 22 19 21 20 17 14 13
     "}),
