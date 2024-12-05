@@ -136,9 +136,7 @@ pub fn part2(input: &str) -> u32 {
                 };
                 history[before_i] = num;
                 for i in order.iter_mut() {
-                    if *i >= before_i_to as u8 {
-                        *i += 1;
-                    }
+                    *i += (*i >= before_i_to as u8) as u8;
                 }
                 i += 1;
                 before_i_to as u8
