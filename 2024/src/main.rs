@@ -5,19 +5,12 @@ use core::{
     time::Duration,
 };
 use sha2::{Digest, Sha256};
-use std::{
-    borrow::Cow,
-    collections::HashMap,
-    fs,
-    path::PathBuf,
-    sync::{LazyLock, Mutex},
-    time::Instant,
-};
+use std::{borrow::Cow, collections::HashMap, fs, path::PathBuf, sync::LazyLock, time::Instant};
 
 const TIMEOUT: Duration = Duration::from_secs(10);
 const MAX_RUNS: usize = 50000;
 
-static INPUTS: LazyLock<Mutex<HashMap<String, String>>> = LazyLock::new(|| {
+static INPUTS: LazyLock<HashMap<String, String>> = LazyLock::new(|| {
     let mut map = HashMap::new();
     if let Ok(dir) = fs::read_dir(PathBuf::from_iter([env!("CARGO_MANIFEST_DIR"), "inputs"])) {
         for entry in dir.flatten() {
@@ -29,16 +22,12 @@ static INPUTS: LazyLock<Mutex<HashMap<String, String>>> = LazyLock::new(|| {
             map.insert(hash, contents);
         }
     }
-    Mutex::new(map)
+    map
 });
 
 fn get_input(input: Input) -> Option<Cow<'static, str>> {
     match input {
-        Input::FileHash(hash) => INPUTS
-            .lock()
-            .unwrap()
-            .get(hash)
-            .map(|s| Cow::Owned(s.to_owned())),
+        Input::FileHash(hash) => INPUTS.get(hash).map(|s| Cow::Owned(s.to_owned())),
         Input::Str(str) => Some(Cow::Borrowed(str)),
     }
 }
