@@ -113,4 +113,5 @@ days! {
     day2(INPUT, EX, EDGE_CASE),
     day3(INPUT, EX, EX2),
     day4(INPUT, EX),
+    day5(INPUT, EX),
 }
