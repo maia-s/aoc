@@ -114,37 +114,36 @@ pub fn part2(input: &str) -> u32 {
     }
     let mut sum = 0;
     for mut line in sec2.split(|&b| b == b'\n') {
-        let mut order = [0; 100];
+        let mut order = [24; 100];
         let mut history = [0; 24];
         let mut reordered = false;
         let num = parse_b0(&mut line);
         history[0] = num;
         let m = map[num as usize];
         for &di in &m[1..m[0] as usize + 1] {
-            order[di as usize] = 1;
+            order[di as usize] = 0;
         }
         let mut i = 0;
         while let Some(num) = parse_b(&mut line) {
             i += 1;
-            let before_i_to = order[num as usize] as usize;
-            let ii = if before_i_to > 0 {
+            let before_i = order[num as usize] as usize;
+            let ii = if before_i < 24 {
                 reordered = true;
-                let before_i = before_i_to - 1;
+                let before_i_to = before_i + 1;
                 let hp = history.as_mut_ptr();
                 unsafe { hp.add(before_i).copy_to(hp.add(before_i_to), i - before_i) };
                 history[before_i] = num;
                 for i in order.iter_mut() {
-                    *i += (*i >= before_i_to as u8) as u8;
+                    *i += (*i >= before_i as u8) as u8;
                 }
-                before_i_to as u8
+                before_i as u8
             } else {
                 history[i] = num;
-                i as u8 + 1
+                i as u8
             };
             let m = map[num as usize];
             for &di in &m[1..m[0] as usize + 1] {
-                let o = order[di as usize];
-                order[di as usize] = if o != 0 { o.min(ii) } else { ii };
+                order[di as usize] = order[di as usize].min(ii);
             }
         }
         if reordered {
