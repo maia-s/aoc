@@ -72,34 +72,28 @@ fn parse_b(input: &mut &[u8]) -> Option<u8> {
 pub fn part1(input: &str) -> u32 {
     let (sec1, sec2) = input.split_once("\n\n").unwrap();
     let (sec1, sec2) = (sec1.as_bytes(), sec2.as_bytes().trim_ascii_end());
-    let mut map = [[0; 25]; 100];
+    let mut map = [[0_u64; 2]; 100];
     for line in sec1.split(|&b| b == b'\n') {
         let (a, b) = parse_a(line);
         let m = &mut map[b as usize];
-        m[0] += 1;
-        m[m[0] as usize] = a;
+        m[(a >= 64) as usize] |= 1_u64 << (a & 63);
     }
     let mut sum = 0;
     'sec2: for mut line in sec2.split(|&b| b == b'\n') {
-        let mut disallow = [false; 100];
         let mut history = [0; 24];
         let num = parse_b0(&mut line);
         history[0] = num;
-        let m = map[num as usize];
-        for &i in &m[1..m[0] as usize + 1] {
-            disallow[i as usize] = true;
-        }
+        let mut disallow = map[num as usize];
         let mut i = 0;
         while let Some(num) = parse_b(&mut line) {
             i += 1;
             history[i] = num;
-            if disallow[num as usize] {
+            if (disallow[(num >= 64) as usize] & (1_u64 << num)) != 0 {
                 continue 'sec2;
             }
             let m = map[num as usize];
-            for &i in &m[1..m[0] as usize + 1] {
-                disallow[i as usize] = true;
-            }
+            disallow[0] |= m[0];
+            disallow[1] |= m[1];
         }
         sum += history[i / 2] as u32;
     }
