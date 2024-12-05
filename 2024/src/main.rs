@@ -49,7 +49,7 @@ macro_rules! days {
         $(
             fn $day() {
                 println!("=== {} ===", stringify!($day));
-                let input = get_input(aoc_2024::$day::$maincfg.input).expect("input not availabls");
+                let input = get_input(aoc_2024::$day::$maincfg.input).expect("input not available");
                 run("part 1", || aoc_2024::$day::part1(black_box(&input)));
                 run("part 2", || aoc_2024::$day::part2(black_box(&input)));
             }
