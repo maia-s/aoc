@@ -4,7 +4,7 @@ use str_block::str_block;
 pub const INPUT: Conf = Conf::new(
     Input::FileHash("a494403f567adfd2dc6524b2ffe0a1d2e8d3153b8352ca6ca80685e9d39af088"),
     5747,
-    0,
+    5502,
 );
 
 pub const EX: Conf = Conf::new(
@@ -39,7 +39,7 @@ pub const EX: Conf = Conf::new(
         97,13,75,29,47
     "}),
     143,
-    0,
+    123,
 );
 
 fn parse_a(input: &[u8]) -> (u8, u8) {
@@ -103,5 +103,59 @@ pub fn part1(input: &str) -> u32 {
 }
 
 pub fn part2(input: &str) -> u32 {
-    0
+    let (sec1, sec2) = input.split_once("\n\n").unwrap();
+    let (sec1, sec2) = (sec1.as_bytes(), sec2.as_bytes().trim_ascii_end());
+    let mut map = [[0; 25]; 100];
+    for line in sec1.split(|&b| b == b'\n') {
+        let (a, b) = parse_a(line);
+        let m = &mut map[b as usize];
+        m[0] += 1;
+        m[m[0] as usize] = a;
+    }
+    let mut sum = 0;
+    for mut line in sec2.split(|&b| b == b'\n') {
+        let mut order = [0; 100];
+        let mut history = [0; 24];
+        let mut reordered = false;
+        let num = parse_b0(&mut line);
+        history[0] = num;
+        let m = map[num as usize];
+        for &di in &m[1..m[0] as usize + 1] {
+            order[di as usize] = 1;
+        }
+        let mut i = 0;
+        while let Some(num) = parse_b(&mut line) {
+            let before_i_to = order[num as usize] as usize;
+            let ii = if before_i_to > 0 {
+                reordered = true;
+                let before_i = before_i_to - 1;
+                let hp = history.as_mut_ptr();
+                unsafe {
+                    hp.add(before_i)
+                        .copy_to(hp.add(before_i_to), i - before_i + 1)
+                };
+                history[before_i] = num;
+                for i in order.iter_mut() {
+                    if *i >= before_i_to as u8 {
+                        *i += 1;
+                    }
+                }
+                i += 1;
+                before_i_to as u8
+            } else {
+                i += 1;
+                history[i] = num;
+                i as u8 + 1
+            };
+            let m = map[num as usize];
+            for &di in &m[1..m[0] as usize + 1] {
+                let o = order[di as usize];
+                order[di as usize] = if o != 0 { o.min(ii) } else { ii };
+            }
+        }
+        if reordered {
+            sum += history[i / 2] as u32;
+        }
+    }
+    sum
 }
