@@ -125,23 +125,19 @@ pub fn part2(input: &str) -> u32 {
         }
         let mut i = 0;
         while let Some(num) = parse_b(&mut line) {
+            i += 1;
             let before_i_to = order[num as usize] as usize;
             let ii = if before_i_to > 0 {
                 reordered = true;
                 let before_i = before_i_to - 1;
                 let hp = history.as_mut_ptr();
-                unsafe {
-                    hp.add(before_i)
-                        .copy_to(hp.add(before_i_to), i - before_i + 1)
-                };
+                unsafe { hp.add(before_i).copy_to(hp.add(before_i_to), i - before_i) };
                 history[before_i] = num;
                 for i in order.iter_mut() {
                     *i += (*i >= before_i_to as u8) as u8;
                 }
-                i += 1;
                 before_i_to as u8
             } else {
-                i += 1;
                 history[i] = num;
                 i as u8 + 1
             };
