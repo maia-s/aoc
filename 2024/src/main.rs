@@ -1,12 +1,47 @@
+use aoc_2024::Input;
 use core::{
     fmt::{Debug, Display},
     hint::black_box,
     time::Duration,
 };
-use std::time::Instant;
+use sha2::{Digest, Sha256};
+use std::{
+    borrow::Cow,
+    collections::HashMap,
+    fs,
+    path::PathBuf,
+    sync::{LazyLock, Mutex},
+    time::Instant,
+};
 
 const TIMEOUT: Duration = Duration::from_secs(10);
 const MAX_RUNS: usize = 50000;
+
+static INPUTS: LazyLock<Mutex<HashMap<String, String>>> = LazyLock::new(|| {
+    let mut map = HashMap::new();
+    if let Ok(dir) = fs::read_dir(PathBuf::from_iter([env!("CARGO_MANIFEST_DIR"), "inputs"])) {
+        for entry in dir.flatten() {
+            let contents = fs::read_to_string(entry.path()).unwrap();
+            let mut hash = String::new();
+            for byte in Sha256::digest(&contents).into_iter() {
+                hash.push_str(&format!("{byte:02x}"));
+            }
+            map.insert(hash, contents);
+        }
+    }
+    Mutex::new(map)
+});
+
+fn get_input(input: Input) -> Option<Cow<'static, str>> {
+    match input {
+        Input::FileHash(hash) => INPUTS
+            .lock()
+            .unwrap()
+            .get(hash)
+            .map(|s| Cow::Owned(s.to_owned())),
+        Input::Str(str) => Some(Cow::Borrowed(str)),
+    }
+}
 
 macro_rules! days {
     ($($day:ident($maincfg:ident $(, $cfg:ident)* $(,)?)),* $(,)?) => {
@@ -14,8 +49,12 @@ macro_rules! days {
         $(
             fn $day() {
                 println!("=== {} ===", stringify!($day));
-                run("part 1", || aoc_2024::$day::part1(black_box(aoc_2024::$day::$maincfg.input)));
-                run("part 2", || aoc_2024::$day::part2(black_box(aoc_2024::$day::$maincfg.input)));
+                if let Some(input) = get_input(aoc_2024::$day::$maincfg.input) {
+                    run("part 1", || aoc_2024::$day::part1(black_box(&input)));
+                    run("part 2", || aoc_2024::$day::part2(black_box(&input)));
+                } else {
+                    println!("input not available")
+                }
             }
         )*
 
@@ -36,8 +75,9 @@ macro_rules! days {
                     #[allow(non_snake_case)]
                     fn $maincfg() {
                         use aoc_2024::$day::*;
-                        assert_eq!(part1($maincfg.input), $maincfg.part1_expected);
-                        assert_eq!(part2($maincfg.input), $maincfg.part2_expected);
+                        let input = crate::get_input($maincfg.input).expect("input not available");
+                        assert_eq!(part1(&input), $maincfg.part1_expected);
+                        assert_eq!(part2(&input), $maincfg.part2_expected);
                     }
 
                     $(
@@ -45,8 +85,9 @@ macro_rules! days {
                         #[allow(non_snake_case)]
                         fn $cfg() {
                             use aoc_2024::$day::*;
-                            assert_eq!(part1($cfg.input), $cfg.part1_expected);
-                            assert_eq!(part2($cfg.input), $cfg.part2_expected);
+                            let input = crate::get_input($cfg.input).expect("input not available");
+                            assert_eq!(part1(&input), $cfg.part1_expected);
+                            assert_eq!(part2(&input), $cfg.part2_expected);
                         }
                     )*
                 }

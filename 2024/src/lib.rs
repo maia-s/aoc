@@ -3,14 +3,19 @@ pub mod day2;
 pub mod day3;
 pub mod day4;
 
+pub enum Input {
+    FileHash(&'static str),
+    Str(&'static str),
+}
+
 pub struct Conf<T, U = T> {
-    pub input: &'static str,
+    pub input: Input,
     pub part1_expected: T,
     pub part2_expected: U,
 }
 
 impl<T, U> Conf<T, U> {
-    pub const fn new(input: &'static str, part1_expected: T, part2_expected: U) -> Self {
+    pub const fn new(input: Input, part1_expected: T, part2_expected: U) -> Self {
         Self {
             input,
             part1_expected,

@@ -1,11 +1,15 @@
-use crate::Conf;
+use crate::{Conf, Input};
 use core::iter;
 use str_block::str_block;
 
-pub const INPUT: Conf<u32> = Conf::new(include_str!("day4.txt"), 2633, 1936);
+pub const INPUT: Conf<u32> = Conf::new(
+    Input::FileHash("4019b513957b1f8761dc6de01ae1e0be1c6159c6d3b7cbc1b5cb22ddc9b70be8"),
+    2633,
+    1936,
+);
 
 pub const EX: Conf<u32> = Conf::new(
-    str_block! {"
+    Input::Str(str_block! {"
         MMMSXXMASM
         MSAMXMSMSA
         AMXSXMAAMM
@@ -16,7 +20,7 @@ pub const EX: Conf<u32> = Conf::new(
         SAXAMASAAA
         MAMMMXMMMM
         MXMXAXMASX
-    "},
+    "}),
     18,
     9,
 );

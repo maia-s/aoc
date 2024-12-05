@@ -1,21 +1,25 @@
-use crate::Conf;
+use crate::{Conf, Input};
 use core::iter;
 use str_block::str_block;
 
-pub const INPUT: Conf<u32> = Conf::new(include_str!("day3.txt"), 181345830, 98729041);
+pub const INPUT: Conf<u32> = Conf::new(
+    Input::FileHash("e49fb4161cce91a3631cf26c1c5f45929ae5abc340974bfd368a214335fdadb7"),
+    181345830,
+    98729041,
+);
 
 pub const EX: Conf<u32> = Conf::new(
-    str_block! {"
+    Input::Str(str_block! {"
         xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))
-    "},
+    "}),
     161,
     161,
 );
 
 pub const EX2: Conf<u32> = Conf::new(
-    str_block! {"
+    Input::Str(str_block! {"
         xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))
-    "},
+    "}),
     161,
     48,
 );

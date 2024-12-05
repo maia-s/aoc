@@ -1,17 +1,21 @@
-use crate::Conf;
+use crate::{Conf, Input};
 use str_block::str_block;
 
-pub const INPUT: Conf<u32> = Conf::new(include_str!("day1.txt"), 2196996, 23655822);
+pub const INPUT: Conf<u32> = Conf::new(
+    Input::FileHash("bd3e2df596a877265fe4a28b626ac1ed30239c051e6623b4c852be317288fe1a"),
+    2196996,
+    23655822,
+);
 
 pub const EX: Conf<u32> = Conf::new(
-    str_block! {"
+    Input::Str(str_block! {"
         3   4
         4   3
         2   5
         1   3
         3   9
         3   3
-    "},
+    "}),
     11,
     31,
 );
