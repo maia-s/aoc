@@ -126,9 +126,8 @@ pub fn part2(input: &str) -> u32 {
             let before_i = order[(num >= 64) as usize][num as usize & 63] as usize;
             let ii = if before_i < 24 {
                 reordered = true;
-                let before_i_to = before_i + 1;
                 let hp = history.as_mut_ptr();
-                unsafe { hp.add(before_i).copy_to(hp.add(before_i_to), i - before_i) };
+                unsafe { hp.add(before_i).copy_to(hp.add(before_i + 1), i - before_i) };
                 history[before_i] = num;
                 let vcmp = u8x64::splat(before_i as u8);
                 order[0] = order[0].simd_ge(vcmp).select(order[0] + vone, order[0]);
