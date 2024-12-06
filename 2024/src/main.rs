@@ -114,4 +114,5 @@ days! {
     day3(INPUT, EX, EX2),
     day4(INPUT, EX),
     day5(INPUT, EX),
+    day6(INPUT, EX),
 }
