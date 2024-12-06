@@ -1,7 +1,7 @@
 use crate::{Conf, Input};
 use core::simd::{
     cmp::{SimdOrd, SimdPartialOrd},
-    mask8x64, u8x64,
+    mask8x32, mask8x64, u8x32, u8x64,
 };
 use str_block::str_block;
 
@@ -112,8 +112,8 @@ pub fn part2(input: &str) -> u32 {
     let mut sum = 0;
     let vone = u8x64::splat(1);
     for mut line in sec2.split(|&b| b == b'\n') {
-        let mut order = [u8x64::splat(24); 2];
-        let mut history = [0; 24];
+        let mut order = [u8x64::splat(32); 2];
+        let mut history = u8x32::default();
         let mut reordered = false;
         let num = parse_b0(&mut line);
         history[0] = num;
@@ -124,10 +124,10 @@ pub fn part2(input: &str) -> u32 {
         while let Some(num) = parse_b(&mut line) {
             i += 1;
             let before_i = order[(num >= 64) as usize][num as usize & 63] as usize;
-            let ii = if before_i < 24 {
+            let ii = if before_i < 32 {
                 reordered = true;
-                let hp = history.as_mut_ptr();
-                unsafe { hp.add(before_i).copy_to(hp.add(before_i + 1), i - before_i) };
+                history = mask8x32::from_bitmask(!((1 << before_i) - 1))
+                    .select(history.rotate_elements_right::<1>(), history);
                 history[before_i] = num;
                 let vcmp = u8x64::splat(before_i as u8);
                 order[0] = order[0].simd_ge(vcmp).select(order[0] + vone, order[0]);
