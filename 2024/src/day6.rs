@@ -82,7 +82,9 @@ impl Map {
 
     #[inline(always)]
     fn get(&self, (x, y): (u32, u32)) -> Option<u8> {
-        self.map.get((y * self.width + x) as usize).copied()
+        self.map
+            .get(y.saturating_mul(self.width).saturating_add(x) as usize)
+            .copied()
     }
 
     fn step(&mut self) -> bool {
