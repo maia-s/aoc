@@ -27,15 +27,15 @@ pub const EX: Conf<u64> = Conf::new(
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Op {
-    MulFrom(u64),
-    AddFrom(u64),
+    MulTo(u64),
+    AddTo(u64),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Op2 {
-    MulFrom(u64),
-    AddFrom(u64),
-    CatFrom(u64),
+    MulTo(u64),
+    AddTo(u64),
+    CatTo(u64),
 }
 
 fn int(input: &mut &[u8]) -> Option<u64> {
@@ -65,48 +65,49 @@ fn parse_line(mut input: &[u8], out: &mut Vec<u32>) -> Option<u64> {
     })
 }
 
-#[inline(always)]
-fn cat(l: u64, r: u64) -> u64 {
-    const POW: [u64; 5] = [10, 100, 1000, 10000, 100000];
-    l * POW[(r.ilog10()) as usize] + r
-}
-
 pub fn part1(input: &str) -> u64 {
     let mut nums = Vec::with_capacity(12);
-    let mut sums = Vec::with_capacity(12);
+    let mut ops = Vec::with_capacity(12);
     let mut total = 0;
     'lines: for line in input.as_bytes().trim_ascii_end().split(|&b| b == b'\n') {
         if let Some(target) = parse_line(line, &mut nums) {
-            let mut sum = nums[0] as u64;
-            sums.clear();
-            'sums: while sums.len() + 1 < nums.len() {
-                let last = sums.len() + 2 == nums.len();
-                let arg = nums[sums.len() + 1] as u64;
-                let s = sum * arg;
-                if if last { s == target } else { s <= target } {
-                    sums.push(Op::MulFrom(sum));
-                    sum = s;
+            let mut subtarget = target;
+            ops.clear();
+            'sums: while ops.len() + 1 < nums.len() {
+                let mut full = ops.len() + 2 == nums.len();
+                let num = nums[nums.len() - ops.len() - 1] as u64;
+                let pop = if subtarget >= num && subtarget % num == 0 {
+                    ops.push(Op::MulTo(subtarget));
+                    subtarget /= num;
+                    full && subtarget != nums[0] as u64
+                } else if subtarget >= num {
+                    ops.push(Op::AddTo(subtarget));
+                    subtarget -= num;
+                    full && subtarget != nums[0] as u64
                 } else {
-                    let s = sum + arg;
-                    if if last { s == target } else { s <= target } {
-                        sums.push(Op::AddFrom(sum));
-                        sum = s;
-                    } else {
-                        while let Some(op) = sums.pop() {
-                            if let Op::MulFrom(psum) = op {
-                                sum = psum;
-                                let s = sum + nums[sums.len() + 1] as u64;
-                                if s <= target {
-                                    sums.push(Op::AddFrom(sum));
-                                    sum = s;
+                    full = false;
+                    true
+                };
+                if pop {
+                    while let Some(pop) = ops.pop() {
+                        match pop {
+                            Op::MulTo(t) => {
+                                subtarget = t;
+                                let num = nums[nums.len() - ops.len() - 1] as u64;
+                                if subtarget >= num {
+                                    ops.push(Op::AddTo(subtarget));
+                                    subtarget -= num;
+                                    if !(full && subtarget != nums[0] as u64) {
+                                        continue 'sums;
+                                    }
                                 } else {
-                                    continue;
+                                    full = false;
                                 }
-                                continue 'sums;
                             }
+                            Op::AddTo(_) => full = false,
                         }
-                        continue 'lines;
                     }
+                    continue 'lines;
                 }
             }
             total += target;
@@ -117,67 +118,72 @@ pub fn part1(input: &str) -> u64 {
 
 pub fn part2(input: &str) -> u64 {
     let mut nums = Vec::with_capacity(12);
-    let mut sums = Vec::with_capacity(12);
+    let mut ops = Vec::with_capacity(12);
     let mut total = 0;
     'lines: for line in input.as_bytes().trim_ascii_end().split(|&b| b == b'\n') {
         if let Some(target) = parse_line(line, &mut nums) {
-            let mut sum = nums[0] as u64;
-            sums.clear();
-            'sums: while sums.len() + 1 < nums.len() {
-                let last = sums.len() + 2 == nums.len();
-                let arg = nums[sums.len() + 1] as u64;
-                let s = sum * arg;
-                if if last { s == target } else { s <= target } {
-                    sums.push(Op2::MulFrom(sum));
-                    sum = s;
+            let mut subtarget = target;
+            ops.clear();
+            'sums: while ops.len() + 1 < nums.len() {
+                let mut full = ops.len() + 2 == nums.len();
+                let num = nums[nums.len() - ops.len() - 1] as u64;
+                let ndig = num.ilog10() + 1;
+                let pow = 10_u64.pow(ndig);
+                let pop = if subtarget % pow == num {
+                    ops.push(Op2::CatTo(subtarget));
+                    subtarget /= pow;
+                    full && subtarget != nums[0] as u64
+                } else if subtarget >= num && subtarget % num == 0 {
+                    ops.push(Op2::MulTo(subtarget));
+                    subtarget /= num;
+                    full && subtarget != nums[0] as u64
+                } else if subtarget >= num {
+                    ops.push(Op2::AddTo(subtarget));
+                    subtarget -= num;
+                    full && subtarget != nums[0] as u64
                 } else {
-                    let s = sum + arg;
-                    if if last { s == target } else { s <= target } {
-                        sums.push(Op2::AddFrom(sum));
-                        sum = s;
-                    } else {
-                        let s = cat(sum, arg);
-                        if if last { s == target } else { s <= target } {
-                            sums.push(Op2::CatFrom(sum));
-                            sum = s;
-                        } else {
-                            while let Some(op) = sums.pop() {
-                                match op {
-                                    Op2::MulFrom(psum) => {
-                                        sum = psum;
-                                        let arg = nums[sums.len() + 1] as u64;
-                                        let s = sum + arg;
-                                        if s <= target {
-                                            sums.push(Op2::AddFrom(sum));
-                                            sum = s;
-                                        } else {
-                                            let s = cat(sum, arg);
-                                            if s <= target {
-                                                sums.push(Op2::CatFrom(sum));
-                                                sum = s;
-                                            } else {
-                                                continue;
-                                            }
-                                        }
+                    full = false;
+                    true
+                };
+                if pop {
+                    while let Some(pop) = ops.pop() {
+                        match pop {
+                            Op2::CatTo(t) => {
+                                subtarget = t;
+                                let num = nums[nums.len() - ops.len() - 1] as u64;
+                                if subtarget >= num && subtarget % num == 0 {
+                                    ops.push(Op2::MulTo(subtarget));
+                                    subtarget /= num;
+                                    if !(full && subtarget != nums[0] as u64) {
                                         continue 'sums;
                                     }
-                                    Op2::AddFrom(psum) => {
-                                        sum = psum;
-                                        let s = cat(sum, nums[sums.len() + 1] as u64);
-                                        if s <= target {
-                                            sums.push(Op2::CatFrom(sum));
-                                            sum = s;
-                                        } else {
-                                            continue;
-                                        }
+                                } else if subtarget >= num {
+                                    ops.push(Op2::AddTo(subtarget));
+                                    subtarget -= num;
+                                    if !(full && subtarget != nums[0] as u64) {
                                         continue 'sums;
                                     }
-                                    _ => (),
+                                } else {
+                                    full = false;
                                 }
                             }
-                            continue 'lines;
+                            Op2::MulTo(t) => {
+                                subtarget = t;
+                                let num = nums[nums.len() - ops.len() - 1] as u64;
+                                if subtarget >= num {
+                                    ops.push(Op2::AddTo(subtarget));
+                                    subtarget -= num;
+                                    if !(full && subtarget != nums[0] as u64) {
+                                        continue 'sums;
+                                    }
+                                } else {
+                                    full = false;
+                                }
+                            }
+                            Op2::AddTo(_) => full = false,
                         }
                     }
+                    continue 'lines;
                 }
             }
             total += target;
