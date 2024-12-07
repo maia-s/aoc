@@ -109,12 +109,8 @@ impl Map<u8> {
             self.result += 1;
         }
         loop {
-            let next = match self.dir {
-                Dir::N => (gx, gy.wrapping_sub(1)),
-                Dir::E => (gx.wrapping_add(1), gy),
-                Dir::S => (gx, gy.wrapping_add(1)),
-                Dir::W => (gx.wrapping_sub(1), gy),
-            };
+            let (dx, dy) = self.dir.delta();
+            let next = (gx + dx, gy + dy);
             if let Some(&tile) = self.get(next) {
                 if tile != b'#' {
                     (self.gx, self.gy) = next;
