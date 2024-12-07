@@ -76,13 +76,14 @@ pub fn part1(input: &str) -> u64 {
             'sums: while ops.len() + 1 < nums.len() {
                 let mut full = ops.len() + 2 == nums.len();
                 let num = nums[nums.len() - ops.len() - 1] as u64;
-                let pop = if subtarget >= num && subtarget % num == 0 {
-                    ops.push(Op::MulTo(subtarget));
-                    subtarget /= num;
-                    full && subtarget != nums[0] as u64
-                } else if subtarget >= num {
-                    ops.push(Op::AddTo(subtarget));
-                    subtarget -= num;
+                let pop = if subtarget >= num {
+                    if subtarget % num == 0 {
+                        ops.push(Op::MulTo(subtarget));
+                        subtarget /= num;
+                    } else {
+                        ops.push(Op::AddTo(subtarget));
+                        subtarget -= num;
+                    }
                     full && subtarget != nums[0] as u64
                 } else {
                     full = false;
@@ -133,13 +134,14 @@ pub fn part2(input: &str) -> u64 {
                     ops.push(Op2::CatTo(subtarget));
                     subtarget /= pow;
                     full && subtarget != nums[0] as u64
-                } else if subtarget >= num && subtarget % num == 0 {
-                    ops.push(Op2::MulTo(subtarget));
-                    subtarget /= num;
-                    full && subtarget != nums[0] as u64
                 } else if subtarget >= num {
-                    ops.push(Op2::AddTo(subtarget));
-                    subtarget -= num;
+                    if subtarget % num == 0 {
+                        ops.push(Op2::MulTo(subtarget));
+                        subtarget /= num;
+                    } else {
+                        ops.push(Op2::AddTo(subtarget));
+                        subtarget -= num;
+                    }
                     full && subtarget != nums[0] as u64
                 } else {
                     full = false;
@@ -151,15 +153,14 @@ pub fn part2(input: &str) -> u64 {
                             Op2::CatTo(t) => {
                                 subtarget = t;
                                 let num = nums[nums.len() - ops.len() - 1] as u64;
-                                if subtarget >= num && subtarget % num == 0 {
-                                    ops.push(Op2::MulTo(subtarget));
-                                    subtarget /= num;
-                                    if !(full && subtarget != nums[0] as u64) {
-                                        continue 'sums;
+                                if subtarget >= num {
+                                    if subtarget % num == 0 {
+                                        ops.push(Op2::MulTo(subtarget));
+                                        subtarget /= num;
+                                    } else {
+                                        ops.push(Op2::AddTo(subtarget));
+                                        subtarget -= num;
                                     }
-                                } else if subtarget >= num {
-                                    ops.push(Op2::AddTo(subtarget));
-                                    subtarget -= num;
                                     if !(full && subtarget != nums[0] as u64) {
                                         continue 'sums;
                                     }
