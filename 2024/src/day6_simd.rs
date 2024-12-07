@@ -168,7 +168,8 @@ impl Map<2> {
             25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46,
             47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64,
         ];
-        const DELTAS: [usize; 5] = [usize::MAX, 0, 1, 0, usize::MAX];
+        const DELTAS: [i8; 4] = [0b0011, 0b0100, 0b0001, 0b1100];
+
         for map in maps {
             unsafe { map.copy_from_nonoverlapping(self.map.as_ptr(), self.map.len()) };
         }
@@ -179,41 +180,45 @@ impl Map<2> {
         let mut dir = u8x64::splat(self.dir as u8);
         let mut gx = usizex64::splat(self.gx as usize);
         let mut gy = usizex64::splat(self.gy as usize);
-        let vzero = u8x64::default();
-        let vone = u8x64::splat(1);
-        let v3 = u8x64::splat(3);
-        let vblock = u8x64::splat(u8::MAX);
         let mut found = masksizex64::splat(false);
 
         loop {
             let active = !found & gx.simd_lt(width) & gy.simd_lt(height);
             if active.any() {
                 let index = (gy * width + gx).cast();
+                let tilep = map.wrapping_offset(index);
                 let tile = unsafe {
-                    u8x64::gather_select_ptr(map.cast_const().wrapping_offset(index), active, vzero)
+                    u8x64::gather_select_ptr(tilep.cast_const(), active, u8x64::default())
                 };
 
-                let block =
-                    active.cast() & offsets.simd_eq(vzero.cast()).cast() & tile.simd_eq(vzero);
-                let tile = block.select(vblock, tile);
-                unsafe { tile.scatter_select_ptr(map.wrapping_offset(index), block.cast()) };
-                offsets -= vone.cast();
+                let block = active.cast()
+                    & offsets.simd_eq(usizex64::default()).cast()
+                    & tile.simd_eq(u8x64::default());
+                let tile = block.select(u8x64::splat(u8::MAX), tile);
+                if block.any() {
+                    unsafe { tile.scatter_select_ptr(tilep, block.cast()) };
+                }
+                offsets -= usizex64::splat(1);
 
-                let dirbit = vone << dir;
-                let dx = usizex64::gather_or_default(&DELTAS[1..], dir.cast::<usize>());
-                let dy = usizex64::gather_or_default(&DELTAS[..4], dir.cast::<usize>());
+                let dirbit = u8x64::splat(1) << dir;
+                let ds = i8x64::gather_or_default(&DELTAS[..], dir.cast());
+                let dx = ((ds << 4) >> 6).cast::<isize>().cast();
+                let dy = ((ds << 6) >> 6).cast::<isize>().cast();
 
-                let wall = active & tile.cast::<i8>().simd_lt(vzero.cast()).cast::<isize>();
-                let found_ = active & (tile & dirbit).simd_ne(vzero).cast::<isize>() & !wall;
+                let wall = active & tile.cast::<i8>().simd_lt(i8x64::default()).cast::<isize>();
+                let found_ =
+                    active & (tile & dirbit).simd_ne(u8x64::default()).cast::<isize>() & !wall;
                 let rest = active & !wall & !found_;
 
                 gx = wall.select(gx - dx, gx);
                 gy = wall.select(gy - dy, gy);
-                dir = wall.cast::<i8>().select((dir + vone) & v3, dir);
+                dir = wall
+                    .cast::<i8>()
+                    .select((dir + u8x64::splat(1)) & u8x64::splat(3), dir);
 
                 found |= found_;
 
-                unsafe { (tile | dirbit).scatter_select_ptr(map.wrapping_offset(index), rest) };
+                unsafe { (tile | dirbit).scatter_select_ptr(tilep, rest) };
                 gx = rest.select(gx + dx, gx);
                 gy = rest.select(gy + dy, gy);
             } else {
