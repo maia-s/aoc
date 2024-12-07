@@ -1,6 +1,6 @@
 use crate::{Conf, Input};
 use core::{
-    mem::transmute,
+    mem::{self, transmute},
     ops::{Index, IndexMut},
 };
 use str_block::str_block;
@@ -61,6 +61,14 @@ impl<T> Map<T> {
     #[inline(always)]
     unsafe fn get_unchecked(&self, c: (i32, i32)) -> &T {
         unsafe { self.map.get_unchecked(self.coords_to_index_unchecked(c)) }
+    }
+
+    #[inline(always)]
+    unsafe fn get_unchecked_mut(&mut self, c: (i32, i32)) -> &mut T {
+        unsafe {
+            let i = self.coords_to_index_unchecked(c);
+            self.map.get_unchecked_mut(i)
+        }
     }
 }
 
@@ -163,7 +171,7 @@ impl Map<B8> {
     fn loops(&self, m: &mut [B8]) -> bool {
         m.copy_from_slice(&self.map);
         let height = self.height();
-        let mut dir = Dir::N;
+        let mut dir = self.dir;
         let (mut dx, mut dy) = dir.delta();
         let (mut gx, mut gy) = (self.gx, self.gy);
         while (gx as u32) < self.width && (gy as u32) < height {
@@ -254,19 +262,30 @@ pub fn part1(input: &str) -> u32 {
 
 pub fn part2(input: &str) -> u32 {
     let mut map = Map::<B8>::new(input);
-    let mut normal_route = vec![B8(0); map.map.len()];
     let mut scratch = vec![B8(0); map.map.len()];
     let mut candidates = 0;
 
-    map.loops(&mut normal_route);
-
-    for y in 0..map.height() {
-        for x in 0..map.width {
-            let tile = normal_route[(y * map.width + x) as usize];
-            if (tile.0 as i8) > 0 {
-                map[(x, y)].0 = u8::MAX;
-                candidates += map.loops(&mut scratch) as u32;
-                map[(x, y)].0 = 0;
+    let height = map.height();
+    let (mut dx, mut dy) = map.dir.delta();
+    loop {
+        if (unsafe { map.get_unchecked_mut((map.gx, map.gy)) }.0 as i8) < 0 {
+            map.gx -= dx;
+            map.gy -= dy;
+            map.dir = map.dir.rotate_cw();
+            (dx, dy) = map.dir.delta();
+        } else {
+            unsafe { map.get_unchecked_mut((map.gx, map.gy)) }.0 |= map.dir.bit();
+            map.gx += dx;
+            map.gy += dy;
+            if (map.gx as u32) < map.width && (map.gy as u32) < height {
+                let tile = mem::replace(
+                    unsafe { map.get_unchecked_mut((map.gx, map.gy)) },
+                    B8(u8::MAX),
+                );
+                candidates += (tile.0 == 0 && map.loops(&mut scratch)) as u32;
+                unsafe { map.get_unchecked_mut((map.gx, map.gy)) }.0 = tile.0;
+            } else {
+                break;
             }
         }
     }
