@@ -67,7 +67,8 @@ fn parse_line(mut input: &[u8], out: &mut Vec<u32>) -> Option<u64> {
 
 #[inline(always)]
 fn cat(l: u64, r: u64) -> u64 {
-    (l * 10_u64.pow(r.ilog10() + 1)) + r
+    const POW: [u64; 5] = [10, 100, 1000, 10000, 100000];
+    l * POW[(r.ilog10()) as usize] + r
 }
 
 pub fn part1(input: &str) -> u64 {
