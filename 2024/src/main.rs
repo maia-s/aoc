@@ -46,10 +46,13 @@ macro_rules! days {
 
         fn main() {
             let args: Vec<String> = std::env::args().collect();
-            match args.get(1).map(String::as_str) {
-                $( Some(stringify!($day)) => $day(), )*
-                Some(arg) => { eprintln!("unknown argument: `{arg}`") }
-                None => { $(#[allow(unused)] let f = $day;)* f(); }
+            for arg in 1.. {
+                match args.get(arg).map(String::as_str) {
+                    $( Some(stringify!($day)) => $day(), )*
+                    Some("all") => { $($day();)* }
+                    Some(arg) => { eprintln!("unknown argument: `{arg}`") }
+                    None => { if arg == 1 { $(#[allow(unused)] let f = $day;)* f(); } break }
+                }
             }
         }
 
