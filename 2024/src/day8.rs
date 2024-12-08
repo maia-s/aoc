@@ -45,7 +45,7 @@ impl Default for Antennae {
 impl Antennae {
     fn parse(input: &str) -> Self {
         let mut map = Self::default();
-        for line in input.as_bytes().trim_ascii_end().split(|&b| b == b'\n') {
+        for line in input.as_bytes()[..input.len() - 1].split(|&b| b == b'\n') {
             map.width = 0;
             for b in line.iter().copied() {
                 if b >= b'0' {
