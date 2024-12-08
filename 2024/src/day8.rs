@@ -49,7 +49,7 @@ impl Antennae {
             map.width = 0;
             for b in line.iter().copied() {
                 if b >= b'0' {
-                    let m = &mut map.map[(b - b'0') as usize];
+                    let m = unsafe { map.map.get_unchecked_mut((b - b'0') as usize) };
                     m.1[m.0 as usize] = (map.width as i8, map.height as i8);
                     m.0 += 1;
                 }
@@ -73,8 +73,9 @@ impl LocMap {
     #[inline(always)]
     fn set(&mut self, x: i8, y: i8) -> bool {
         let (i, m) = (y as usize, 1 << x as u8);
-        let new = (self.0[i] & m) == 0;
-        self.0[i] |= m;
+        let c = unsafe { self.0.get_unchecked_mut(i) };
+        let new = *c & m == 0;
+        *c |= m;
         new
     }
 }
