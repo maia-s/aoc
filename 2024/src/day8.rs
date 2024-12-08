@@ -27,19 +27,18 @@ pub const EX: Conf = Conf::new(
     34,
 );
 
-struct LocMap([u64; 0x400]);
+struct LocMap([u64; 0x40]);
 
 impl Default for LocMap {
     fn default() -> Self {
-        Self([0; 0x400])
+        Self([0; 0x40])
     }
 }
 
 impl LocMap {
     #[inline(always)]
     fn set(&mut self, x: i8, y: i8) -> bool {
-        let i = (x as usize) << 8 | y as usize;
-        let (i, m) = (i >> 6, 1 << (i & 0x3f));
+        let (i, m) = (y as usize, 1 << x as u8);
         let new = (self.0[i] & m) == 0;
         self.0[i] |= m;
         new
