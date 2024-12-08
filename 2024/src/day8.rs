@@ -1,5 +1,4 @@
 use crate::{Conf, Input};
-use core::array;
 use str_block::str_block;
 
 pub const INPUT: Conf = Conf::new(
@@ -28,7 +27,7 @@ pub const EX: Conf = Conf::new(
 );
 
 struct Antennae {
-    map: [Vec<(i8, i8)>; 0x50],
+    map: [(u8, [(i8, i8); 4]); 0x50],
     width: u8,
     height: u8,
 }
@@ -36,7 +35,7 @@ struct Antennae {
 impl Default for Antennae {
     fn default() -> Self {
         Self {
-            map: array::from_fn(|_| Vec::new()),
+            map: [(0, [(0, 0); 4]); 0x50],
             width: 0,
             height: 0,
         }
@@ -50,7 +49,9 @@ impl Antennae {
             map.width = 0;
             for b in line.iter().copied() {
                 if b >= b'0' {
-                    map.map[(b - b'0') as usize].push((map.width as i8, map.height as i8));
+                    let m = &mut map.map[(b - b'0') as usize];
+                    m.1[m.0 as usize] = (map.width as i8, map.height as i8);
+                    m.0 += 1;
                 }
                 map.width += 1;
             }
@@ -83,8 +84,8 @@ pub fn part1(input: &str) -> u32 {
     let mut anti = LocMap::default();
     let mut count = 0;
     for locs in map.map {
-        for (i, (ax, ay)) in locs.iter().enumerate() {
-            for (bx, by) in locs[i + 1..].iter() {
+        for (i, (ax, ay)) in locs.1[..locs.0 as usize].iter().enumerate() {
+            for (bx, by) in locs.1[i + 1..locs.0 as usize].iter() {
                 let dx = ax - bx;
                 let dy = ay - by;
                 let a1x = ax + dx;
@@ -108,8 +109,8 @@ pub fn part2(input: &str) -> u32 {
     let mut anti = LocMap::default();
     let mut count = 0;
     for locs in map.map {
-        for (i, (ax, ay)) in locs.iter().enumerate() {
-            for (bx, by) in locs[i + 1..].iter() {
+        for (i, (ax, ay)) in locs.1[..locs.0 as usize].iter().enumerate() {
+            for (bx, by) in locs.1[i + 1..locs.0 as usize].iter() {
                 let dx = ax - bx;
                 let dy = ay - by;
                 let mut hx = ax + dx;
