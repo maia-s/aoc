@@ -59,6 +59,11 @@ impl Antennae {
         }
         map
     }
+
+    #[inline(always)]
+    fn in_range(&self, x: i8, y: i8) -> bool {
+        (x as u8) < self.width && (y as u8) < self.height
+    }
 }
 
 struct LocMap([u64; 0x40]);
@@ -94,10 +99,10 @@ pub fn part1(input: &str) -> u32 {
                 let a1y = ay + dy;
                 let a2x = bx - dx;
                 let a2y = by - dy;
-                if (a1x as u8) < map.width && (a1y as u8) < map.height {
+                if map.in_range(a1x, a1y) {
                     count += anti.set(a1x, a1y) as u32;
                 }
-                if (a2x as u8) < map.width && (a2y as u8) < map.height {
+                if map.in_range(a2x, a2y) {
                     count += anti.set(a2x, a2y) as u32;
                 }
             }
@@ -122,7 +127,7 @@ pub fn part2(input: &str) -> u32 {
                     count += anti.set(hx, hy) as u32;
                     hx += dx;
                     hy += dy;
-                    if (hx as u8) >= map.width || (hy as u8) >= map.height {
+                    if !map.in_range(hx, hy) {
                         break;
                     }
                 }
@@ -132,7 +137,7 @@ pub fn part2(input: &str) -> u32 {
                     count += anti.set(hx, hy) as u32;
                     hx -= dx;
                     hy -= dy;
-                    if (hx as u8) >= map.width || (hy as u8) >= map.height {
+                    if !map.in_range(hx, hy) {
                         break;
                     }
                 }
