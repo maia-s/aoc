@@ -109,22 +109,29 @@ pub fn part2(input: &str) -> u32 {
     let mut anti = LocMap::default();
     let mut count = 0;
     for locs in map.map {
-        for (i, (ax, ay)) in locs.1[..locs.0 as usize].iter().enumerate() {
-            for (bx, by) in locs.1[i + 1..locs.0 as usize].iter() {
+        for (i, (ax, ay)) in locs.1[..locs.0 as usize].iter().copied().enumerate() {
+            for (bx, by) in locs.1[i + 1..locs.0 as usize].iter().copied() {
                 let dx = ax - bx;
                 let dy = ay - by;
-                let mut hx = ax + dx;
-                let mut hy = ay + dy;
-                while (hx as u8) < map.width && (hy as u8) < map.height {
+                let mut hx = ax;
+                let mut hy = ay;
+                loop {
+                    count += anti.set(hx, hy) as u32;
                     hx += dx;
                     hy += dy;
+                    if (hx as u8) >= map.width || (hy as u8) >= map.height {
+                        break;
+                    }
                 }
-                hx -= dx;
-                hy -= dy;
-                while (hx as u8) < map.width && (hy as u8) < map.height {
+                let mut hx = bx;
+                let mut hy = by;
+                loop {
                     count += anti.set(hx, hy) as u32;
                     hx -= dx;
                     hy -= dy;
+                    if (hx as u8) >= map.width || (hy as u8) >= map.height {
+                        break;
+                    }
                 }
             }
         }
