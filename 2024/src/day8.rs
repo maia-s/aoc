@@ -27,6 +27,39 @@ pub const EX: Conf = Conf::new(
     34,
 );
 
+struct Antennae {
+    map: [Vec<(i8, i8)>; 0x50],
+    width: u8,
+    height: u8,
+}
+
+impl Default for Antennae {
+    fn default() -> Self {
+        Self {
+            map: array::from_fn(|_| Vec::new()),
+            width: 0,
+            height: 0,
+        }
+    }
+}
+
+impl Antennae {
+    fn parse(input: &str) -> Self {
+        let mut map = Self::default();
+        for line in input.as_bytes().trim_ascii_end().split(|&b| b == b'\n') {
+            map.width = 0;
+            for b in line.iter().copied() {
+                if b >= b'0' {
+                    map.map[(b - b'0') as usize].push((map.width as i8, map.height as i8));
+                }
+                map.width += 1;
+            }
+            map.height += 1;
+        }
+        map
+    }
+}
+
 struct LocMap([u64; 0x40]);
 
 impl Default for LocMap {
@@ -46,22 +79,10 @@ impl LocMap {
 }
 
 pub fn part1(input: &str) -> u32 {
-    let mut map: [_; 0x50] = array::from_fn(|_| Vec::new());
+    let map = Antennae::parse(input);
     let mut anti = LocMap::default();
     let mut count = 0;
-    let mut width = 0;
-    let mut height = 0;
-    for line in input.as_bytes().trim_ascii_end().split(|&b| b == b'\n') {
-        width = 0;
-        for b in line.iter().copied() {
-            if b >= b'0' {
-                map[(b - b'0') as usize].push((width as i8, height as i8));
-            }
-            width += 1;
-        }
-        height += 1;
-    }
-    for locs in map {
+    for locs in map.map {
         for (i, (ax, ay)) in locs.iter().enumerate() {
             for (bx, by) in locs[i + 1..].iter() {
                 let dx = ax - bx;
@@ -70,10 +91,10 @@ pub fn part1(input: &str) -> u32 {
                 let a1y = ay + dy;
                 let a2x = bx - dx;
                 let a2y = by - dy;
-                if (a1x as u8) < width && (a1y as u8) < height {
+                if (a1x as u8) < map.width && (a1y as u8) < map.height {
                     count += anti.set(a1x, a1y) as u32;
                 }
-                if (a2x as u8) < width && (a2y as u8) < height {
+                if (a2x as u8) < map.width && (a2y as u8) < map.height {
                     count += anti.set(a2x, a2y) as u32;
                 }
             }
@@ -83,35 +104,23 @@ pub fn part1(input: &str) -> u32 {
 }
 
 pub fn part2(input: &str) -> u32 {
-    let mut map: [_; 0x50] = array::from_fn(|_| Vec::new());
+    let map = Antennae::parse(input);
     let mut anti = LocMap::default();
     let mut count = 0;
-    let mut width = 0;
-    let mut height = 0;
-    for line in input.as_bytes().trim_ascii_end().split(|&b| b == b'\n') {
-        width = 0;
-        for b in line.iter().copied() {
-            if b >= b'0' {
-                map[(b - b'0') as usize].push((width as i8, height as i8));
-            }
-            width += 1;
-        }
-        height += 1;
-    }
-    for locs in map {
+    for locs in map.map {
         for (i, (ax, ay)) in locs.iter().enumerate() {
             for (bx, by) in locs[i + 1..].iter() {
                 let dx = ax - bx;
                 let dy = ay - by;
                 let mut hx = ax + dx;
                 let mut hy = ay + dy;
-                while (hx as u8) < width && (hy as u8) < height {
+                while (hx as u8) < map.width && (hy as u8) < map.height {
                     hx += dx;
                     hy += dy;
                 }
                 hx -= dx;
                 hy -= dy;
-                while (hx as u8) < width && (hy as u8) < height {
+                while (hx as u8) < map.width && (hy as u8) < map.height {
                     count += anti.set(hx, hy) as u32;
                     hx -= dx;
                     hy -= dy;
