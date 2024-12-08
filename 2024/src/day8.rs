@@ -85,8 +85,9 @@ pub fn part1(input: &str) -> u32 {
     let mut anti = LocMap::default();
     let mut count = 0;
     for locs in map.map {
-        for (i, (ax, ay)) in locs.1[..locs.0 as usize].iter().enumerate() {
-            for (bx, by) in locs.1[i + 1..locs.0 as usize].iter() {
+        let locs = &locs.1[..locs.0 as usize];
+        for (i, (ax, ay)) in locs.iter().copied().enumerate() {
+            for (bx, by) in locs[i + 1..].iter().copied() {
                 let dx = ax - bx;
                 let dy = ay - by;
                 let a1x = ax + dx;
@@ -110,8 +111,9 @@ pub fn part2(input: &str) -> u32 {
     let mut anti = LocMap::default();
     let mut count = 0;
     for locs in map.map {
-        for (i, (ax, ay)) in locs.1[..locs.0 as usize].iter().copied().enumerate() {
-            for (bx, by) in locs.1[i + 1..locs.0 as usize].iter().copied() {
+        let locs = &locs.1[..locs.0 as usize];
+        for (i, (ax, ay)) in locs.iter().copied().enumerate() {
+            for (bx, by) in locs[i + 1..].iter().copied() {
                 let dx = ax - bx;
                 let dy = ay - by;
                 let mut hx = ax;
