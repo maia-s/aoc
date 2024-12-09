@@ -14,36 +14,38 @@ pub fn part1(input: &str) -> u64 {
     let mut it = input.iter().copied().enumerate();
     let mut rit = it.clone().rev();
     let mut i = (it.next().unwrap().1 - b'0') as u64;
-    let mut mid = 0;
-    let mut mn = 0;
+    let mut mid = u64::MAX;
+    let mut mlen = 0;
 
     while let Some((_, space)) = it.next() {
         let mut space = space - b'0';
+        let (id, len) = it.next().unwrap();
+        let (id, len) = (id as u64 / 2, len - b'0');
         while space != 0 {
-            if mn == 0 {
-                let Some((mid_, mb)) = rit.next() else {
+            if mlen == 0 {
+                let Some((mid_, mlen_)) = rit.next() else {
                     unreachable!()
                 };
-                mid = mid_ as u64 / 2;
-                mn = mb - b'0';
+                (mid, mlen) = (mid_ as u64 / 2, mlen_ - b'0');
+                if mid < id {
+                    return checksum;
+                }
                 rit.next();
             }
             checksum += i * mid;
             space -= 1;
-            mn -= 1;
+            mlen -= 1;
             i += 1;
         }
-        let (id, len) = it.next().unwrap();
-        let id = id as u64 / 2;
         if id == mid {
-            while mn != 0 {
+            while mlen != 0 {
                 checksum += i * id;
-                mn -= 1;
+                mlen -= 1;
                 i += 1;
             }
             break;
         }
-        for _ in 0..len - b'0' {
+        for _ in 0..len {
             checksum += i * id;
             i += 1;
         }
