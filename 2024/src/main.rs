@@ -121,4 +121,5 @@ days! {
     day6_simd(INPUT, EX),
     day7(INPUT, EX),
     day8(INPUT, EX),
+    day9(INPUT, EX),
 }
