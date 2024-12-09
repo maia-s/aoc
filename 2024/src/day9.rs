@@ -1,4 +1,5 @@
 use crate::Input;
+use std::collections::VecDeque;
 
 pub const INPUTS: &[Input<u64>] = &[
     Input::Hashed("79434cdc88ac8fef1185321ccff895f5d32877e925cdad004b9f9bf3eefbdbe3"),
@@ -58,13 +59,13 @@ pub fn part2(input: &str) -> u64 {
     let input = &input.as_bytes()[..input.len() - 1];
     let mut it = input.iter().copied().enumerate();
     let mut rit = it.clone().rev();
-    let mut spaces = Vec::with_capacity(input.len() / 2);
+    let mut spaces = VecDeque::with_capacity(input.len() / 2);
     let mut pos = vec![0; input.len() / 2 + 1];
     let mut disk = vec![0; (it.next().unwrap().1 - b'0') as usize];
     while let Some((_, len)) = it.next() {
         let len = len - b'0';
         if len != 0 {
-            spaces.push((disk.len() as u32, len));
+            spaces.push_back((disk.len() as u32, len));
             disk.resize(disk.len() + len as usize, 0);
         }
         let (id, len) = it.next().unwrap();
@@ -90,6 +91,9 @@ pub fn part2(input: &str) -> u64 {
                 s.1 -= len;
                 break;
             }
+        }
+        while spaces[0].1 == 0 {
+            spaces.pop_front();
         }
         rit.next();
     }
