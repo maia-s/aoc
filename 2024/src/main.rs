@@ -65,8 +65,8 @@ macro_rules! days {
                     fn $maincfg() {
                         use aoc_2024::$day::*;
                         let input = crate::get_input($maincfg.input).expect("input not available");
-                        assert_eq!(part1(&input), $maincfg.part1_expected);
-                        assert_eq!(part2(&input), $maincfg.part2_expected);
+                        assert_eq!(part1(&input), $maincfg.part1_expected, "part 1");
+                        assert_eq!(part2(&input), $maincfg.part2_expected, "part 2");
                     }
 
                     $(
@@ -75,8 +75,8 @@ macro_rules! days {
                         fn $cfg() {
                             use aoc_2024::$day::*;
                             let input = crate::get_input($cfg.input).expect("input not available");
-                            assert_eq!(part1(&input), $cfg.part1_expected);
-                            assert_eq!(part2(&input), $cfg.part2_expected);
+                            assert_eq!(part1(&input), $cfg.part1_expected, "part 1");
+                            assert_eq!(part2(&input), $cfg.part2_expected, "part 2");
                         }
                     )*
                 }
