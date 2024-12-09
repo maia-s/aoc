@@ -1,28 +1,26 @@
-use crate::{Conf, Input};
+use crate::Input;
 use core::iter;
 use str_block::str_block;
 
-pub const INPUT: Conf = Conf::new(
-    Input::FileHash("e49fb4161cce91a3631cf26c1c5f45929ae5abc340974bfd368a214335fdadb7"),
-    181345830,
-    98729041,
-);
-
-pub const EX: Conf = Conf::new(
-    Input::Str(str_block! {"
-        xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))
-    "}),
-    161,
-    161,
-);
-
-pub const EX2: Conf = Conf::new(
-    Input::Str(str_block! {"
-        xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))
-    "}),
-    161,
-    48,
-);
+pub const INPUTS: &[Input] = &[
+    Input::Hashed("e49fb4161cce91a3631cf26c1c5f45929ae5abc340974bfd368a214335fdadb7"),
+    Input::Inline(
+        "example 1",
+        str_block! {"
+            xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))
+        "},
+        Some(161),
+        Some(161),
+    ),
+    Input::Inline(
+        "example 2",
+        str_block! {"
+            xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))
+        "},
+        Some(161),
+        Some(48),
+    ),
+];
 
 fn mul(bytes: &[u8]) -> Option<u32> {
     let mut l = 0;

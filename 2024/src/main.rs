@@ -2,43 +2,64 @@ use aoc_2024::Input;
 use core::{
     fmt::{Debug, Display},
     hint::black_box,
+    str::FromStr,
     time::Duration,
 };
 use sha2::{Digest, Sha256};
-use std::{borrow::Cow, collections::HashMap, fs, path::PathBuf, sync::LazyLock, time::Instant};
+use std::{collections::HashMap, fs, path::PathBuf, sync::LazyLock, time::Instant};
 
 const TIMEOUT: Duration = Duration::from_secs(10);
 const MAX_RUNS: usize = 50000;
 
-static INPUTS: LazyLock<HashMap<String, String>> = LazyLock::new(|| {
+static INPUTS: LazyLock<HashMap<String, (String, String, String, String)>> = LazyLock::new(|| {
     let mut map = HashMap::new();
     if let Ok(dir) = fs::read_dir(PathBuf::from_iter([env!("CARGO_MANIFEST_DIR"), "inputs"])) {
         for entry in dir.flatten() {
-            let contents = fs::read_to_string(entry.path()).unwrap();
+            let name = entry.file_name().to_string_lossy().to_string();
+            let path = entry.path();
+            let contents = fs::read_to_string(&path).unwrap();
             let mut hash = String::new();
             for byte in Sha256::digest(&contents).into_iter() {
                 hash.push_str(&format!("{byte:02x}"));
             }
-            map.insert(hash, contents);
+            let mut p1 = path.clone();
+            p1.set_extension("part1");
+            let mut p2 = path.clone();
+            p2.set_extension("part2");
+            let part1 = fs::read_to_string(p1)
+                .unwrap_or_default()
+                .trim_end()
+                .to_string();
+            let part2 = fs::read_to_string(p2)
+                .unwrap_or_default()
+                .trim_end()
+                .to_string();
+            map.insert(hash, (name, contents, part1, part2));
         }
     }
     map
 });
 
-fn get_input(input: Input) -> Option<Cow<'static, str>> {
+fn get_input<T: Clone + FromStr<Err: Debug>, U: Clone + FromStr<Err: Debug>>(
+    input: &Input<T, U>,
+) -> Option<(String, String, Option<T>, Option<U>)> {
     match input {
-        Input::FileHash(hash) => INPUTS.get(hash).map(|s| Cow::Owned(s.to_owned())),
-        Input::Str(str) => Some(Cow::Borrowed(str)),
+        Input::Hashed(hash) => INPUTS
+            .get(*hash)
+            .map(|(n, s, p1, p2)| (n.clone(), s.clone(), p1.parse().ok(), p2.parse().ok())),
+        Input::Inline(name, str, p1, p2) => {
+            Some((name.to_string(), str.to_string(), p1.clone(), p2.clone()))
+        }
     }
 }
 
 macro_rules! days {
-    ($($day:ident($maincfg:ident $(, $cfg:ident)* $(,)?)),* $(,)?) => {
+    ($($day:ident),* $(,)?) => {
         #[allow(non_upper_case_globals)]
         $(
             fn $day() {
-                println!("=== {} ===", stringify!($day));
-                let input = get_input(aoc_2024::$day::$maincfg.input).expect("input not available");
+                let (name, input, _, _) = get_input(&aoc_2024::$day::INPUTS[0]).expect("input not available");
+                println!("=== {}: {name} ===", stringify!($day));
                 run("part 1", || aoc_2024::$day::part1(black_box(&input)));
                 run("part 2", || aoc_2024::$day::part2(black_box(&input)));
             }
@@ -61,24 +82,28 @@ macro_rules! days {
             $(
                 mod $day {
                     #[test]
-                    #[allow(non_snake_case)]
-                    fn $maincfg() {
-                        use aoc_2024::$day::*;
-                        let input = crate::get_input($maincfg.input).expect("input not available");
-                        assert_eq!(part1(&input), $maincfg.part1_expected, "part 1");
-                        assert_eq!(part2(&input), $maincfg.part2_expected, "part 2");
+                    fn part1() {
+                        for input in aoc_2024::$day::INPUTS {
+                            let (name, input, p1, _) = crate::get_input(input).expect("input not available");
+                            if let Some(p1) = p1 {
+                                assert_eq!(aoc_2024::$day::part1(&input), p1, "{name}");
+                            } else {
+                                eprintln!("{name} result not available");
+                            }
+                        }
                     }
 
-                    $(
-                        #[test]
-                        #[allow(non_snake_case)]
-                        fn $cfg() {
-                            use aoc_2024::$day::*;
-                            let input = crate::get_input($cfg.input).expect("input not available");
-                            assert_eq!(part1(&input), $cfg.part1_expected, "part 1");
-                            assert_eq!(part2(&input), $cfg.part2_expected, "part 2");
+                    #[test]
+                    fn part2() {
+                        for input in aoc_2024::$day::INPUTS {
+                            let (name, input, _, p2) = crate::get_input(input).expect("input not available");
+                            if let Some(p2) = p2 {
+                                assert_eq!(aoc_2024::$day::part2(&input), p2, "{name}");
+                            } else {
+                                eprintln!("{name} result not available");
+                            }
                         }
-                    )*
+                    }
                 }
             )*
         }
@@ -112,14 +137,14 @@ fn run<R: Debug + Display + PartialEq>(name: &str, f: impl Fn() -> R) {
 }
 
 days! {
-    day1(INPUT, EX),
-    day2(INPUT, EX, EDGE_CASE),
-    day3(INPUT, EX, EX2),
-    day4(INPUT, EX),
-    day5(INPUT, EX),
-    day6(INPUT, EX),
-    day6_simd(INPUT, EX),
-    day7(INPUT, EX),
-    day8(INPUT, EX),
-    day9(INPUT, EX),
+    day1,
+    day2,
+    day3,
+    day4,
+    day5,
+    day6,
+    day6_simd,
+    day7,
+    day8,
+    day9,
 }

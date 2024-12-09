@@ -1,50 +1,48 @@
-use crate::{Conf, Input};
+use crate::Input;
 use core::simd::{
     cmp::{SimdOrd, SimdPartialOrd},
     mask8x32, mask8x64, u8x32, u8x64,
 };
 use str_block::str_block;
 
-pub const INPUT: Conf = Conf::new(
-    Input::FileHash("a494403f567adfd2dc6524b2ffe0a1d2e8d3153b8352ca6ca80685e9d39af088"),
-    5747,
-    5502,
-);
+pub const INPUTS: &[Input] = &[
+    Input::Hashed("a494403f567adfd2dc6524b2ffe0a1d2e8d3153b8352ca6ca80685e9d39af088"),
+    Input::Inline(
+        "example",
+        str_block! {"
+            47|53
+            97|13
+            97|61
+            97|47
+            75|29
+            61|13
+            75|53
+            29|13
+            97|29
+            53|29
+            61|53
+            97|53
+            61|29
+            47|13
+            75|47
+            97|75
+            47|61
+            75|61
+            47|29
+            75|13
+            53|13
 
-pub const EX: Conf = Conf::new(
-    Input::Str(str_block! {"
-        47|53
-        97|13
-        97|61
-        97|47
-        75|29
-        61|13
-        75|53
-        29|13
-        97|29
-        53|29
-        61|53
-        97|53
-        61|29
-        47|13
-        75|47
-        97|75
-        47|61
-        75|61
-        47|29
-        75|13
-        53|13
-
-        75,47,61,53,29
-        97,61,53,29,13
-        75,29,13
-        75,97,47,61,53
-        61,13,29
-        97,13,75,29,47
-    "}),
-    143,
-    123,
-);
+            75,47,61,53,29
+            97,61,53,29,13
+            75,29,13
+            75,97,47,61,53
+            61,13,29
+            97,13,75,29,47
+        "},
+        Some(143),
+        Some(123),
+    ),
+];
 
 fn parse_a(input: &[u8]) -> (u8, u8) {
     (

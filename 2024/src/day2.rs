@@ -1,31 +1,34 @@
-use crate::{Conf, Input};
+use crate::Input;
 use core::iter;
 use str_block::str_block;
 
-pub const INPUT: Conf = Conf::new(
-    Input::FileHash("cb22dec174693f6ca8cbddc14d4457f0eced03f6d2a071bc47219f8858463926"),
-    383,
-    436,
-);
-pub const EX: Conf = Conf::new(
-    Input::Str(str_block! {"
-        7 6 4 2 1
-        1 2 7 8 9
-        9 7 6 2 1
-        1 3 2 4 5
-        8 6 4 4 1
-        1 3 6 7 9
-    "}),
-    2,
-    4,
-);
-pub const EDGE_CASE: Conf = Conf::new(
-    Input::Str(str_block! {"
-        25 22 19 21 20 17 14 13
-    "}),
-    0,
-    1,
-);
+pub const INPUTS: &[Input] = &[
+    Input::Hashed("cb22dec174693f6ca8cbddc14d4457f0eced03f6d2a071bc47219f8858463926"),
+    Input::Hashed("06e94f091bab7e9aa3501902610210260dda0a23b4eaaf64b5f701a3a7572fdc"),
+    Input::Hashed("c1f6fa369010033322fd73bef32619bcb1b1e83ad7945d4866cbe9168e00d01d"),
+    Input::Hashed("738dfa8355452e64b085fbc3e20969d2af88d9c64b4d5489bedbb73190563afc"),
+    Input::Inline(
+        "example",
+        str_block! {"
+            7 6 4 2 1
+            1 2 7 8 9
+            9 7 6 2 1
+            1 3 2 4 5
+            8 6 4 4 1
+            1 3 6 7 9
+        "},
+        Some(2),
+        Some(4),
+    ),
+    Input::Inline(
+        "edge case",
+        str_block! {"
+            25 22 19 21 20 17 14 13
+        "},
+        Some(0),
+        Some(1),
+    ),
+];
 
 fn parse_line(line: &str) -> impl Iterator<Item = i32> + '_ {
     let bytes = line.as_bytes();

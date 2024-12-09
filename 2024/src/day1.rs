@@ -1,24 +1,22 @@
-use crate::{Conf, Input};
+use crate::Input;
 use str_block::str_block;
 
-pub const INPUT: Conf = Conf::new(
-    Input::FileHash("bd3e2df596a877265fe4a28b626ac1ed30239c051e6623b4c852be317288fe1a"),
-    2196996,
-    23655822,
-);
-
-pub const EX: Conf = Conf::new(
-    Input::Str(str_block! {"
-        3   4
-        4   3
-        2   5
-        1   3
-        3   9
-        3   3
-    "}),
-    11,
-    31,
-);
+pub const INPUTS: &[Input] = &[
+    Input::Hashed("bd3e2df596a877265fe4a28b626ac1ed30239c051e6623b4c852be317288fe1a"),
+    Input::Inline(
+        "example",
+        str_block! {"
+            3   4
+            4   3
+            2   5
+            1   3
+            3   9
+            3   3
+        "},
+        Some(11),
+        Some(31),
+    ),
+];
 
 fn parse_line(s: &str) -> (u32, u32) {
     let mut l = 0;

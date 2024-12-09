@@ -1,36 +1,14 @@
 #![allow(clippy::needless_range_loop)]
 
-use crate::{Conf, Input};
+use crate::Input;
 use core::{
     mem::transmute,
     ops::{Index, IndexMut},
     ptr,
     simd::prelude::*,
 };
-use str_block::str_block;
 
-pub const INPUT: Conf = Conf::new(
-    Input::FileHash("a820ce3b6b89ccc820f0639477e8588fd348b294933f8868232d111dc88f65be"),
-    4696,
-    1443,
-);
-
-pub const EX: Conf = Conf::new(
-    Input::Str(str_block! {"
-        ....#.....
-        .........#
-        ..........
-        ..#.......
-        .......#..
-        ..........
-        .#..^.....
-        ........#.
-        #.........
-        ......#...
-    "}),
-    41,
-    6,
-);
+pub const INPUTS: &[Input] = super::day6::INPUTS;
 
 struct Map<const PART: u8> {
     map: Vec<u8>,

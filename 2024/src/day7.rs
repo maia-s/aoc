@@ -1,29 +1,27 @@
 #![allow(clippy::enum_variant_names)]
 
-use crate::{Conf, Input};
+use crate::Input;
 use str_block::str_block;
 
-pub const INPUT: Conf<u64> = Conf::new(
-    Input::FileHash("30e1c6a2e8425ba49f7194d019dde4f9179e6994c68681ae0c48af82c26c29b4"),
-    267566105056,
-    116094961956019,
-);
-
-pub const EX: Conf<u64> = Conf::new(
-    Input::Str(str_block! {"
-        190: 10 19
-        3267: 81 40 27
-        83: 17 5
-        156: 15 6
-        7290: 6 8 6 15
-        161011: 16 10 13
-        192: 17 8 14
-        21037: 9 7 18 13
-        292: 11 6 16 20
-    "}),
-    3749,
-    11387,
-);
+pub const INPUTS: &[Input<u64>] = &[
+    Input::Hashed("30e1c6a2e8425ba49f7194d019dde4f9179e6994c68681ae0c48af82c26c29b4"),
+    Input::Inline(
+        "example",
+        str_block! {"
+            190: 10 19
+            3267: 81 40 27
+            83: 17 5
+            156: 15 6
+            7290: 6 8 6 15
+            161011: 16 10 13
+            192: 17 8 14
+            21037: 9 7 18 13
+            292: 11 6 16 20
+        "},
+        Some(3749),
+        Some(11387),
+    ),
+];
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Op {

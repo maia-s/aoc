@@ -11,23 +11,7 @@ pub mod day7;
 pub mod day8;
 pub mod day9;
 
-pub enum Input {
-    FileHash(&'static str),
-    Str(&'static str),
-}
-
-pub struct Conf<T = u32, U = T> {
-    pub input: Input,
-    pub part1_expected: T,
-    pub part2_expected: U,
-}
-
-impl<T, U> Conf<T, U> {
-    pub const fn new(input: Input, part1_expected: T, part2_expected: U) -> Self {
-        Self {
-            input,
-            part1_expected,
-            part2_expected,
-        }
-    }
+pub enum Input<T = u32, U = T> {
+    Hashed(&'static str),
+    Inline(&'static str, &'static str, Option<T>, Option<U>),
 }

@@ -1,29 +1,27 @@
-use crate::{Conf, Input};
+use crate::Input;
 use core::iter;
 use str_block::str_block;
 
-pub const INPUT: Conf = Conf::new(
-    Input::FileHash("4019b513957b1f8761dc6de01ae1e0be1c6159c6d3b7cbc1b5cb22ddc9b70be8"),
-    2633,
-    1936,
-);
-
-pub const EX: Conf = Conf::new(
-    Input::Str(str_block! {"
-        MMMSXXMASM
-        MSAMXMSMSA
-        AMXSXMAAMM
-        MSAMASMSMX
-        XMASAMXAMM
-        XXAMMXXAMA
-        SMSMSASXSS
-        SAXAMASAAA
-        MAMMMXMMMM
-        MXMXAXMASX
-    "}),
-    18,
-    9,
-);
+pub const INPUTS: &[Input] = &[
+    Input::Hashed("4019b513957b1f8761dc6de01ae1e0be1c6159c6d3b7cbc1b5cb22ddc9b70be8"),
+    Input::Inline(
+        "example",
+        str_block! {"
+            MMMSXXMASM
+            MSAMXMSMSA
+            AMXSXMAAMM
+            MSAMASMSMX
+            XMASAMXAMM
+            XXAMMXXAMA
+            SMSMSASXSS
+            SAXAMASAAA
+            MAMMMXMMMM
+            MXMXAXMASX
+        "},
+        Some(18),
+        Some(9),
+    ),
+];
 
 pub const LX: u32 = 1 << 0;
 pub const UX: u32 = 1 << 1;
