@@ -1,6 +1,6 @@
 use crate::Input;
 use core::{array, cell::Cell};
-use std::{collections::VecDeque, rc::Rc};
+use std::collections::VecDeque;
 
 pub const INPUTS: &[Input<u64>] = &[
     Input::Hashed("79434cdc88ac8fef1185321ccff895f5d32877e925cdad004b9f9bf3eefbdbe3"),
@@ -63,15 +63,15 @@ pub fn part2(input: &str) -> u64 {
     let input = &input.as_bytes()[..input.len() - 1];
     let mut it = input.iter().copied().enumerate();
     let mut rit = it.clone().rev();
-    let mut spaces: [_; 9] = array::from_fn(|_| VecDeque::with_capacity(input.len() / 2));
+    let mut spaces: [_; 10] = array::from_fn(|_| VecDeque::with_capacity(input.len() / 2));
     let mut pos = vec![0; input.len() / 2 + 1];
     let mut disk = vec![0; (it.next().unwrap().1 - b'0') as usize];
     while let Some((_, len)) = it.next() {
         let len = len - b'0';
         if len != 0 {
-            let s = Rc::new(Cell::new(Space(disk.len() as u32, len)));
-            for space in spaces[..len as usize].iter_mut() {
-                space.push_back(s.clone());
+            let s = &*Box::leak(Box::new(Cell::new(Space(disk.len() as u32, len))));
+            for space in spaces[..len as usize + 1].iter_mut() {
+                space.push_back(s);
             }
             disk.resize(disk.len() + len as usize, 0);
         }
@@ -83,7 +83,7 @@ pub fn part2(input: &str) -> u64 {
     while let Some((id, len)) = rit.next() {
         let (id, len) = (id / 2, len - b'0');
         let from = pos[id];
-        let spaces = &mut spaces[len as usize - 1];
+        let spaces = &mut spaces[len as usize];
         let mut pop = 0;
         for space in spaces.iter() {
             let sd = space.get();
