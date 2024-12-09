@@ -1,5 +1,6 @@
 use crate::Input;
-use std::collections::VecDeque;
+use core::{array, cell::Cell};
+use std::{collections::VecDeque, rc::Rc};
 
 pub const INPUTS: &[Input<u64>] = &[
     Input::Hashed("79434cdc88ac8fef1185321ccff895f5d32877e925cdad004b9f9bf3eefbdbe3"),
@@ -56,16 +57,22 @@ pub fn part1(input: &str) -> u64 {
 }
 
 pub fn part2(input: &str) -> u64 {
+    #[derive(Clone, Copy)]
+    struct Space(u32, u8);
+
     let input = &input.as_bytes()[..input.len() - 1];
     let mut it = input.iter().copied().enumerate();
     let mut rit = it.clone().rev();
-    let mut spaces = VecDeque::with_capacity(input.len() / 2);
+    let mut spaces: [_; 9] = array::from_fn(|_| VecDeque::with_capacity(input.len() / 2));
     let mut pos = vec![0; input.len() / 2 + 1];
     let mut disk = vec![0; (it.next().unwrap().1 - b'0') as usize];
     while let Some((_, len)) = it.next() {
         let len = len - b'0';
         if len != 0 {
-            spaces.push_back((disk.len() as u32, len));
+            let s = Rc::new(Cell::new(Space(disk.len() as u32, len)));
+            for space in spaces[..len as usize].iter_mut() {
+                space.push_back(s.clone());
+            }
             disk.resize(disk.len() + len as usize, 0);
         }
         let (id, len) = it.next().unwrap();
@@ -75,24 +82,27 @@ pub fn part2(input: &str) -> u64 {
     }
     while let Some((id, len)) = rit.next() {
         let (id, len) = (id / 2, len - b'0');
-        for s in spaces.iter_mut() {
-            if s.1 >= len {
-                let from = pos[id];
-                if from < s.0 {
-                    break;
-                }
-                disk.copy_within(from as usize..from as usize + len as usize, s.0 as usize);
-                unsafe {
-                    disk.as_mut_ptr()
-                        .add(from as usize)
-                        .write_bytes(0, len as usize)
-                };
-                s.0 += len as u32;
-                s.1 -= len;
+        let from = pos[id];
+        let spaces = &mut spaces[len as usize - 1];
+        let mut pop = 0;
+        for space in spaces.iter() {
+            let sd = space.get();
+            if from < sd.0 {
                 break;
+            } else if sd.1 < len {
+                pop += 1;
+                continue;
             }
+            disk.copy_within(from as usize..from as usize + len as usize, sd.0 as usize);
+            unsafe {
+                disk.as_mut_ptr()
+                    .add(from as usize)
+                    .write_bytes(0, len as usize)
+            };
+            space.set(Space(sd.0 + len as u32, sd.1 - len));
+            break;
         }
-        while spaces[0].1 == 0 {
+        for _ in 0..pop {
             spaces.pop_front();
         }
         rit.next();
