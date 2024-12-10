@@ -114,7 +114,6 @@ pub fn part1(input: &str) -> u32 {
         for x in 0..map.width {
             if unsafe { map.get_unchecked(x, y) } == b'9' {
                 let mut found_set = [0_u64; 0x40];
-                queue.clear();
                 queue.push((x, y));
                 while let Some((x, y)) = queue.pop() {
                     let tile = unsafe { map.get_unchecked(x, y) } - 1;
