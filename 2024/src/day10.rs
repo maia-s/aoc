@@ -1,5 +1,4 @@
 use crate::Input;
-use rustc_hash::FxHashSet;
 use str_block::str_block;
 
 pub const INPUTS: &[Input] = &[
@@ -74,48 +73,22 @@ pub const INPUTS: &[Input] = &[
     ),
 ];
 
-trait Inc: Copy + Default {
-    fn inc(&mut self);
-}
-
-impl Inc for () {
-    #[inline(always)]
-    fn inc(&mut self) {}
-}
-
-impl Inc for u16 {
-    #[inline(always)]
-    fn inc(&mut self) {
-        *self += 1;
-    }
-}
-
-struct Map<'a, Id> {
+struct Map<'a> {
     map: &'a [u8],
-    queue: Vec<(Id, i8, i8)>,
+    pitch: usize,
     width: u8,
     height: u8,
 }
 
-impl<'a, Id: Inc> Map<'a, Id> {
-    pub fn parse(input: &'a str) -> Self {
+impl<'a> Map<'a> {
+    pub fn new(input: &'a str) -> Self {
         let map = input.as_bytes();
         let width = map.iter().position(|&b| b == b'\n').unwrap() as u8;
         let pitch = width as usize + 1;
         let height = (map.len() / pitch) as u8;
-        let mut queue = Vec::with_capacity(input.len());
-        let mut id = Id::default();
-        for y in 0..height {
-            for x in 0..width {
-                if unsafe { *map.get_unchecked(y as usize * pitch + x as usize) } == b'0' {
-                    queue.push((id, x as i8, y as i8));
-                    id.inc();
-                }
-            }
-        }
         Self {
             map,
-            queue,
+            pitch,
             width,
             height,
         }
@@ -132,28 +105,49 @@ impl<'a, Id: Inc> Map<'a, Id> {
 }
 
 pub fn part1(input: &str) -> u32 {
-    let mut map = Map::<u16>::parse(input);
-    let mut found = FxHashSet::default();
-    while let Some((id, x, y)) = map.queue.pop() {
-        let tile = map.get(x, y).unwrap() + 1;
-        for (dx, dy) in [(0, -1), (-1, 0), (1, 0), (0, 1)] {
-            let (x, y) = (x + dx, y + dy);
-            if map.get(x, y) == Some(tile) {
-                if tile == b'9' {
-                    found.insert((id, x, y));
-                } else {
-                    map.queue.push((id, x, y));
+    let map = Map::new(input);
+    let mut queue = Vec::with_capacity(input.len());
+    let mut found_set;
+    let mut found = 0;
+    for y in 0..map.height {
+        for x in 0..map.width {
+            if unsafe { *map.map.get_unchecked(y as usize * map.pitch + x as usize) } == b'0' {
+                found_set = [0_u64; 0x40];
+                queue.clear();
+                queue.push((x as i8, y as i8));
+                while let Some((x, y)) = queue.pop() {
+                    let tile = map.get(x, y).unwrap() + 1;
+                    for (dx, dy) in [(0, -1), (-1, 0), (1, 0), (0, 1)] {
+                        let (x, y) = (x + dx, y + dy);
+                        if map.get(x, y) == Some(tile) {
+                            if tile == b'9' {
+                                let bit = 1 << x;
+                                found += ((found_set[y as usize] & bit) == 0) as u32;
+                                found_set[y as usize] |= bit;
+                            } else {
+                                queue.push((x, y));
+                            }
+                        }
+                    }
                 }
             }
         }
     }
-    found.len() as _
+    found
 }
 
 pub fn part2(input: &str) -> u32 {
-    let mut map = Map::<()>::parse(input);
+    let map = Map::new(input);
+    let mut queue = Vec::with_capacity(input.len());
     let mut found = 0;
-    while let Some((id, x, y)) = map.queue.pop() {
+    for y in 0..map.height {
+        for x in 0..map.width {
+            if unsafe { *map.map.get_unchecked(y as usize * map.pitch + x as usize) } == b'0' {
+                queue.push((x as i8, y as i8));
+            }
+        }
+    }
+    while let Some((x, y)) = queue.pop() {
         let tile = map.get(x, y).unwrap() + 1;
         for (dx, dy) in [(0, -1), (-1, 0), (1, 0), (0, 1)] {
             let (x, y) = (x + dx, y + dy);
@@ -161,7 +155,7 @@ pub fn part2(input: &str) -> u32 {
                 if tile == b'9' {
                     found += 1;
                 } else {
-                    map.queue.push((id, x, y));
+                    queue.push((x, y));
                 }
             }
         }
