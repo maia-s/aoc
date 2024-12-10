@@ -107,12 +107,11 @@ impl<'a> Map<'a> {
 pub fn part1(input: &str) -> u32 {
     let map = Map::new(input);
     let mut queue = Vec::with_capacity(input.len());
-    let mut found_set;
     let mut found = 0;
     for y in 0..map.height {
         for x in 0..map.width {
             if unsafe { *map.map.get_unchecked(y as usize * map.pitch + x as usize) } == b'9' {
-                found_set = [0_u64; 0x40];
+                let mut found_set = [0_u64; 0x40];
                 queue.clear();
                 queue.push((x as i8, y as i8));
                 while let Some((x, y)) = queue.pop() {
