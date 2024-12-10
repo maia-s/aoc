@@ -76,16 +76,16 @@ pub const INPUTS: &[Input] = &[
 struct Map<'a> {
     map: &'a [u8],
     pitch: usize,
-    width: u8,
-    height: u8,
+    width: i8,
+    height: i8,
 }
 
 impl<'a> Map<'a> {
     pub fn new(input: &'a str) -> Self {
         let map = input.as_bytes();
-        let width = map.iter().position(|&b| b == b'\n').unwrap() as u8;
+        let width = map.iter().position(|&b| b == b'\n').unwrap() as i8;
         let pitch = width as usize + 1;
-        let height = (map.len() / pitch) as u8;
+        let height = (map.len() / pitch) as i8;
         Self {
             map,
             pitch,
@@ -96,11 +96,13 @@ impl<'a> Map<'a> {
 
     #[inline(always)]
     pub fn get(&self, x: i8, y: i8) -> Option<u8> {
-        ((x as u8) < self.width && (y as u8) < self.height).then(|| unsafe {
-            *self
-                .map
-                .get_unchecked(y as usize * (self.width as usize + 1) + x as usize)
-        })
+        ((x as u8) < self.width as u8 && (y as u8) < self.height as u8)
+            .then(|| unsafe { self.get_unchecked(x, y) })
+    }
+
+    #[inline(always)]
+    pub unsafe fn get_unchecked(&self, x: i8, y: i8) -> u8 {
+        unsafe { *self.map.get_unchecked(y as usize * self.pitch + x as usize) }
     }
 }
 
@@ -110,12 +112,12 @@ pub fn part1(input: &str) -> u32 {
     let mut found = 0;
     for y in 0..map.height {
         for x in 0..map.width {
-            if unsafe { *map.map.get_unchecked(y as usize * map.pitch + x as usize) } == b'9' {
+            if unsafe { map.get_unchecked(x, y) } == b'9' {
                 let mut found_set = [0_u64; 0x40];
                 queue.clear();
-                queue.push((x as i8, y as i8));
+                queue.push((x, y));
                 while let Some((x, y)) = queue.pop() {
-                    let tile = map.get(x, y).unwrap() - 1;
+                    let tile = unsafe { map.get_unchecked(x, y) } - 1;
                     for (dx, dy) in [(0, -1), (-1, 0), (1, 0), (0, 1)] {
                         let (x, y) = (x + dx, y + dy);
                         if map.get(x, y) == Some(tile) {
@@ -141,13 +143,13 @@ pub fn part2(input: &str) -> u32 {
     let mut found = 0;
     for y in 0..map.height {
         for x in 0..map.width {
-            if unsafe { *map.map.get_unchecked(y as usize * map.pitch + x as usize) } == b'9' {
-                queue.push((x as i8, y as i8));
+            if unsafe { map.get_unchecked(x, y) } == b'9' {
+                queue.push((x, y));
             }
         }
     }
     while let Some((x, y)) = queue.pop() {
-        let tile = map.get(x, y).unwrap() - 1;
+        let tile = unsafe { map.get_unchecked(x, y) } - 1;
         for (dx, dy) in [(0, -1), (-1, 0), (1, 0), (0, 1)] {
             let (x, y) = (x + dx, y + dy);
             if map.get(x, y) == Some(tile) {
