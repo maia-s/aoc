@@ -111,16 +111,16 @@ pub fn part1(input: &str) -> u32 {
     let mut found = 0;
     for y in 0..map.height {
         for x in 0..map.width {
-            if unsafe { *map.map.get_unchecked(y as usize * map.pitch + x as usize) } == b'0' {
+            if unsafe { *map.map.get_unchecked(y as usize * map.pitch + x as usize) } == b'9' {
                 found_set = [0_u64; 0x40];
                 queue.clear();
                 queue.push((x as i8, y as i8));
                 while let Some((x, y)) = queue.pop() {
-                    let tile = map.get(x, y).unwrap() + 1;
+                    let tile = map.get(x, y).unwrap() - 1;
                     for (dx, dy) in [(0, -1), (-1, 0), (1, 0), (0, 1)] {
                         let (x, y) = (x + dx, y + dy);
                         if map.get(x, y) == Some(tile) {
-                            if tile == b'9' {
+                            if tile == b'0' {
                                 let bit = 1 << x;
                                 found += ((found_set[y as usize] & bit) == 0) as u32;
                                 found_set[y as usize] |= bit;
@@ -142,17 +142,17 @@ pub fn part2(input: &str) -> u32 {
     let mut found = 0;
     for y in 0..map.height {
         for x in 0..map.width {
-            if unsafe { *map.map.get_unchecked(y as usize * map.pitch + x as usize) } == b'0' {
+            if unsafe { *map.map.get_unchecked(y as usize * map.pitch + x as usize) } == b'9' {
                 queue.push((x as i8, y as i8));
             }
         }
     }
     while let Some((x, y)) = queue.pop() {
-        let tile = map.get(x, y).unwrap() + 1;
+        let tile = map.get(x, y).unwrap() - 1;
         for (dx, dy) in [(0, -1), (-1, 0), (1, 0), (0, 1)] {
             let (x, y) = (x + dx, y + dy);
             if map.get(x, y) == Some(tile) {
-                if tile == b'9' {
+                if tile == b'0' {
                     found += 1;
                 } else {
                     queue.push((x, y));
