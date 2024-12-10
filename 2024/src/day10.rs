@@ -134,5 +134,19 @@ pub fn part1(input: &str) -> u32 {
 }
 
 pub fn part2(input: &str) -> u32 {
-    0
+    let mut map = Map::parse(input);
+    let mut found = 0;
+    while let Some((id, x, y)) = map.queue.pop() {
+        let tile = map.get(x, y).unwrap() + 1;
+        for (x, y) in [(x, y - 1), (x - 1, y), (x + 1, y), (x, y + 1)] {
+            if map.get(x, y) == Some(tile) {
+                if tile == b'9' {
+                    found += 1;
+                } else {
+                    map.queue.push((id, x, y));
+                }
+            }
+        }
+    }
+    found
 }

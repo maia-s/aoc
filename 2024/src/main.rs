@@ -88,7 +88,7 @@ macro_rules! days {
                             if let Some(p1) = p1 {
                                 assert_eq!(aoc_2024::$day::part1(&input), p1, "{name}");
                             } else {
-                                eprintln!("{name} result not available");
+                                eprintln!("expected result not available for {name}");
                             }
                         }
                     }
@@ -100,7 +100,7 @@ macro_rules! days {
                             if let Some(p2) = p2 {
                                 assert_eq!(aoc_2024::$day::part2(&input), p2, "{name}");
                             } else {
-                                eprintln!("{name} result not available");
+                                eprintln!("expected result not available for {name}");
                             }
                         }
                     }
