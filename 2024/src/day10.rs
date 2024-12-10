@@ -1,4 +1,5 @@
 use crate::Input;
+use core::hint::unreachable_unchecked;
 use str_block::str_block;
 
 pub const INPUTS: &[Input] = &[
@@ -96,13 +97,18 @@ impl<'a> Map<'a> {
 
     #[inline(always)]
     pub fn get(&self, x: i8, y: i8) -> Option<u8> {
-        ((x as u8) < self.width as u8 && (y as u8) < self.height as u8)
-            .then(|| unsafe { self.get_unchecked(x, y) })
+        ((x as u8) < self.width as u8 && (y as u8) < self.height as u8).then(|| {
+            *self
+                .map
+                .get(y as usize * self.pitch + x as usize)
+                .unwrap_or_else(|| unsafe { unreachable_unchecked() })
+        })
     }
 
     #[inline(always)]
     pub unsafe fn get_unchecked(&self, x: i8, y: i8) -> u8 {
-        unsafe { *self.map.get_unchecked(y as usize * self.pitch + x as usize) }
+        self.get(x, y)
+            .unwrap_or_else(|| unsafe { unreachable_unchecked() })
     }
 }
 
