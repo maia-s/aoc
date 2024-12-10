@@ -96,8 +96,13 @@ impl<'a> Map<'a> {
     }
 
     #[inline(always)]
+    pub fn in_range(&self, x: i8, y: i8) -> bool {
+        (x as u8) < self.width as u8 && (y as u8) < self.height as u8
+    }
+
+    #[inline(always)]
     pub fn get(&self, x: i8, y: i8) -> Option<u8> {
-        ((x as u8) < self.width as u8 && (y as u8) < self.height as u8).then(|| {
+        self.in_range(x, y).then(|| {
             *self
                 .map
                 .get(y as usize * self.pitch + x as usize)
@@ -145,6 +150,7 @@ pub fn part1(input: &str) -> u32 {
 pub fn part2(input: &str) -> u32 {
     let map = Map::new(input);
     let mut queue = Vec::with_capacity(input.len());
+    let mut memo = vec![-1_i32; map.width as usize * map.height as usize];
     let mut found = 0;
     for y in 0..map.height {
         for x in 0..map.width {
@@ -154,17 +160,30 @@ pub fn part2(input: &str) -> u32 {
         }
     }
     while let Some((x, y)) = queue.pop() {
-        let tile = unsafe { map.get_unchecked(x, y) } - 1;
-        for (dx, dy) in [(0, -1), (-1, 0), (1, 0), (0, 1)] {
-            let (x, y) = (x + dx, y + dy);
-            if map.get(x, y) == Some(tile) {
-                if tile == b'0' {
-                    found += 1;
-                } else {
-                    queue.push((x, y));
+        fn get(map: &Map, memo: &mut [i32], x: i8, y: i8) -> u32 {
+            let mut found = 0;
+            let tile = unsafe { map.get_unchecked(x, y) } - 1;
+            for (dx, dy) in [(0, -1), (-1, 0), (1, 0), (0, 1)] {
+                let (x, y) = (x + dx, y + dy);
+                if map.get(x, y) == Some(tile) {
+                    let mi = y as usize * map.width as usize + x as usize;
+                    let m = memo[mi];
+                    if m >= 0 {
+                        found += m as u32;
+                    } else {
+                        let f = if tile == b'0' {
+                            1
+                        } else {
+                            get(map, memo, x, y)
+                        };
+                        memo[mi] = f as _;
+                        found += f;
+                    }
                 }
             }
+            found
         }
+        found += get(&map, &mut memo, x, y);
     }
     found
 }
