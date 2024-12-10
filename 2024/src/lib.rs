@@ -11,6 +11,8 @@ pub mod day7;
 pub mod day8;
 pub mod day9;
 
+pub mod day10;
+
 pub enum Input<T = u32, U = T> {
     Hashed(&'static str),
     Inline(&'static str, &'static str, Option<T>, Option<U>),
