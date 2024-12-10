@@ -107,7 +107,7 @@ impl<'a, Id: Inc> Map<'a, Id> {
         let mut id = Id::default();
         for y in 0..height {
             for x in 0..width {
-                if map[y as usize * pitch + x as usize] == b'0' {
+                if unsafe { *map.get_unchecked(y as usize * pitch + x as usize) } == b'0' {
                     queue.push((id, x as i8, y as i8));
                     id.inc();
                 }
