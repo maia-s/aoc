@@ -60,6 +60,15 @@ macro_rules! days {
             fn $day() {
                 let (name, input, _, _) = get_input(&aoc_2024::$day::INPUTS[0]).expect("input not available");
                 println!("=== {}: {name} ===", stringify!($day));
+                println!("part 1: {}", aoc_2024::$day::part1(&input));
+                println!("part 2: {}", aoc_2024::$day::part2(&input));
+                println!(
+                    "                {:>10} {:>10} {:>10} {:>10}",
+                    "- avg -",
+                    "- min -",
+                    "- med -",
+                    "- max -"
+                );
                 run("part 1", || aoc_2024::$day::part1(black_box(&input)));
                 run("part 2", || aoc_2024::$day::part2(black_box(&input)));
             }
@@ -113,7 +122,6 @@ macro_rules! days {
 fn run<R: Debug + Display + PartialEq>(name: &str, f: impl Fn() -> R) {
     let mut times = Vec::with_capacity(MAX_RUNS);
     let result = f();
-    println!("{name}: {result}");
     let t0 = Instant::now();
     let mut tc = t0;
     for _ in 0..MAX_RUNS {
@@ -127,7 +135,7 @@ fn run<R: Debug + Display + PartialEq>(name: &str, f: impl Fn() -> R) {
     }
     times.sort_unstable();
     println!(
-        "[ {}x avg:{:?} min:{:?} med:{:?} max:{:?} ]",
+        "{name} [ {:>5}x {:>10.3?} {:>10.3?} {:>10.3?} {:>10.3?} ]",
         times.len(),
         tc.duration_since(t0) / times.len() as u32,
         Duration::from_nanos(times[0]),
