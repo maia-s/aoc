@@ -28,7 +28,7 @@ pub const INPUTS: &[Input] = &[
             10456732
         "},
         Some(36),
-        None,
+        Some(81),
     ),
     Input::Inline(
         "fork",
@@ -56,7 +56,7 @@ pub const INPUTS: &[Input] = &[
             987....
         "},
         Some(4),
-        None,
+        Some(13),
     ),
     Input::Inline(
         "two trailheads",
