@@ -63,15 +63,17 @@ pub fn part2(input: &str) -> u64 {
     let input = &input.as_bytes()[..input.len() - 1];
     let mut it = input.iter().copied().enumerate();
     let mut rit = it.clone().rev();
+    let mut spacestore = Vec::with_capacity(input.len() / 2);
     let mut spaces: [_; 9] = array::from_fn(|_| VecDeque::with_capacity(input.len() / 2));
     let mut pos = vec![0; input.len() / 2 + 1];
     let mut disk = vec![0; (it.next().unwrap().1 - b'0') as usize];
     while let Some((_, len)) = it.next() {
         let len = len - b'0';
         if len != 0 {
-            let s = &*Box::leak(Box::new(Cell::new(Space(disk.len() as u32, len))));
+            let si = spacestore.len() as u32;
+            spacestore.push(Cell::new(Space(disk.len() as u32, len)));
             for space in spaces[..len as usize].iter_mut() {
-                space.push_back(s);
+                space.push_back(si);
             }
             disk.resize(disk.len() + len as usize, 0);
         }
@@ -85,8 +87,8 @@ pub fn part2(input: &str) -> u64 {
         let from = pos[id];
         let spaces = &mut spaces[len as usize - 1];
         let mut pop = 0;
-        for space in spaces.iter() {
-            let sd = space.get();
+        for &space in spaces.iter() {
+            let sd = spacestore[space as usize].get();
             if from < sd.0 {
                 break;
             } else if sd.1 < len {
@@ -99,7 +101,7 @@ pub fn part2(input: &str) -> u64 {
                     .add(from as usize)
                     .write_bytes(0, len as usize)
             };
-            space.set(Space(sd.0 + len as u32, sd.1 - len));
+            spacestore[space as usize].set(Space(sd.0 + len as u32, sd.1 - len));
             break;
         }
         for _ in 0..pop {
