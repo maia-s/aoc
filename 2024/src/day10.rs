@@ -74,26 +74,42 @@ pub const INPUTS: &[Input] = &[
     ),
 ];
 
-struct Map<'a> {
+trait Inc: Copy + Default {
+    fn inc(&mut self);
+}
+
+impl Inc for () {
+    #[inline(always)]
+    fn inc(&mut self) {}
+}
+
+impl Inc for u16 {
+    #[inline(always)]
+    fn inc(&mut self) {
+        *self += 1;
+    }
+}
+
+struct Map<'a, Id> {
     map: &'a [u8],
-    queue: Vec<(u16, i8, i8)>,
+    queue: Vec<(Id, i8, i8)>,
     width: u8,
     height: u8,
 }
 
-impl<'a> Map<'a> {
+impl<'a, Id: Inc> Map<'a, Id> {
     pub fn parse(input: &'a str) -> Self {
         let map = input.as_bytes();
         let width = map.iter().position(|&b| b == b'\n').unwrap() as u8;
         let pitch = width as usize + 1;
         let height = (map.len() / pitch) as u8;
         let mut queue = Vec::with_capacity(input.len());
-        let mut id = 0;
+        let mut id = Id::default();
         for y in 0..height {
             for x in 0..width {
                 if map[y as usize * pitch + x as usize] == b'0' {
                     queue.push((id, x as i8, y as i8));
-                    id += 1;
+                    id.inc();
                 }
             }
         }
@@ -116,7 +132,7 @@ impl<'a> Map<'a> {
 }
 
 pub fn part1(input: &str) -> u32 {
-    let mut map = Map::parse(input);
+    let mut map = Map::<u16>::parse(input);
     let mut found = FxHashSet::default();
     while let Some((id, x, y)) = map.queue.pop() {
         let tile = map.get(x, y).unwrap() + 1;
@@ -134,7 +150,7 @@ pub fn part1(input: &str) -> u32 {
 }
 
 pub fn part2(input: &str) -> u32 {
-    let mut map = Map::parse(input);
+    let mut map = Map::<()>::parse(input);
     let mut found = 0;
     while let Some((id, x, y)) = map.queue.pop() {
         let tile = map.get(x, y).unwrap() + 1;
