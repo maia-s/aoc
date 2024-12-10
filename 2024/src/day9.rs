@@ -64,7 +64,7 @@ pub fn part2(input: &str) -> u64 {
     let mut it = input.iter().copied().enumerate();
     let mut rit = it.clone().rev();
     let mut spaces: [_; 9] = array::from_fn(|_| VecDeque::with_capacity(input.len() / 2));
-    let pos = Vec::leak(vec![0; input.len() / 2 + 1]);
+    let mut pos = vec![0; input.len() / 2 + 1];
     let mut disk = vec![0; (it.next().unwrap().1 - b'0') as usize];
     while let Some((_, len)) = it.next() {
         let len = len - b'0';
