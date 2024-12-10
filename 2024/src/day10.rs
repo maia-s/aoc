@@ -123,7 +123,7 @@ pub fn part1(input: &str) -> u32 {
                 queue.push((x, y));
                 while let Some((x, y)) = queue.pop() {
                     let tile = unsafe { map.get_unchecked(x, y) } - 1;
-                    for (dx, dy) in [(0, -1), (-1, 0), (1, 0), (0, 1)] {
+                    for (dx, dy) in [(0, 1), (1, 0), (-1, 0), (0, -1)] {
                         let (x, y) = (x + dx, y + dy);
                         if map.get(x, y) == Some(tile) {
                             if tile == b'0' {
