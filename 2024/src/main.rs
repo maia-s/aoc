@@ -6,7 +6,14 @@ use core::{
     time::Duration,
 };
 use sha2::{Digest, Sha256};
-use std::{collections::HashMap, fs, path::PathBuf, sync::LazyLock, time::Instant};
+use std::{
+    collections::HashMap,
+    fs,
+    io::{stdout, Write},
+    path::PathBuf,
+    sync::LazyLock,
+    time::Instant,
+};
 
 const TIMEOUT: Duration = Duration::from_secs(10);
 const MAX_RUNS: usize = 50000;
@@ -16,6 +23,9 @@ static INPUTS: LazyLock<HashMap<String, (String, String, String, String)>> = Laz
     if let Ok(dir) = fs::read_dir(PathBuf::from_iter([env!("CARGO_MANIFEST_DIR"), "inputs"])) {
         for entry in dir.flatten() {
             let name = entry.file_name().to_string_lossy().to_string();
+            if name.ends_with("part1") || name.ends_with("part2") {
+                continue;
+            }
             let path = entry.path();
             let contents = fs::read_to_string(&path).unwrap();
             let mut hash = String::new();
@@ -124,6 +134,8 @@ fn run<R: Debug + Display + PartialEq>(name: &str, f: impl Fn() -> R) {
     let result = f();
     let t0 = Instant::now();
     let mut tc = t0;
+    print!("{name}");
+    let _ = stdout().flush();
     for _ in 0..MAX_RUNS {
         let tp = Instant::now();
         assert_eq!(black_box(f()), result);
@@ -135,7 +147,7 @@ fn run<R: Debug + Display + PartialEq>(name: &str, f: impl Fn() -> R) {
     }
     times.sort_unstable();
     println!(
-        "{name} [ {:>5}x {:>10.3?} {:>10.3?} {:>10.3?} {:>10.3?} ]",
+        " [ {:>5}x {:>10.3?} {:>10.3?} {:>10.3?} {:>10.3?} ]",
         times.len(),
         tc.duration_since(t0) / times.len() as u32,
         Duration::from_nanos(times[0]),
