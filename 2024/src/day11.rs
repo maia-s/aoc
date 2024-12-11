@@ -25,31 +25,31 @@ fn nums(input: &str) -> impl Iterator<Item = u64> + '_ {
     })
 }
 
-fn split(memo: &mut FxHashMap<(u64, u32), u64>, n: u64, i: u32) -> u64 {
+fn split(memo: &mut FxHashMap<(u64, u32), u64>, mut n: u64, mut i: u32) -> u64 {
     if i == 0 {
         return 1;
     } else if let Some(length) = memo.get(&(n, i)) {
         return *length;
     }
-    let length = 'calc: {
-        split(
-            memo,
-            if n == 0 {
-                1
+    let mut length = 1;
+    let (n0, i0) = (n, i);
+    while i != 0 {
+        i -= 1;
+        if n == 0 {
+            n = 1
+        } else {
+            let nd = n.ilog10();
+            if nd & 1 == 1 {
+                let p = 10_u64.pow((nd + 1) / 2);
+                let (hi, lo) = (n / p, n % p);
+                length = split(memo, hi, i) + split(memo, lo, i);
+                break;
             } else {
-                let nd = n.ilog10();
-                if nd & 1 == 1 {
-                    let p = 10_u64.pow((nd + 1) / 2);
-                    let (hi, lo) = (n / p, n % p);
-                    break 'calc split(memo, hi, i - 1) + split(memo, lo, i - 1);
-                } else {
-                    n * 2024
-                }
-            },
-            i - 1,
-        )
-    };
-    memo.insert((n, i), length);
+                n *= 2024
+            }
+        }
+    }
+    memo.insert((n0, i0), length);
     length
 }
 
