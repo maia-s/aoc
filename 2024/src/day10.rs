@@ -124,19 +124,21 @@ pub fn part1(input: &str) -> u32 {
     for y in 0..map.height {
         for x in 0..map.width {
             if unsafe { map.get_unchecked(x, y) } == b'9' {
-                let mut found_set = [0_u64; 0x40];
+                let mut memo = [0_u64; 0x40];
                 queue.push((x, y));
                 while let Some((x, y)) = queue.pop() {
                     let tile = unsafe { map.get_unchecked(x, y) } - 1;
                     for (dx, dy) in [(0, 1), (1, 0), (-1, 0), (0, -1)] {
                         let (x, y) = (x + dx, y + dy);
                         if map.get(x, y) == Some(tile) {
-                            if tile == b'0' {
-                                let bit = 1 << x;
-                                found += ((found_set[y as usize] & bit) == 0) as u32;
-                                found_set[y as usize] |= bit;
-                            } else {
-                                queue.push((x, y));
+                            let bit = 1 << x;
+                            if memo[y as usize] & bit == 0 {
+                                memo[y as usize] |= bit;
+                                if tile == b'0' {
+                                    found += 1;
+                                } else {
+                                    queue.push((x, y));
+                                }
                             }
                         }
                     }
