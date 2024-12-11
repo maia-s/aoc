@@ -149,41 +149,37 @@ pub fn part1(input: &str) -> u32 {
 
 pub fn part2(input: &str) -> u32 {
     let map = Map::new(input);
-    let mut queue = Vec::with_capacity(input.len());
     let mut memo = vec![-1_i32; map.width as usize * map.height as usize];
     let mut found = 0;
     for y in 0..map.height {
         for x in 0..map.width {
             if unsafe { map.get_unchecked(x, y) } == b'9' {
-                queue.push((x, y));
-            }
-        }
-    }
-    while let Some((x, y)) = queue.pop() {
-        fn get(map: &Map, memo: &mut [i32], x: i8, y: i8) -> u32 {
-            let mut found = 0;
-            let tile = unsafe { map.get_unchecked(x, y) } - 1;
-            for (dx, dy) in [(0, -1), (-1, 0), (1, 0), (0, 1)] {
-                let (x, y) = (x + dx, y + dy);
-                if map.get(x, y) == Some(tile) {
-                    let mi = y as usize * map.width as usize + x as usize;
-                    let m = memo[mi];
-                    if m >= 0 {
-                        found += m as u32;
-                    } else {
-                        let f = if tile == b'0' {
-                            1
-                        } else {
-                            get(map, memo, x, y)
-                        };
-                        memo[mi] = f as _;
-                        found += f;
+                fn get(map: &Map, memo: &mut [i32], x: i8, y: i8) -> u32 {
+                    let mut found = 0;
+                    let tile = unsafe { map.get_unchecked(x, y) } - 1;
+                    for (dx, dy) in [(0, -1), (-1, 0), (1, 0), (0, 1)] {
+                        let (x, y) = (x + dx, y + dy);
+                        if map.get(x, y) == Some(tile) {
+                            let mi = y as usize * map.width as usize + x as usize;
+                            let m = memo[mi];
+                            if m >= 0 {
+                                found += m as u32;
+                            } else {
+                                let f = if tile == b'0' {
+                                    1
+                                } else {
+                                    get(map, memo, x, y)
+                                };
+                                memo[mi] = f as _;
+                                found += f;
+                            }
+                        }
                     }
+                    found
                 }
+                found += get(&map, &mut memo, x, y);
             }
-            found
         }
-        found += get(&map, &mut memo, x, y);
     }
     found
 }
