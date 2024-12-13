@@ -65,7 +65,7 @@ impl Claw {
                 prize_x: prize_x as _,
                 prize_y: prize_y as _,
             },
-            i,
+            i + 2,
         )
     }
 
@@ -87,7 +87,6 @@ pub fn part1(input: &str) -> i64 {
     let mut claw;
     while i < input.len() {
         (claw, i) = Claw::new(input, i);
-        i += 2;
         sum += claw.calc();
     }
     sum
@@ -100,7 +99,6 @@ pub fn part2(input: &str) -> i64 {
     let mut claw;
     while i < input.len() {
         (claw, i) = Claw::new(input, i);
-        i += 2;
         claw.prize_x += 10000000000000;
         claw.prize_y += 10000000000000;
         sum += claw.calc();
