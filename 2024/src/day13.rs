@@ -9,15 +9,15 @@ pub const INPUTS: &[Input<i64>] = &[
             Button A: X+94, Y+34
             Button B: X+22, Y+67
             Prize: X=8400, Y=5400
-            
+
             Button A: X+26, Y+66
             Button B: X+67, Y+21
             Prize: X=12748, Y=12176
-            
+
             Button A: X+17, Y+86
             Button B: X+84, Y+37
             Prize: X=7870, Y=6450
-            
+
             Button A: X+69, Y+23
             Button B: X+27, Y+71
             Prize: X=18641, Y=10279
@@ -26,6 +26,16 @@ pub const INPUTS: &[Input<i64>] = &[
         None,
     ),
 ];
+
+#[inline(always)]
+fn num(input: &[u8], mut i: usize) -> (u32, usize) {
+    let mut n = 0;
+    while i < input.len() && input[i] >= b'0' {
+        n = n * 10 + (input[i] - b'0') as u32;
+        i += 1;
+    }
+    (n, i)
+}
 
 #[derive(Debug)]
 struct Claw {
@@ -38,23 +48,28 @@ struct Claw {
 }
 
 impl Claw {
-    pub fn new(input: &str) -> Self {
-        let (buttons, prize) = input.split_once("\nPrize: X=").unwrap();
-        let (button_a, button_b) = buttons.split_once("\nButton B: X+").unwrap();
-        let button_a = button_a.strip_prefix("Button A: X+").unwrap();
-        let (a_x, a_y) = button_a.split_once(", Y+").unwrap();
-        let (b_x, b_y) = button_b.split_once(", Y+").unwrap();
-        let (prize_x, prize_y) = prize.split_once(", Y=").unwrap();
-        Self {
-            a_x: a_x.parse().unwrap(),
-            a_y: a_y.parse().unwrap(),
-            b_x: b_x.parse().unwrap(),
-            b_y: b_y.parse().unwrap(),
-            prize_x: prize_x.parse().unwrap(),
-            prize_y: prize_y.trim_ascii_end().parse().unwrap(),
-        }
+    #[inline(always)]
+    pub fn new(input: &[u8], i: usize) -> (Self, usize) {
+        let (a_x, i) = num(input, i + 12);
+        let (a_y, i) = num(input, i + 4);
+        let (b_x, i) = num(input, i + 13);
+        let (b_y, i) = num(input, i + 4);
+        let (prize_x, i) = num(input, i + 10);
+        let (prize_y, i) = num(input, i + 4);
+        (
+            Self {
+                a_x: a_x as _,
+                a_y: a_y as _,
+                b_x: b_x as _,
+                b_y: b_y as _,
+                prize_x: prize_x as _,
+                prize_y: prize_y as _,
+            },
+            i,
+        )
     }
 
+    #[inline(always)]
     pub fn calc(&self) -> i64 {
         let nb = (self.prize_y * self.a_x - self.prize_x * self.a_y)
             / (self.b_y * self.a_x - self.b_x * self.a_y);
@@ -66,18 +81,26 @@ impl Claw {
 }
 
 pub fn part1(input: &str) -> i64 {
+    let input = input.as_bytes();
     let mut sum = 0;
-    for claw in input.split("\n\n") {
-        let claw = Claw::new(claw);
+    let mut i = 0;
+    let mut claw;
+    while i < input.len() {
+        (claw, i) = Claw::new(input, i);
+        i += 2;
         sum += claw.calc();
     }
     sum
 }
 
 pub fn part2(input: &str) -> i64 {
+    let input = input.as_bytes();
     let mut sum = 0;
-    for claw in input.split("\n\n") {
-        let mut claw = Claw::new(claw);
+    let mut i = 0;
+    let mut claw;
+    while i < input.len() {
+        (claw, i) = Claw::new(input, i);
+        i += 2;
         claw.prize_x += 10000000000000;
         claw.prize_y += 10000000000000;
         sum += claw.calc();
