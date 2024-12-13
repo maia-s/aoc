@@ -1,8 +1,7 @@
+use crate::Input;
 use str_block::str_block;
 
-use crate::Input;
-
-pub const INPUTS: &[Input] = &[
+pub const INPUTS: &[Input<i64>] = &[
     Input::Hashed("718c37dfc74608dac8c5adf3e07a9ed14f983de89864811eabfc059a1210759c"),
     Input::Inline(
         "example",
@@ -10,15 +9,15 @@ pub const INPUTS: &[Input] = &[
             Button A: X+94, Y+34
             Button B: X+22, Y+67
             Prize: X=8400, Y=5400
-
+            
             Button A: X+26, Y+66
             Button B: X+67, Y+21
             Prize: X=12748, Y=12176
-
+            
             Button A: X+17, Y+86
             Button B: X+84, Y+37
             Prize: X=7870, Y=6450
-
+            
             Button A: X+69, Y+23
             Button B: X+27, Y+71
             Prize: X=18641, Y=10279
@@ -30,12 +29,12 @@ pub const INPUTS: &[Input] = &[
 
 #[derive(Debug)]
 struct Claw {
-    a_x: u32,
-    a_y: u32,
-    b_x: u32,
-    b_y: u32,
-    prize_x: u32,
-    prize_y: u32,
+    a_x: i64,
+    a_y: i64,
+    b_x: i64,
+    b_y: i64,
+    prize_x: i64,
+    prize_y: i64,
 }
 
 impl Claw {
@@ -55,31 +54,33 @@ impl Claw {
             prize_y: prize_y.trim_ascii_end().parse().unwrap(),
         }
     }
+
+    pub fn calc(&self) -> i64 {
+        let nb = (self.prize_y * self.a_x - self.prize_x * self.a_y)
+            / (self.b_y * self.a_x - self.b_x * self.a_y);
+        let rx = self.prize_x - nb * self.b_x;
+        let ry = self.prize_y - nb * self.b_y;
+        let na = (rx / self.a_x).min(ry / self.a_y);
+        (rx == na * self.a_x && ry == na * self.a_y) as i64 * (3 * na + nb)
+    }
 }
 
-pub fn part1(input: &str) -> u32 {
+pub fn part1(input: &str) -> i64 {
     let mut sum = 0;
-    'claws: for claw in input.split("\n\n") {
+    for claw in input.split("\n\n") {
         let claw = Claw::new(claw);
-        // todo: math
-        let mut nb = (claw.prize_x / claw.b_x).min(claw.prize_y / claw.b_y);
-        let mut rx = claw.prize_x - claw.b_x * nb;
-        let mut ry = claw.prize_y - claw.b_y * nb;
-        nb += 1;
-        while nb != 0 {
-            nb -= 1;
-            let na = (rx / claw.a_x).min(ry / claw.a_y);
-            if rx == na * claw.a_x && ry == na * claw.a_y {
-                sum += 3 * na + nb;
-                continue 'claws;
-            }
-            rx += claw.b_x;
-            ry += claw.b_y;
-        }
+        sum += claw.calc();
     }
     sum
 }
 
-pub fn part2(input: &str) -> u32 {
-    0
+pub fn part2(input: &str) -> i64 {
+    let mut sum = 0;
+    for claw in input.split("\n\n") {
+        let mut claw = Claw::new(claw);
+        claw.prize_x += 10000000000000;
+        claw.prize_y += 10000000000000;
+        sum += claw.calc();
+    }
+    sum
 }
