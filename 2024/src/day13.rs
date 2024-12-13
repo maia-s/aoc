@@ -75,7 +75,7 @@ impl Claw {
             / (self.b_y * self.a_x - self.b_x * self.a_y);
         let rx = self.prize_x - nb * self.b_x;
         let ry = self.prize_y - nb * self.b_y;
-        let na = (rx / self.a_x).min(ry / self.a_y);
+        let na = rx / self.a_x;
         (rx == na * self.a_x && ry == na * self.a_y) as i64 * (3 * na + nb)
     }
 }
