@@ -1,6 +1,10 @@
 use crate::Input;
-use core::mem::transmute;
-use std::collections::BinaryHeap;
+use core::{
+    cell::RefCell,
+    fmt::{Display, Write},
+    mem::transmute,
+};
+use std::{collections::BinaryHeap, rc::Rc};
 use str_block::str_block;
 
 pub const INPUTS: &[Input] = &[
@@ -25,7 +29,7 @@ pub const INPUTS: &[Input] = &[
             ###############
         "},
         Some(7036),
-        None,
+        Some(45),
     ),
     Input::Inline(
         "second example",
@@ -49,52 +53,103 @@ pub const INPUTS: &[Input] = &[
             #################
         "},
         Some(11048),
-        None,
+        Some(64),
     ),
 ];
 
-struct Map {
-    map: Vec<u8>,
+struct Map<const N: usize> {
+    map: Vec<[u32; N]>,
     width: u32,
     dir: Dir,
     x: i32,
     y: i32,
+    sx: i32,
+    sy: i32,
+    ex: i32,
+    ey: i32,
 }
 
-impl Map {
-    fn new(input: &[u8]) -> Self {
-        let first = input.split(|&b| b == b'\n').next().unwrap();
-        let width = first.len();
-        let mut map = Vec::with_capacity(width * width);
-        map.extend_from_slice(first);
-        for line in input[width + 1..].chunks_exact(width + 1) {
-            map.extend_from_slice(&line[..width]);
+impl<const N: usize> Display for Map<N> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for y in 0..self.width {
+            for x in 0..self.width {
+                if x != 0 {
+                    f.write_char(' ')?;
+                }
+                f.write_char('[')?;
+                for n in 0..N {
+                    if n != 0 {
+                        f.write_char(',')?;
+                    }
+                    write!(f, "{:4}", self.map[(y * self.width + x) as usize][n] as i32)?;
+                }
+                f.write_char(']')?;
+            }
+            f.write_char('\n')?;
         }
-        let si = map.iter().position(|&b| b == b'S').unwrap();
-        map[si] = b'.';
-        let x = si % width;
-        let y = si / width;
+        Ok(())
+    }
+}
+
+impl<const N: usize> Map<N> {
+    fn new(input: &[u8]) -> Self {
+        let width = input.iter().position(|&b| b == b'\n').unwrap();
+        let mut map = Vec::with_capacity(width * width);
+        let mut sx = 0;
+        let mut sy = 0;
+        let mut ex = 0;
+        let mut ey = 0;
+        for (y, line) in input.chunks_exact(width + 1).enumerate() {
+            for x in 0..width {
+                match unsafe { line.get(x).unwrap_unchecked() } {
+                    b'S' => {
+                        sx = x;
+                        sy = y;
+                        map.push([0; N]);
+                    }
+                    b'E' => {
+                        ex = x;
+                        ey = y;
+                        map.push([u32::MAX; N]);
+                    }
+                    b'.' => map.push([u32::MAX; N]),
+                    _ => map.push([0; N]),
+                }
+            }
+        }
         Self {
             map,
             width: width as _,
             dir: Dir::E,
-            x: x as _,
-            y: y as _,
+            x: sx as _,
+            y: sy as _,
+            sx: sx as _,
+            sy: sy as _,
+            ex: ex as _,
+            ey: ey as _,
         }
     }
 
-    unsafe fn get_unchecked(&self, x: i32, y: i32) -> u8 {
+    unsafe fn get_unchecked(&self, x: i32, y: i32) -> &[u32; N] {
         unsafe {
-            *self
-                .map
+            self.map
                 .get(y as usize * self.width as usize + x as usize)
+                .unwrap_unchecked()
+        }
+    }
+
+    unsafe fn get_unchecked_mut(&mut self, x: i32, y: i32) -> &mut [u32; N] {
+        unsafe {
+            self.map
+                .get_mut(y as usize * self.width as usize + x as usize)
                 .unwrap_unchecked()
         }
     }
 }
 
-struct Reindeer<'a> {
-    map: &'a Map,
+#[derive(Clone)]
+struct Reindeer<const N: usize> {
+    map: Rc<RefCell<Map<N>>>,
     dir: Dir,
     x: i32,
     y: i32,
@@ -102,93 +157,68 @@ struct Reindeer<'a> {
     won: bool,
 }
 
-impl PartialEq for Reindeer<'_> {
+impl<const N: usize> PartialEq for Reindeer<N> {
     fn eq(&self, other: &Self) -> bool {
         self.score == other.score
     }
 }
 
-impl Eq for Reindeer<'_> {}
+impl<const N: usize> Eq for Reindeer<N> {}
 
-impl PartialOrd for Reindeer<'_> {
+impl<const N: usize> PartialOrd for Reindeer<N> {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         Some(self.cmp(other))
     }
 }
 
-impl Ord for Reindeer<'_> {
+impl<const N: usize> Ord for Reindeer<N> {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         other.score.cmp(&self.score)
     }
 }
 
-impl<'a> Reindeer<'a> {
-    fn new(map: &'a Map) -> Self {
+impl<const N: usize> Reindeer<N> {
+    fn new(map: Rc<RefCell<Map<N>>>) -> Self {
+        let m = map.borrow();
+        let dir = m.dir;
+        let x = m.x;
+        let y = m.y;
+        drop(m);
         Self {
             map,
-            dir: map.dir,
-            x: map.x,
-            y: map.y,
+            dir,
+            x,
+            y,
             score: 0,
             won: false,
         }
     }
 
-    #[inline(always)]
-    fn pos(&self) -> u32 {
-        (self.dir as u32) << 16 | (self.y as u32) << 8 | (self.x as u32)
-    }
-
-    fn do_move(&self, mv: Move) -> Self {
-        match mv {
-            Move::Clockwise => Self {
-                dir: self.dir.rotate_cw(),
-                score: self.score + 1000,
-                ..*self
-            },
-            Move::CounterClockwise => Self {
-                dir: self.dir.rotate_ccw(),
-                score: self.score + 1000,
-                ..*self
-            },
-            Move::Forward => {
-                let [dx, dy] = self.dir.delta();
-                let [nx, ny] = [self.x + dx, self.y + dy];
-                match unsafe { self.map.get_unchecked(nx, ny) } {
-                    b'E' => Self {
-                        score: self.score + 1,
-                        won: true,
-                        ..*self
-                    },
-                    b'.' => Self {
-                        x: nx,
-                        y: ny,
-                        score: self.score + 1,
-                        ..*self
-                    },
-                    _ => Self { ..*self },
-                }
-            }
+    fn forward(&self) -> Option<Self> {
+        let [dx, dy] = self.dir.delta();
+        let [nx, ny] = [self.x + dx, self.y + dy];
+        let mut m = self.map.borrow_mut();
+        let ns = unsafe { m.get_unchecked_mut(nx, ny) };
+        let n = if N == 1 {
+            0
+        } else if N == 4 {
+            self.dir as usize
+        } else {
+            panic!()
+        };
+        if ns[n] > self.score {
+            ns[n] = self.score + 1;
+            let won = nx == m.ex && ny == m.ey;
+            Some(Self {
+                x: nx,
+                y: ny,
+                score: self.score + 1,
+                won,
+                ..self.clone()
+            })
+        } else {
+            None
         }
-    }
-}
-
-struct BitSet([u64; 4096]);
-
-impl Default for BitSet {
-    fn default() -> Self {
-        Self([0; 4096])
-    }
-}
-
-impl BitSet {
-    fn set(&mut self, i: u32) -> bool {
-        let m = 1 << (i & 63);
-        let i = i >> 6;
-        let w = unsafe { self.0.get_mut(i as usize).unwrap_unchecked() };
-        let was_set = *w & m != 0;
-        *w |= m;
-        was_set
     }
 }
 
@@ -211,8 +241,8 @@ impl Dir {
 
     #[must_use]
     #[inline(always)]
-    fn rotate_ccw(self) -> Self {
-        unsafe { transmute((self as u8 + 3) & 3) }
+    fn rotate_180(self) -> Self {
+        unsafe { transmute((self as u8 + 2) & 3) }
     }
 
     fn delta(self) -> [i32; 2] {
@@ -221,34 +251,123 @@ impl Dir {
     }
 }
 
-#[derive(Clone, Copy, PartialEq, Eq)]
-enum Move {
-    Forward,
-    Clockwise,
-    CounterClockwise,
+#[derive(Clone, Copy)]
+struct BitSet<const N: usize>([u64; N]);
+
+impl<const N: usize> Default for BitSet<N> {
+    fn default() -> Self {
+        Self([0; N])
+    }
+}
+
+impl<const N: usize> BitSet<N> {
+    fn set(&mut self, i: u32) -> bool {
+        let m = 1 << (i & 63);
+        let i = i >> 6;
+        let w = unsafe { self.0.get_mut(i as usize).unwrap_unchecked() };
+        let was_set = *w & m != 0;
+        *w |= m;
+        was_set
+    }
 }
 
 pub fn part1(input: &str) -> u32 {
-    let map = Map::new(input.as_bytes());
-    let mut seen = BitSet::default();
-    let deer_zero = Reindeer::new(&map);
-    seen.set(deer_zero.pos());
     let mut queue = BinaryHeap::new();
-    queue.push(deer_zero);
-    while let Some(deer) = queue.pop() {
-        for mv in [Move::Forward, Move::Clockwise, Move::CounterClockwise] {
-            let moved = deer.do_move(mv);
+    queue.push(Reindeer::<1>::new(Rc::new(RefCell::new(Map::new(
+        input.as_bytes(),
+    )))));
+    while let Some(mut deer) = queue.pop() {
+        if let Some(moved) = deer.forward() {
             if moved.won {
                 return moved.score;
             }
-            if !seen.set(moved.pos()) {
-                queue.push(moved);
+            queue.push(moved);
+        }
+        deer.dir = deer.dir.rotate_cw();
+        deer.score += 1000;
+        if let Some(moved) = deer.forward() {
+            if moved.won {
+                return moved.score;
             }
+            queue.push(moved);
+        }
+        deer.dir = deer.dir.rotate_180();
+        if let Some(moved) = deer.forward() {
+            if moved.won {
+                return moved.score;
+            }
+            queue.push(moved);
         }
     }
     unreachable!()
 }
 
 pub fn part2(input: &str) -> u32 {
-    0
+    let mut queue = BinaryHeap::new();
+    let map = Rc::new(RefCell::new(Map::new(input.as_bytes())));
+    queue.push(Reindeer::<4>::new(map.clone()));
+    let mut score = u32::MAX;
+    while let Some(mut deer) = queue.pop() {
+        if let Some(moved) = deer.forward() {
+            if score >= moved.score {
+                if moved.won {
+                    score = moved.score;
+                } else {
+                    queue.push(moved);
+                }
+            }
+        }
+        deer.dir = deer.dir.rotate_cw();
+        deer.score += 1000;
+        if let Some(moved) = deer.forward() {
+            if score >= moved.score {
+                if moved.won {
+                    score = moved.score;
+                } else {
+                    queue.push(moved);
+                }
+            }
+        }
+        deer.dir = deer.dir.rotate_180();
+        if let Some(moved) = deer.forward() {
+            if score >= moved.score {
+                if moved.won {
+                    score = moved.score;
+                } else {
+                    queue.push(moved);
+                }
+            }
+        }
+    }
+    let map = map.borrow();
+    let mut queue = Vec::new();
+    let mut seen = BitSet::<1024>::default();
+    let mut seats = 0;
+    let e = unsafe { map.get_unchecked(map.ex, map.ey) };
+    for i in 0_u8..4 {
+        if e[i as usize] == score {
+            queue.push((map.ex, map.ey, unsafe { transmute::<u8, Dir>(i) }));
+        }
+    }
+    while let Some((x, y, dir)) = queue.pop() {
+        seats += !seen.set((y as u32) << 8 | x as u32) as u32;
+        if x != map.sx || y != map.sy {
+            let score = unsafe { map.get_unchecked(x, y) }[dir as usize];
+            let [dx, dy] = dir.delta();
+            let (nx, ny) = (x - dx, y - dy);
+            let n = unsafe { map.get_unchecked(nx, ny) };
+            if n[dir as usize] == score - 1 {
+                queue.push((nx, ny, dir));
+            }
+            let dir = dir.rotate_cw();
+            if n[dir as usize] == score - 1001 {
+                queue.push((nx, ny, dir));
+            }
+            let dir = dir.rotate_180();
+            if n[dir as usize] == score - 1001 {
+                queue.push((nx, ny, dir));
+            }
+        }
+    }
+    seats
 }
