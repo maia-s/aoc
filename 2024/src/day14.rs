@@ -105,6 +105,6 @@ pub fn part1(input: &str) -> u32 {
     q[1] * q[2] * q[3] * q[4]
 }
 
-pub fn part2(input: &str) -> u32 {
+pub fn part2(_input: &str) -> u32 {
     0
 }
