@@ -10,6 +10,9 @@ use str_block::str_block;
 pub fn inputs() -> Vec<Input> {
     vec![
         Input::Hashed("6b64f9910e1b588eff0ed5137b0bd506647031b2a2a6a819d7702bff31940b7a"),
+        Input::Hashed("12de1ded54ee31faa2e37f826e4f9a0f413bb3967570ff768639d9c0724e4ab7"),
+        Input::Hashed("e0347f5691af53cdd16144f94424682ac80804d2148b2d6073967f70ea1f3d66"),
+        Input::Hashed("71e107ecb7332c63581077a4a9beaa5c9ec7db0a512a0d760bd753950b9e24a5"),
         Input::Inline(
             "example",
             str_block! {"
