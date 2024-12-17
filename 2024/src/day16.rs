@@ -362,11 +362,11 @@ pub fn part2(input: &str) -> u32 {
                 queue.push((nx, ny, dir));
             }
             let dir = dir.rotate_cw();
-            if n[dir as usize] == score - 1001 {
+            if n[dir as usize] == score.wrapping_sub(1001) {
                 queue.push((nx, ny, dir));
             }
             let dir = dir.rotate_180();
-            if n[dir as usize] == score - 1001 {
+            if n[dir as usize] == score.wrapping_sub(1001) {
                 queue.push((nx, ny, dir));
             }
         }

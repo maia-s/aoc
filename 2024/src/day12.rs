@@ -155,8 +155,8 @@ impl Map {
                 edges += 1
             }
         };
-        fill(x, y - 1);
-        fill(x - 1, y);
+        fill(x, y.wrapping_sub(1));
+        fill(x.wrapping_sub(1), y);
         fill(x + 1, y);
         fill(x, y + 1);
         (area, edges)

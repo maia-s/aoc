@@ -88,7 +88,7 @@ pub fn part1(input: &str) -> u32 {
         while let Some(num) = parse_b(&mut line) {
             i += 1;
             history[i] = num;
-            if (disallow[(num >= 64) as usize] & (1_u64 << num)) != 0 {
+            if (disallow[(num >= 64) as usize] & (1_u64 << (num & 63))) != 0 {
                 continue 'sec2;
             }
             let m = map[num as usize];
