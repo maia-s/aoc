@@ -2,7 +2,6 @@ use aoc_2024::Input;
 use core::{
     fmt::{Debug, Display},
     hint::black_box,
-    str::FromStr,
     time::Duration,
 };
 use sha2::{Digest, Sha256};
@@ -50,16 +49,24 @@ static INPUTS: LazyLock<HashMap<String, (String, String, String, String)>> = Laz
     map
 });
 
-fn get_input<T: Clone + FromStr<Err: Debug>, U: Clone + FromStr<Err: Debug>>(
+fn get_input<T: ToString, U: ToString>(
     input: &Input<T, U>,
-) -> Option<(String, String, Option<T>, Option<U>)> {
+) -> Option<(String, String, Option<String>, Option<String>)> {
     match input {
-        Input::Hashed(hash) => INPUTS
-            .get(*hash)
-            .map(|(n, s, p1, p2)| (n.clone(), s.clone(), p1.parse().ok(), p2.parse().ok())),
-        Input::Inline(name, str, p1, p2) => {
-            Some((name.to_string(), str.to_string(), p1.clone(), p2.clone()))
-        }
+        Input::Hashed(hash) => INPUTS.get(*hash).map(|(n, s, p1, p2)| {
+            (
+                n.clone(),
+                s.clone(),
+                (!p1.is_empty()).then(|| p1.to_string()),
+                (!p2.is_empty()).then(|| p2.to_string()),
+            )
+        }),
+        Input::Inline(name, str, p1, p2) => Some((
+            name.to_string(),
+            str.to_string(),
+            p1.as_ref().map(|p1| p1.to_string()),
+            p2.as_ref().map(|p2| p2.to_string()),
+        )),
     }
 }
 
@@ -105,7 +112,7 @@ macro_rules! days {
                         for input in aoc_2024::$day::inputs() {
                             let (name, input, p1, _) = crate::get_input(&input).expect("input not available");
                             if let Some(p1) = p1 {
-                                assert_eq!(aoc_2024::$day::part1(&input), p1, "{name}");
+                                assert_eq!(aoc_2024::$day::part1(&input).to_string(), p1, "{name}");
                             } else {
                                 eprintln!("n/a: {name}");
                             }
@@ -117,7 +124,7 @@ macro_rules! days {
                         for input in aoc_2024::$day::inputs() {
                             let (name, input, _, p2) = crate::get_input(&input).expect("input not available");
                             if let Some(p2) = p2 {
-                                assert_eq!(aoc_2024::$day::part2(&input), p2, "{name}");
+                                assert_eq!(aoc_2024::$day::part2(&input).to_string(), p2, "{name}");
                             } else {
                                 eprintln!("n/a: {name}");
                             }
