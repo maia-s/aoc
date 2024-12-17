@@ -3,28 +3,30 @@ use core::cmp::Ordering;
 use crate::Input;
 //use str_block::str_block;
 
-pub const INPUTS: &[Input] = &[
-    Input::Hashed("5034a7e89989b8e93bae7b3b718406144bcaf278c692a774a3c7acc8e3b6e56d"),
-    /*Input::Inline( // size 11,7
-        "example",
-        str_block! {"
-            p=0,4 v=3,-3
-            p=6,3 v=-1,-3
-            p=10,3 v=-1,2
-            p=2,0 v=2,-1
-            p=0,0 v=1,3
-            p=3,0 v=-2,-2
-            p=7,6 v=-1,-3
-            p=3,0 v=-1,-2
-            p=9,3 v=2,3
-            p=7,3 v=-1,2
-            p=2,4 v=2,-3
-            p=9,5 v=-3,-3
-        "},
-        Some(12),
-        None,
-    ),*/
-];
+pub fn inputs() -> Vec<Input> {
+    vec![
+        Input::Hashed("5034a7e89989b8e93bae7b3b718406144bcaf278c692a774a3c7acc8e3b6e56d"),
+        /*Input::Inline( // size 11,7
+            "example",
+            str_block! {"
+                p=0,4 v=3,-3
+                p=6,3 v=-1,-3
+                p=10,3 v=-1,2
+                p=2,0 v=2,-1
+                p=0,0 v=1,3
+                p=3,0 v=-2,-2
+                p=7,6 v=-1,-3
+                p=3,0 v=-1,-2
+                p=9,3 v=2,3
+                p=7,3 v=-1,2
+                p=2,4 v=2,-3
+                p=9,5 v=-3,-3
+            "},
+            Some(12),
+            None,
+        ),*/
+    ]
+}
 
 const SPACE_W: i64 = 101;
 const SPACE_H: i64 = 103;

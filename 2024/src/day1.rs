@@ -1,22 +1,24 @@
 use crate::Input;
 use str_block::str_block;
 
-pub const INPUTS: &[Input] = &[
-    Input::Hashed("bd3e2df596a877265fe4a28b626ac1ed30239c051e6623b4c852be317288fe1a"),
-    Input::Inline(
-        "example",
-        str_block! {"
-            3   4
-            4   3
-            2   5
-            1   3
-            3   9
-            3   3
-        "},
-        Some(11),
-        Some(31),
-    ),
-];
+pub fn inputs() -> Vec<Input> {
+    vec![
+        Input::Hashed("bd3e2df596a877265fe4a28b626ac1ed30239c051e6623b4c852be317288fe1a"),
+        Input::Inline(
+            "example",
+            str_block! {"
+                3   4
+                4   3
+                2   5
+                1   3
+                3   9
+                3   3
+            "},
+            Some(11),
+            Some(31),
+        ),
+    ]
+}
 
 fn parse_line(s: &str) -> (u32, u32) {
     let mut l = 0;

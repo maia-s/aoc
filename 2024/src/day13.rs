@@ -1,31 +1,33 @@
 use crate::Input;
 use str_block::str_block;
 
-pub const INPUTS: &[Input<i64>] = &[
-    Input::Hashed("718c37dfc74608dac8c5adf3e07a9ed14f983de89864811eabfc059a1210759c"),
-    Input::Inline(
-        "example",
-        str_block! {"
-            Button A: X+94, Y+34
-            Button B: X+22, Y+67
-            Prize: X=8400, Y=5400
+pub fn inputs() -> Vec<Input<i64>> {
+    vec![
+        Input::Hashed("718c37dfc74608dac8c5adf3e07a9ed14f983de89864811eabfc059a1210759c"),
+        Input::Inline(
+            "example",
+            str_block! {"
+                Button A: X+94, Y+34
+                Button B: X+22, Y+67
+                Prize: X=8400, Y=5400
 
-            Button A: X+26, Y+66
-            Button B: X+67, Y+21
-            Prize: X=12748, Y=12176
+                Button A: X+26, Y+66
+                Button B: X+67, Y+21
+                Prize: X=12748, Y=12176
 
-            Button A: X+17, Y+86
-            Button B: X+84, Y+37
-            Prize: X=7870, Y=6450
+                Button A: X+17, Y+86
+                Button B: X+84, Y+37
+                Prize: X=7870, Y=6450
 
-            Button A: X+69, Y+23
-            Button B: X+27, Y+71
-            Prize: X=18641, Y=10279
-        "},
-        Some(480),
-        None,
-    ),
-];
+                Button A: X+69, Y+23
+                Button B: X+27, Y+71
+                Prize: X=18641, Y=10279
+            "},
+            Some(480),
+            None,
+        ),
+    ]
+}
 
 #[inline(always)]
 fn num(input: &[u8], mut i: usize) -> (u32, usize) {

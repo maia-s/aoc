@@ -2,13 +2,15 @@ use crate::Input;
 use core::{array, cell::Cell};
 use std::collections::VecDeque;
 
-pub const INPUTS: &[Input<u64>] = &[
-    Input::Hashed("79434cdc88ac8fef1185321ccff895f5d32877e925cdad004b9f9bf3eefbdbe3"),
-    Input::Hashed("52a46a2520cac808c03c6145a6e7097f8f9442eea003826f69f9a6a92612945a"),
-    Input::Hashed("200f28afa251e7ee4ea74cad59381c5663d294d0743f2aa7f4571c50a45e83f8"),
-    Input::Hashed("8d9fc67cad414de50d29931d3df0cf45f82b5ec53afa1cb37bd51440a8c21704"),
-    Input::Inline("example", "2333133121414131402\n", Some(1928), Some(2858)),
-];
+pub fn inputs() -> Vec<Input<u64>> {
+    vec![
+        Input::Hashed("79434cdc88ac8fef1185321ccff895f5d32877e925cdad004b9f9bf3eefbdbe3"),
+        Input::Hashed("52a46a2520cac808c03c6145a6e7097f8f9442eea003826f69f9a6a92612945a"),
+        Input::Hashed("200f28afa251e7ee4ea74cad59381c5663d294d0743f2aa7f4571c50a45e83f8"),
+        Input::Hashed("8d9fc67cad414de50d29931d3df0cf45f82b5ec53afa1cb37bd51440a8c21704"),
+        Input::Inline("example", "2333133121414131402\n", Some(1928), Some(2858)),
+    ]
+}
 
 pub fn part1(input: &str) -> u64 {
     let input = &input.as_bytes()[..input.len() - 1];

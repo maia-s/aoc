@@ -2,25 +2,27 @@ use crate::Input;
 use core::iter;
 use str_block::str_block;
 
-pub const INPUTS: &[Input] = &[
-    Input::Hashed("e49fb4161cce91a3631cf26c1c5f45929ae5abc340974bfd368a214335fdadb7"),
-    Input::Inline(
-        "example 1",
-        str_block! {"
-            xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))
-        "},
-        Some(161),
-        Some(161),
-    ),
-    Input::Inline(
-        "example 2",
-        str_block! {"
-            xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))
-        "},
-        Some(161),
-        Some(48),
-    ),
-];
+pub fn inputs() -> Vec<Input> {
+    vec![
+        Input::Hashed("e49fb4161cce91a3631cf26c1c5f45929ae5abc340974bfd368a214335fdadb7"),
+        Input::Inline(
+            "example 1",
+            str_block! {"
+                xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))
+            "},
+            Some(161),
+            Some(161),
+        ),
+        Input::Inline(
+            "example 2",
+            str_block! {"
+                xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))
+            "},
+            Some(161),
+            Some(48),
+        ),
+    ]
+}
 
 fn mul(bytes: &[u8]) -> Option<u32> {
     let mut l = 0;

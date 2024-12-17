@@ -68,7 +68,7 @@ macro_rules! days {
         #[allow(non_upper_case_globals)]
         $(
             fn $day() {
-                let (name, input, _, _) = get_input(&aoc_2024::$day::INPUTS[0]).expect("input not available");
+                let (name, input, _, _) = get_input(&aoc_2024::$day::inputs()[0]).expect("input not available");
                 println!("=== {}: {name} ===", stringify!($day));
                 println!("part 1: {}", aoc_2024::$day::part1(&input));
                 println!("part 2: {}", aoc_2024::$day::part2(&input));
@@ -102,8 +102,8 @@ macro_rules! days {
                 mod $day {
                     #[test]
                     fn part1() {
-                        for input in aoc_2024::$day::INPUTS {
-                            let (name, input, p1, _) = crate::get_input(input).expect("input not available");
+                        for input in aoc_2024::$day::inputs() {
+                            let (name, input, p1, _) = crate::get_input(&input).expect("input not available");
                             if let Some(p1) = p1 {
                                 assert_eq!(aoc_2024::$day::part1(&input), p1, "{name}");
                             } else {
@@ -114,8 +114,8 @@ macro_rules! days {
 
                     #[test]
                     fn part2() {
-                        for input in aoc_2024::$day::INPUTS {
-                            let (name, input, _, p2) = crate::get_input(input).expect("input not available");
+                        for input in aoc_2024::$day::inputs() {
+                            let (name, input, _, p2) = crate::get_input(&input).expect("input not available");
                             if let Some(p2) = p2 {
                                 assert_eq!(aoc_2024::$day::part2(&input), p2, "{name}");
                             } else {

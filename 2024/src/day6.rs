@@ -5,29 +5,31 @@ use core::{
 };
 use str_block::str_block;
 
-pub const INPUTS: &[Input] = &[
-    Input::Hashed("a820ce3b6b89ccc820f0639477e8588fd348b294933f8868232d111dc88f65be"),
-    Input::Hashed("bf6fbd9290ad12e0747747a4237d3e2261dcb169933ba56fc081d68cd027bbd9"),
-    Input::Hashed("2487a389a5a4cc770c16e0a77724b6e0d2cde77ca7fe24d7696938943d7c3ab8"),
-    Input::Hashed("a34d81d7f7dc89d3ae11a4cc69f5576b5e48005aedc8c2c37c21aa6810f65d15"),
-    Input::Inline(
-        "example",
-        str_block! {"
-            ....#.....
-            .........#
-            ..........
-            ..#.......
-            .......#..
-            ..........
-            .#..^.....
-            ........#.
-            #.........
-            ......#...
-        "},
-        Some(41),
-        Some(6),
-    ),
-];
+pub fn inputs() -> Vec<Input> {
+    vec![
+        Input::Hashed("a820ce3b6b89ccc820f0639477e8588fd348b294933f8868232d111dc88f65be"),
+        Input::Hashed("bf6fbd9290ad12e0747747a4237d3e2261dcb169933ba56fc081d68cd027bbd9"),
+        Input::Hashed("2487a389a5a4cc770c16e0a77724b6e0d2cde77ca7fe24d7696938943d7c3ab8"),
+        Input::Hashed("a34d81d7f7dc89d3ae11a4cc69f5576b5e48005aedc8c2c37c21aa6810f65d15"),
+        Input::Inline(
+            "example",
+            str_block! {"
+                ....#.....
+                .........#
+                ..........
+                ..#.......
+                .......#..
+                ..........
+                .#..^.....
+                ........#.
+                #.........
+                ......#...
+            "},
+            Some(41),
+            Some(6),
+        ),
+    ]
+}
 
 struct Map<const PART: u8> {
     map: Vec<u8>,

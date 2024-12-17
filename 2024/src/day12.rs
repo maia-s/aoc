@@ -2,74 +2,76 @@ use crate::Input;
 use core::hint::unreachable_unchecked;
 use str_block::str_block;
 
-pub const INPUTS: &[Input] = &[
-    Input::Hashed("e8e19e262ef9e5612357123f69cbdbddf226c9677130ca7ec0dc9d54aec97e1c"),
-    Input::Inline(
-        "4x4",
-        str_block! {"
-            AAAA
-            BBCD
-            BBCC
-            EEEC
-        "},
-        Some(140),
-        Some(80),
-    ),
-    Input::Inline(
-        "OXO",
-        str_block! {"
-            OOOOO
-            OXOXO
-            OOOOO
-            OXOXO
-            OOOOO
-        "},
-        Some(772),
-        Some(436),
-    ),
-    Input::Inline(
-        "larger example",
-        str_block! {"
-            RRRRIICCFF
-            RRRRIICCCF
-            VVRRRCCFFF
-            VVRCCCJFFF
-            VVVVCJJCFE
-            VVIVCCJJEE
-            VVIIICJJEE
-            MIIIIIJJEE
-            MIIISIJEEE
-            MMMISSJEEE
-        "},
-        Some(1930),
-        Some(1206),
-    ),
-    Input::Inline(
-        "E",
-        str_block! {"
-            EEEEE
-            EXXXX
-            EEEEE
-            EXXXX
-            EEEEE
-        "},
-        None,
-        Some(236),
-    ),
-    Input::Inline(
-        "AB",
-        str_block! {"
-            AAAAAA
-            AAABBA
-            AAABBA
-            ABBAAA
-            ABBAAA
-            AAAAAA
-        "},
-        None,
-        Some(368),
-    ),
-];
+pub fn inputs() -> Vec<Input> {
+    vec![
+        Input::Hashed("e8e19e262ef9e5612357123f69cbdbddf226c9677130ca7ec0dc9d54aec97e1c"),
+        Input::Inline(
+            "4x4",
+            str_block! {"
+                AAAA
+                BBCD
+                BBCC
+                EEEC
+            "},
+            Some(140),
+            Some(80),
+        ),
+        Input::Inline(
+            "OXO",
+            str_block! {"
+                OOOOO
+                OXOXO
+                OOOOO
+                OXOXO
+                OOOOO
+            "},
+            Some(772),
+            Some(436),
+        ),
+        Input::Inline(
+            "larger example",
+            str_block! {"
+                RRRRIICCFF
+                RRRRIICCCF
+                VVRRRCCFFF
+                VVRCCCJFFF
+                VVVVCJJCFE
+                VVIVCCJJEE
+                VVIIICJJEE
+                MIIIIIJJEE
+                MIIISIJEEE
+                MMMISSJEEE
+            "},
+            Some(1930),
+            Some(1206),
+        ),
+        Input::Inline(
+            "E",
+            str_block! {"
+                EEEEE
+                EXXXX
+                EEEEE
+                EXXXX
+                EEEEE
+            "},
+            None,
+            Some(236),
+        ),
+        Input::Inline(
+            "AB",
+            str_block! {"
+                AAAAAA
+                AAABBA
+                AAABBA
+                ABBAAA
+                ABBAAA
+                AAAAAA
+            "},
+            None,
+            Some(368),
+        ),
+    ]
+}
 
 struct Map {
     map: Vec<u8>,

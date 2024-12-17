@@ -2,10 +2,12 @@ use crate::Input;
 use core::iter;
 use rustc_hash::FxHashMap;
 
-pub const INPUTS: &[Input<u64>] = &[
-    Input::Hashed("4fef1a2186d9f5b05be6743b65f574c6519afc4cf61aba34b53408031efe1131"),
-    Input::Inline("example", "125 17\n", Some(55312), None),
-];
+pub fn inputs() -> Vec<Input<u64>> {
+    vec![
+        Input::Hashed("4fef1a2186d9f5b05be6743b65f574c6519afc4cf61aba34b53408031efe1131"),
+        Input::Inline("example", "125 17\n", Some(55312), None),
+    ]
+}
 
 fn nums(input: &str) -> impl Iterator<Item = u64> + '_ {
     let mut bytes = input.as_bytes().iter();

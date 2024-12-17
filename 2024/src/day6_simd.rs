@@ -8,7 +8,9 @@ use core::{
     simd::prelude::*,
 };
 
-pub const INPUTS: &[Input] = super::day6::INPUTS;
+pub fn inputs() -> Vec<Input> {
+    super::day6::inputs()
+}
 
 struct Map<const PART: u8> {
     map: Vec<u8>,
