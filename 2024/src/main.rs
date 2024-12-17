@@ -14,8 +14,8 @@ use std::{
     time::Instant,
 };
 
-const TIMEOUT: Duration = Duration::from_secs(10);
-const MAX_RUNS: usize = 50000;
+const TIMEOUT: Duration = Duration::from_secs(5);
+const MAX_RUNS: usize = 10_000_000;
 
 static INPUTS: LazyLock<HashMap<String, (String, String, String, String)>> = LazyLock::new(|| {
     let mut map = HashMap::new();
@@ -80,7 +80,7 @@ macro_rules! days {
                 println!("part 1: {}", aoc_2024::$day::part1(&input));
                 println!("part 2: {}", aoc_2024::$day::part2(&input));
                 println!(
-                    "                {:>10} {:>10} {:>10} {:>10}",
+                    "                   {:>10} {:>10} {:>10} {:>10}",
                     "- avg -",
                     "- min -",
                     "- med -",
@@ -154,7 +154,7 @@ fn run<R: Debug + Display + PartialEq>(name: &str, f: impl Fn() -> R) {
     }
     times.sort_unstable();
     println!(
-        " [ {:>5}x {:>10.3?} {:>10.3?} {:>10.3?} {:>10.3?} ]",
+        " [ {:>8}x {:>10.3?} {:>10.3?} {:>10.3?} {:>10.3?} ]",
         times.len(),
         tc.duration_since(t0) / times.len() as u32,
         Duration::from_nanos(times[0]),
