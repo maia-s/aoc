@@ -145,8 +145,9 @@ fn run<R: Debug + Display + PartialEq>(name: &str, f: impl Fn() -> R) {
     let _ = stdout().flush();
     for _ in 0..MAX_RUNS {
         let tp = Instant::now();
-        assert_eq!(black_box(f()), result);
+        let r = black_box(f());
         tc = Instant::now();
+        assert_eq!(r, result);
         times.push(tc.duration_since(tp).as_nanos() as u64);
         if tc.duration_since(t0) > TIMEOUT {
             break;
