@@ -2,7 +2,7 @@ use crate::Input;
 use std::collections::VecDeque;
 //use str_block::str_block;
 
-pub fn inputs() -> Vec<Input> {
+pub fn inputs() -> Vec<Input<u32, String>> {
     vec![
         Input::Hashed("1e7bc8a20b07a31a71a2a21fece1394e03db70b4c1d81406896a30131cba2235"),
         /*Input::Inline(
@@ -35,7 +35,7 @@ pub fn inputs() -> Vec<Input> {
                 2,0
             "},
             Some(22),
-            None,
+            Some("6,1".into()),
         ),*/
     ]
 }
@@ -103,6 +103,44 @@ pub fn part1(input: &str) -> u32 {
     unreachable!()
 }
 
-pub fn part2(_input: &str) -> u32 {
-    0
+pub fn part2(input: &str) -> String {
+    let input = input.as_bytes();
+    let mut i = 0;
+    let mut map = [0; SIZE * SIZE];
+    let mut queue = VecDeque::new();
+    let mut blocks = 0;
+    let mut last_pathed = 0;
+    'fall: loop {
+        let Some((bx, by)) = coord(input, &mut i) else {
+            unreachable!()
+        };
+        let c = &mut map[by as usize * SIZE + bx as usize];
+        let prev = *c;
+        *c = u32::MAX;
+        blocks += 1;
+        if prev == last_pathed {
+            last_pathed = blocks;
+            queue.clear();
+            queue.push_back((0_i8, 0_i8));
+            while let Some((x, y)) = queue.pop_front() {
+                let c = unsafe {
+                    map.get_mut(y as usize * SIZE + x as usize)
+                        .unwrap_unchecked()
+                };
+                if *c < blocks {
+                    *c = blocks;
+                    if x == (SIZE - 1) as _ && y == (SIZE - 1) as _ {
+                        continue 'fall;
+                    }
+                    for [dx, dy] in DELTAS {
+                        let (nx, ny) = (x + dx, y + dy);
+                        if (nx as u8) < SIZE as u8 && (ny as u8) < SIZE as u8 {
+                            queue.push_back((nx, ny));
+                        }
+                    }
+                }
+            }
+            return format!("{bx},{by}");
+        }
+    }
 }
