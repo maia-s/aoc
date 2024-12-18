@@ -48,7 +48,7 @@ pub fn inputs() -> Vec<Input<u32, String>> {
 const SIZE: usize = 71;
 const FALL: usize = 1024;
 
-const DELTAS: [[i8; 2]; 4] = [[0, -1], [1, 0], [0, 1], [-1, 0]];
+const DELTAS: [[i8; 2]; 4] = [[-1, 0], [0, -1], [1, 0], [0, 1]];
 
 fn num(input: &[u8], i: &mut usize) -> u8 {
     let mut j = *i;
