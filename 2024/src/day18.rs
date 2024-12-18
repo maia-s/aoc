@@ -110,6 +110,12 @@ pub fn part2(input: &str) -> String {
     let mut map = [0; SIZE * SIZE];
     let mut queue = Vec::with_capacity(SIZE * SIZE);
     let mut blocks = 0;
+    for _ in 0..FALL {
+        let Some((x, y)) = coord(input, &mut i) else {
+            unreachable!()
+        };
+        map[y as usize * SIZE + x as usize] = u32::MAX;
+    }
     'fall: loop {
         let Some((bx, by)) = coord(input, &mut i) else {
             unreachable!()
