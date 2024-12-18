@@ -5,6 +5,9 @@ use std::collections::VecDeque;
 pub fn inputs() -> Vec<Input<u32, String>> {
     vec![
         Input::Hashed("1e7bc8a20b07a31a71a2a21fece1394e03db70b4c1d81406896a30131cba2235"),
+        Input::Hashed("5d5b67dd9fd2f22c3377910932f3a8240d730a2c7593e990b025d20d05f04259"),
+        Input::Hashed("08bbddf6ace9b636fbb877a41cb560cfd966e2ad097626083e8b853a63b7e4dc"),
+        Input::Hashed("30ed8de297b590dc290eb985ce25142a88497520c54d6cdd025d5b0e68a95f7e"),
         /*Input::Inline(
             "example",
             str_block! {"
