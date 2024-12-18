@@ -81,7 +81,7 @@ pub fn part1(input: &str) -> u32 {
         map[y as usize * SIZE + x as usize] = true;
     }
     map[0] = true;
-    let mut queue = VecDeque::new();
+    let mut queue = VecDeque::with_capacity(SIZE * SIZE);
     queue.push_back((0_i8, 0_i8, 1_u32));
     while let Some((x, y, steps)) = queue.pop_front() {
         for [dx, dy] in DELTAS {
@@ -108,7 +108,7 @@ pub fn part2(input: &str) -> String {
     let input = input.as_bytes();
     let mut i = 0;
     let mut map = [0; SIZE * SIZE];
-    let mut queue = Vec::new();
+    let mut queue = Vec::with_capacity(SIZE * SIZE);
     let mut blocks = 0;
     'fall: loop {
         let Some((bx, by)) = coord(input, &mut i) else {
