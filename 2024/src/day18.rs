@@ -80,21 +80,22 @@ pub fn part1(input: &str) -> u32 {
         };
         map[y as usize * SIZE + x as usize] = true;
     }
+    map[0] = true;
     let mut queue = VecDeque::new();
-    queue.push_back((0_i8, 0_i8, 0_u32));
+    queue.push_back((0_i8, 0_i8, 1_u32));
     while let Some((x, y, steps)) = queue.pop_front() {
-        if x == (SIZE - 1) as _ && y == (SIZE - 1) as _ {
-            return steps;
-        }
-        let c = unsafe {
-            map.get_mut(y as usize * SIZE + x as usize)
-                .unwrap_unchecked()
-        };
-        if !*c {
-            *c = true;
-            for [dx, dy] in DELTAS {
-                let (nx, ny) = (x + dx, y + dy);
-                if (nx as u8) < SIZE as u8 && (ny as u8) < SIZE as u8 {
+        for [dx, dy] in DELTAS {
+            let (nx, ny) = (x + dx, y + dy);
+            if (nx as u8) < SIZE as u8 && (ny as u8) < SIZE as u8 {
+                let c = unsafe {
+                    map.get_mut(ny as usize * SIZE + nx as usize)
+                        .unwrap_unchecked()
+                };
+                if !*c {
+                    *c = true;
+                    if nx == (SIZE - 1) as _ && ny == (SIZE - 1) as _ {
+                        return steps;
+                    }
                     queue.push_back((nx, ny, steps + 1));
                 }
             }
@@ -109,7 +110,6 @@ pub fn part2(input: &str) -> String {
     let mut map = [0; SIZE * SIZE];
     let mut queue = Vec::new();
     let mut blocks = 0;
-    let mut last_pathed = 0;
     'fall: loop {
         let Some((bx, by)) = coord(input, &mut i) else {
             unreachable!()
@@ -118,23 +118,23 @@ pub fn part2(input: &str) -> String {
         let prev = *c;
         *c = u32::MAX;
         blocks += 1;
-        if prev == last_pathed {
-            last_pathed = blocks;
+        if prev == map[0] {
+            map[0] = blocks;
             queue.clear();
             queue.push((0_i8, 0_i8));
             while let Some((x, y)) = queue.pop() {
-                let c = unsafe {
-                    map.get_mut(y as usize * SIZE + x as usize)
-                        .unwrap_unchecked()
-                };
-                if *c < blocks {
-                    *c = blocks;
-                    if x == (SIZE - 1) as _ && y == (SIZE - 1) as _ {
-                        continue 'fall;
-                    }
-                    for [dx, dy] in DELTAS {
-                        let (nx, ny) = (x + dx, y + dy);
-                        if (nx as u8) < SIZE as u8 && (ny as u8) < SIZE as u8 {
+                for [dx, dy] in DELTAS {
+                    let (nx, ny) = (x + dx, y + dy);
+                    if (nx as u8) < SIZE as u8 && (ny as u8) < SIZE as u8 {
+                        let c = unsafe {
+                            map.get_mut(ny as usize * SIZE + nx as usize)
+                                .unwrap_unchecked()
+                        };
+                        if *c < blocks {
+                            *c = blocks;
+                            if nx == (SIZE - 1) as _ && ny == (SIZE - 1) as _ {
+                                continue 'fall;
+                            }
                             queue.push((nx, ny));
                         }
                     }
