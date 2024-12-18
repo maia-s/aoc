@@ -107,7 +107,7 @@ pub fn part2(input: &str) -> String {
     let input = input.as_bytes();
     let mut i = 0;
     let mut map = [0; SIZE * SIZE];
-    let mut queue = VecDeque::new();
+    let mut queue = Vec::new();
     let mut blocks = 0;
     let mut last_pathed = 0;
     'fall: loop {
@@ -121,8 +121,8 @@ pub fn part2(input: &str) -> String {
         if prev == last_pathed {
             last_pathed = blocks;
             queue.clear();
-            queue.push_back((0_i8, 0_i8));
-            while let Some((x, y)) = queue.pop_front() {
+            queue.push((0_i8, 0_i8));
+            while let Some((x, y)) = queue.pop() {
                 let c = unsafe {
                     map.get_mut(y as usize * SIZE + x as usize)
                         .unwrap_unchecked()
@@ -135,7 +135,7 @@ pub fn part2(input: &str) -> String {
                     for [dx, dy] in DELTAS {
                         let (nx, ny) = (x + dx, y + dy);
                         if (nx as u8) < SIZE as u8 && (ny as u8) < SIZE as u8 {
-                            queue.push_back((nx, ny));
+                            queue.push((nx, ny));
                         }
                     }
                 }
