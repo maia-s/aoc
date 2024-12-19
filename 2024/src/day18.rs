@@ -126,12 +126,12 @@ pub fn part2(input: &str) -> String {
         let c = &mut map[by as usize * SIZE + bx as usize];
         let prev = *c;
         *c = u32::MAX;
-        blocks += 1;
+        blocks += 0x10000;
         if prev == map[0] {
             map[0] = blocks;
             queue.clear();
-            queue.push((0_i8, 0_i8));
-            while let Some((x, y)) = queue.pop() {
+            queue.push((0_i8, 0_i8, 0));
+            while let Some((x, y, steps)) = queue.pop() {
                 for [dx, dy] in DELTAS {
                     let (nx, ny) = (x + dx, y + dy);
                     if (nx as u8) < SIZE as u8 && (ny as u8) < SIZE as u8 {
@@ -140,11 +140,35 @@ pub fn part2(input: &str) -> String {
                                 .unwrap_unchecked()
                         };
                         if *c < blocks {
-                            *c = blocks;
+                            *c = blocks | steps;
                             if nx == (SIZE - 1) as _ && ny == (SIZE - 1) as _ {
-                                continue 'fall;
+                                *c = blocks;
+                                let mut bsteps = blocks | (steps - 1);
+                                let mut btx = nx;
+                                let mut bty = ny;
+                                'backtrack: loop {
+                                    for [dx, dy] in DELTAS {
+                                        let (nx, ny) = (btx + dx, bty + dy);
+                                        if nx == 0 && ny == 0 {
+                                            continue 'fall;
+                                        };
+                                        if (nx as u8) < SIZE as u8 && (ny as u8) < SIZE as u8 {
+                                            let c = unsafe {
+                                                map.get_mut(ny as usize * SIZE + nx as usize)
+                                                    .unwrap_unchecked()
+                                            };
+                                            if *c == bsteps {
+                                                *c = blocks;
+                                                btx = nx;
+                                                bty = ny;
+                                                bsteps -= 1;
+                                                continue 'backtrack;
+                                            }
+                                        }
+                                    }
+                                }
                             }
-                            queue.push((nx, ny));
+                            queue.push((nx, ny, steps + 1));
                         }
                     }
                 }
