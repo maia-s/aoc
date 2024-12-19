@@ -124,14 +124,37 @@ pub fn part2(input: &str) -> String {
             unreachable!()
         };
         let c = &mut map[by as usize * SIZE + bx as usize];
-        let prev = *c;
+        let prev = *c & !0x7fff;
         *c = u32::MAX;
         blocks += 0x10000;
         if prev == map[0] {
             map[0] = blocks;
             queue.clear();
-            queue.push((0_i8, 0_i8, 0));
+            let mut x = 0;
+            let mut y = 0;
+            let mut steps = 0;
+            'retrace: loop {
+                queue.push((x, y, steps));
+                steps += 1;
+                for [dx, dy] in DELTAS {
+                    let (nx, ny) = (x + dx, y + dy);
+                    if (nx as u8) < SIZE as u8 && (ny as u8) < SIZE as u8 {
+                        let c = unsafe {
+                            map.get_mut(ny as usize * SIZE + nx as usize)
+                                .unwrap_unchecked()
+                        };
+                        if *c == prev | steps {
+                            *c = blocks | steps;
+                            x = nx;
+                            y = ny;
+                            continue 'retrace;
+                        }
+                    }
+                }
+                break;
+            }
             while let Some((x, y, steps)) = queue.pop() {
+                let steps = steps + 1;
                 for [dx, dy] in DELTAS {
                     let (nx, ny) = (x + dx, y + dy);
                     if (nx as u8) < SIZE as u8 && (ny as u8) < SIZE as u8 {
@@ -142,33 +165,33 @@ pub fn part2(input: &str) -> String {
                         if *c < blocks {
                             *c = blocks | steps;
                             if nx == (SIZE - 1) as _ && ny == (SIZE - 1) as _ {
-                                *c = blocks;
+                                *c |= 0x8000;
                                 let mut bsteps = blocks | (steps - 1);
                                 let mut btx = nx;
                                 let mut bty = ny;
                                 'backtrack: loop {
                                     for [dx, dy] in DELTAS {
                                         let (nx, ny) = (btx + dx, bty + dy);
-                                        if nx == 0 && ny == 0 {
-                                            continue 'fall;
-                                        };
                                         if (nx as u8) < SIZE as u8 && (ny as u8) < SIZE as u8 {
                                             let c = unsafe {
                                                 map.get_mut(ny as usize * SIZE + nx as usize)
                                                     .unwrap_unchecked()
                                             };
                                             if *c == bsteps {
-                                                *c = blocks;
+                                                *c |= 0x8000;
                                                 btx = nx;
                                                 bty = ny;
                                                 bsteps -= 1;
+                                                if nx == 0 && ny == 0 {
+                                                    continue 'fall;
+                                                };
                                                 continue 'backtrack;
                                             }
                                         }
                                     }
                                 }
                             }
-                            queue.push((nx, ny, steps + 1));
+                            queue.push((nx, ny, steps));
                         }
                     }
                 }
