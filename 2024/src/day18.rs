@@ -154,7 +154,7 @@ pub fn part2(input: &str) -> String {
                 break;
             }
             while let Some((x, y, steps)) = queue.pop() {
-                let mut steps = steps + 1;
+                let steps = steps + 1;
                 for [dx, dy] in DELTAS {
                     let (nx, ny) = (x + dx, y + dy);
                     if (nx as u8) < SIZE as u8 && (ny as u8) < SIZE as u8 {
@@ -163,25 +163,26 @@ pub fn part2(input: &str) -> String {
                                 .unwrap_unchecked()
                         };
                         if *c < blocks {
-                            let mut btx = nx;
-                            let mut bty = ny;
                             if *c & !0x7fff == prev && *c & 0x7fff > rsteps {
+                                let mut rx = nx;
+                                let mut ry = ny;
+                                let mut steps = steps;
                                 let mut rsteps = *c & 0x7fff;
-                                *c = blocks | steps;
+                                *c = blocks | steps | 0x8000;
                                 'retrace_end: loop {
                                     steps += 1;
                                     rsteps += 1;
                                     for [dx, dy] in DELTAS {
-                                        let (nx, ny) = (btx + dx, bty + dy);
+                                        let (nx, ny) = (rx + dx, ry + dy);
                                         if (nx as u8) < SIZE as u8 && (ny as u8) < SIZE as u8 {
                                             let c = unsafe {
                                                 map.get_mut(ny as usize * SIZE + nx as usize)
                                                     .unwrap_unchecked()
                                             };
                                             if *c == prev | rsteps {
-                                                *c = blocks | steps;
-                                                btx = nx;
-                                                bty = ny;
+                                                *c = blocks | steps | 0x8000;
+                                                rx = nx;
+                                                ry = ny;
                                                 if nx == SIZE as i8 - 1 && ny == SIZE as i8 - 1 {
                                                     break 'retrace_end;
                                                 }
@@ -198,6 +199,8 @@ pub fn part2(input: &str) -> String {
                                     continue;
                                 }
                             }
+                            let mut btx = nx;
+                            let mut bty = ny;
                             let c = unsafe {
                                 map.get_mut(bty as usize * SIZE + btx as usize)
                                     .unwrap_unchecked()
