@@ -132,10 +132,10 @@ pub fn part2(input: &str) -> String {
             queue.clear();
             let mut x = 0;
             let mut y = 0;
-            let mut steps = 0;
+            let mut rsteps = 0;
             'retrace: loop {
-                queue.push((x, y, steps));
-                steps += 1;
+                queue.push((x, y, rsteps));
+                rsteps += 1;
                 for [dx, dy] in DELTAS {
                     let (nx, ny) = (x + dx, y + dy);
                     if (nx as u8) < SIZE as u8 && (ny as u8) < SIZE as u8 {
@@ -143,8 +143,8 @@ pub fn part2(input: &str) -> String {
                             map.get_mut(ny as usize * SIZE + nx as usize)
                                 .unwrap_unchecked()
                         };
-                        if *c == prev | steps {
-                            *c = blocks | steps;
+                        if *c == prev | rsteps {
+                            *c = blocks | rsteps;
                             x = nx;
                             y = ny;
                             continue 'retrace;
@@ -154,7 +154,7 @@ pub fn part2(input: &str) -> String {
                 break;
             }
             while let Some((x, y, steps)) = queue.pop() {
-                let steps = steps + 1;
+                let mut steps = steps + 1;
                 for [dx, dy] in DELTAS {
                     let (nx, ny) = (x + dx, y + dy);
                     if (nx as u8) < SIZE as u8 && (ny as u8) < SIZE as u8 {
@@ -163,13 +163,14 @@ pub fn part2(input: &str) -> String {
                                 .unwrap_unchecked()
                         };
                         if *c < blocks {
-                            *c = blocks | steps;
-                            if nx == (SIZE - 1) as _ && ny == (SIZE - 1) as _ {
-                                *c |= 0x8000;
-                                let mut bsteps = blocks | (steps - 1);
-                                let mut btx = nx;
-                                let mut bty = ny;
-                                'backtrack: loop {
+                            let mut btx = nx;
+                            let mut bty = ny;
+                            if *c & !0x7fff == prev && *c & 0x7fff > rsteps {
+                                let mut rsteps = *c & 0x7fff;
+                                *c = blocks | steps;
+                                'retrace_end: loop {
+                                    steps += 1;
+                                    rsteps += 1;
                                     for [dx, dy] in DELTAS {
                                         let (nx, ny) = (btx + dx, bty + dy);
                                         if (nx as u8) < SIZE as u8 && (ny as u8) < SIZE as u8 {
@@ -177,21 +178,53 @@ pub fn part2(input: &str) -> String {
                                                 map.get_mut(ny as usize * SIZE + nx as usize)
                                                     .unwrap_unchecked()
                                             };
-                                            if *c == bsteps {
-                                                *c |= 0x8000;
+                                            if *c == prev | rsteps {
+                                                *c = blocks | steps;
                                                 btx = nx;
                                                 bty = ny;
-                                                bsteps -= 1;
-                                                if nx == 0 && ny == 0 {
-                                                    continue 'fall;
-                                                };
-                                                continue 'backtrack;
+                                                if nx == SIZE as i8 - 1 && ny == SIZE as i8 - 1 {
+                                                    break 'retrace_end;
+                                                }
+                                                continue 'retrace_end;
                                             }
+                                        }
+                                    }
+                                    unreachable!()
+                                }
+                            } else {
+                                *c = blocks | steps;
+                                if nx != (SIZE - 1) as _ || ny != (SIZE - 1) as _ {
+                                    queue.push((nx, ny, steps));
+                                    continue;
+                                }
+                            }
+                            let c = unsafe {
+                                map.get_mut(bty as usize * SIZE + btx as usize)
+                                    .unwrap_unchecked()
+                            };
+                            *c |= 0x8000;
+                            let mut bsteps = blocks | (steps - 1);
+                            'backtrack: loop {
+                                for [dx, dy] in DELTAS {
+                                    let (nx, ny) = (btx + dx, bty + dy);
+                                    if (nx as u8) < SIZE as u8 && (ny as u8) < SIZE as u8 {
+                                        let c = unsafe {
+                                            map.get_mut(ny as usize * SIZE + nx as usize)
+                                                .unwrap_unchecked()
+                                        };
+                                        if *c == bsteps {
+                                            *c |= 0x8000;
+                                            if nx == 0 && ny == 0 {
+                                                continue 'fall;
+                                            };
+                                            btx = nx;
+                                            bty = ny;
+                                            bsteps -= 1;
+                                            continue 'backtrack;
                                         }
                                     }
                                 }
                             }
-                            queue.push((nx, ny, steps));
                         }
                     }
                 }
