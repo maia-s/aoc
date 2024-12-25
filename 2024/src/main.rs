@@ -185,4 +185,5 @@ days! {
     day17,
     day18,
     day24,
+    day25,
 }
