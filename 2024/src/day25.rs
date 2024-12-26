@@ -64,7 +64,7 @@ impl LockOrKey {
         let is_key = input[0] == b'.';
         let mut value = if is_key { u32::MAX } else { 0 };
         for &i in input[6..36].iter().filter(|&&i| i != b'\n') {
-            value = value << 1 | (i == b'#') as u32;
+            value = value << 1 | (i & 1) as u32;
         }
         *input = &input[input.len().min(6 * 7 + 1)..];
         Self(value)
